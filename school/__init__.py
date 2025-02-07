@@ -2,6 +2,10 @@ from flask_sqlalchemy import SQLAlchemy
 from flask import Flask
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -9,7 +13,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = '7fea38684e057829da404a986b42f373'
 
 # PostgreSQL Configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://uthkarsh:Ruthwik081%40@localhost:5432/school_fee_db"
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # To suppress warning messages
 
 # Initialize Flask extensions
