@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="content-section">
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            <fieldset class="form-group">
+                <legend class="border-bottom mb-4">Fee Breakdown Form</legend>
+                
+                <!-- PEN Number Field -->
+                <div class="form-group">
+                    {{ form.pen_num.label(class="form-control-label") }}
+                    {{ form.pen_num(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Year Field -->
+                <div class="form-group">
+                    {{ form.year.label(class="form-control-label") }}
+                    {{ form.year(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Fee Type Field -->
+                <div class="form-group">
+                    {{ form.fee_type.label(class="form-control-label") }}
+                    {{ form.fee_type(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Term Field -->
+                <div class="form-group">
+                    {{ form.term.label(class="form-control-label") }}
+                    {{ form.term(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Paid Amount Field -->
+                <div class="form-group">
+                    {{ form.paid.label(class="form-control-label") }}
+                    {{ form.paid(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Due Amount Field -->
+                <div class="form-group">
+                    {{ form.due.label(class="form-control-label") }}
+                    {{ form.due(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Receipt Number Field -->
+                <div class="form-group">
+                    {{ form.receipt_no.label(class="form-control-label") }}
+                    {{ form.receipt_no(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Fee Paid Date Field -->
+                <div class="form-group">
+                    {{ form.fee_paid_date.label(class="form-control-label") }}
+                    {{ form.fee_paid_date(class="form-control form-control-lg") }}
+                </div>
+            </fieldset>
+            <div class="form-group">
+                {{ form.submit(class="btn btn-outline-info") }}
+            </div>
+        </form>
+    </div>
+{% endblock content %}

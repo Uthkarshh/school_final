@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="content-section">
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            <fieldset class="form-group">
+                <legend class="border-bottom mb-4">Transport Form</legend>
+                
+                <!-- Pick-up Point Field -->
+                <div class="form-group">
+                    {{ form.pick_up_point.label(class="form-control-label") }}
+                    {% if form.pick_up_point.errors %}
+                    {{ form.pick_up_point(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.pick_up_point.errors %}
+                            <span> {{ error }} </span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                        {{ form.pick_up_point(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div>
+                
+                <!-- Route Number Field -->
+                <div class="form-group">
+                    {{ form.route_number.label(class="form-control-label") }}
+                    {% if form.route_number.errors %}
+                    {{ form.route_number(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.route_number.errors %}
+                            <span> {{ error }} </span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                        {{ form.route_number(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div>
+                
+            </fieldset>
+            <div class="form-group">
+                {{ form.submit(class="btn btn-outline-info") }}
+            </div>
+        </form>
+    </div>
+{% endblock content %}

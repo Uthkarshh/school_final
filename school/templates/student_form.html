@@ -1,0 +1,109 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="content-section">
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            <fieldset class="form-group">
+                <legend class="border-bottom mb-4">Student Form</legend>
+                
+                <!-- PEN Number Field -->
+                <div class="form-group">
+                    {{ form.pen_num.label(class="form-control-label") }}
+                    {% if form.pen_num.errors %}
+                    {{ form.pen_num(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.pen_num.errors %}
+                            <span> {{ error }} </span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                        {{ form.pen_num(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div>
+                
+                <!-- Admission Number Field -->
+                <div class="form-group">
+                    {{ form.admission_number.label(class="form-control-label") }}
+                    {% if form.admission_number.errors %}
+                    {{ form.admission_number(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.admission_number.errors %}
+                            <span> {{ error }} </span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                        {{ form.admission_number(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div>
+                
+                <!-- Aadhar Number Field -->
+                <div class="form-group">
+                    {{ form.aadhar_number.label(class="form-control-label") }}
+                    {% if form.aadhar_number.errors %}
+                    {{ form.aadhar_number(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.aadhar_number.errors %}
+                            <span> {{ error }} </span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                        {{ form.aadhar_number(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div>
+                
+                <!-- Student Name Field -->
+                <div class="form-group">
+                    {{ form.student_name.label(class="form-control-label") }}
+                    {{ form.student_name(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Father Name Field -->
+                <div class="form-group">
+                    {{ form.father_name.label(class="form-control-label") }}
+                    {{ form.father_name(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Mother Name Field -->
+                <div class="form-group">
+                    {{ form.mother_name.label(class="form-control-label") }}
+                    {{ form.mother_name(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Gender Field -->
+                <div class="form-group">
+                    {{ form.gender.label(class="form-control-label") }}
+                    {{ form.gender(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Date of Birth Field -->
+                <div class="form-group">
+                    {{ form.date_of_birth.label(class="form-control-label") }}
+                    {{ form.date_of_birth(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Date of Joining Field -->
+                <div class="form-group">
+                    {{ form.date_of_joining.label(class="form-control-label") }}
+                    {{ form.date_of_joining(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Contact Number Field -->
+                <div class="form-group">
+                    {{ form.contact_number.label(class="form-control-label") }}
+                    {{ form.contact_number(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Village Field -->
+                <div class="form-group">
+                    {{ form.village.label(class="form-control-label") }}
+                    {{ form.village(class="form-control form-control-lg") }}
+                </div>
+                
+            </fieldset>
+            <div class="form-group">
+                {{ form.submit(class="btn btn-outline-info") }}
+            </div>
+        </form>
+    </div>
+{% endblock content %}

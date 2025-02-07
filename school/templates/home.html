@@ -1,0 +1,85 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div class="container">
+        <div class="jumbotron">
+            <h1 class="display-4">Welcome to [School Name] Management System</h1>
+            <p class="lead">Streamlining school operations for efficient management of students, fees, classes, and transport.</p>
+        </div>
+
+        {% if not current_user.is_authenticated %}
+        <div class="row mb-3">
+            <div class="col-md-12 text-center">
+                <p>Existing users, please Login to access the system. New users can Register to access the system.</p>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-success" role="alert">
+            Welcome, {{ current_user.username }}!
+        </div>
+
+        {% if current_user.user_role == 'Admin' %}
+        <h2>Admin Quick Actions</h2>
+        <div class="row mb-3">
+            <div class="col">
+                <a href="{{ url_for('student_form') }}" class="btn btn-outline-primary btn-block">Student Form</a>
+            </div>
+            <div class="col">
+                <a href="{{ url_for('transport_form') }}" class="btn btn-outline-primary btn-block">Transport Form</a>
+            </div>
+            <div class="col">
+                <a href="{{ url_for('class_details_form') }}" class="btn btn-outline-primary btn-block">Class Details</a>
+            </div>
+            <div class="col">
+                <a href="{{ url_for('fee_form') }}" class="btn btn-outline-primary btn-block">Fee Form</a>
+            </div>
+             <div class="col">
+                <a href="{{ url_for('fee_breakdown_form') }}" class="btn btn-outline-primary btn-block">Fee Breakdown</a>
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+
+        <h2>System Pages</h2>
+        <div class="row">
+            {% for page in pages %}
+                {% if current_user.is_authenticated %}
+                    {% if page.name not in ['Login', 'Register'] %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ page.name }}</h5>
+                                <p class="card-text">Go to the {{ page.name }} page.</p>
+                                <a href="{{ page.relative_path }}" class="btn btn-primary">Go to {{ page.name }}</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    {% if page.name in ['Login', 'Register'] %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ page.name }}</h5>
+                                <p class="card-text">Go to the {{ page.name }} page.</p>
+                                <a href="{{ page.relative_path }}" class="btn btn-primary">Go to {{ page.name }}</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+        </div>
+
+
+        <div class="mt-5">
+            <h2>School Announcements</h2>
+            <ul class="list-group">
+                <li class="list-group-item">Announcement 1: [Date] - [Brief announcement text]</li>
+                <li class="list-group-item">Announcement 2: [Date] - [Brief announcement text]</li>
+                <li class="list-group-item">Announcement 3: [Date] - [Brief announcement text]</li>
+            </ul>
+            <p class="mt-2"><a href="#">View all announcements</a></p>
+        </div>
+
+    </div>
+{% endblock content %}

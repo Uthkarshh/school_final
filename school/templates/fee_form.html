@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="content-section">
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            <fieldset class="form-group">
+                <legend class="border-bottom mb-4">Fee Form</legend>
+                
+                <!-- PEN Number Field -->
+                <div class="form-group">
+                    {{ form.pen_num.label(class="form-control-label") }}
+                    {{ form.pen_num(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Year Field -->
+                <div class="form-group">
+                    {{ form.year.label(class="form-control-label") }}
+                    {{ form.year(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- School Fee Field -->
+                <div class="form-group">
+                    {{ form.school_fee.label(class="form-control-label") }}
+                    {{ form.school_fee(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Concession Reason Field -->
+                <div class="form-group">
+                    {{ form.concession_reason.label(class="form-control-label") }}
+                    {{ form.concession_reason(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Transport Used Field -->
+                <div class="form-group">
+                    {{ form.transport_used.label(class="form-control-label") }}
+                    {{ form.transport_used() }}
+                </div>
+                
+                <!-- Application Fee Field -->
+                <div class="form-group">
+                    {{ form.application_fee.label(class="form-control-label") }}
+                    {{ form.application_fee(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Transport Fee Field -->
+                <div class="form-group">
+                    {{ form.transport_fee.label(class="form-control-label") }}
+                    {{ form.transport_fee(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Transport Fee Concession Field -->
+                <div class="form-group">
+                    {{ form.transport_fee_concession.label(class="form-control-label") }}
+                    {{ form.transport_fee_concession(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Transport ID Field -->
+                <div class="form-group">
+                    {{ form.transport_id.label(class="form-control-label") }}
+                    {{ form.transport_id(class="form-control form-control-lg") }}
+                </div>
+                
+            </fieldset>
+            <div class="form-group">
+                {{ form.submit(class="btn btn-outline-info") }}
+            </div>
+        </form>
+    </div>
+{% endblock content %}

@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="content-section">
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            <fieldset class="form-group">
+                <legend class="border-bottom mb-4">Class Details Form</legend>
+                
+                <!-- PEN Number Field -->
+                <div class="form-group">
+                    {{ form.pen_num.label(class="form-control-label") }}
+                    {{ form.pen_num(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Year Field -->
+                <div class="form-group">
+                    {{ form.year.label(class="form-control-label") }}
+                    {{ form.year(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Current Class Field -->
+                <div class="form-group">
+                    {{ form.current_class.label(class="form-control-label") }}
+                    {{ form.current_class(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Section Field -->
+                <div class="form-group">
+                    {{ form.section.label(class="form-control-label") }}
+                    {{ form.section(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Roll Number Field -->
+                <div class="form-group">
+                    {{ form.roll_number.label(class="form-control-label") }}
+                    {{ form.roll_number(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Photo ID Field -->
+                <div class="form-group">
+                    {{ form.photo_id.label(class="form-control-label") }}
+                    {{ form.photo_id(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Language Field -->
+                <div class="form-group">
+                    {{ form.language.label(class="form-control-label") }}
+                    {{ form.language(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Vocational Field -->
+                <div class="form-group">
+                    {{ form.vocational.label(class="form-control-label") }}
+                    {{ form.vocational(class="form-control form-control-lg") }}
+                </div>
+                
+                <!-- Currently Enrolled Field -->
+                <div class="form-group">
+                    {{ form.currently_enrolled.label(class="form-control-label") }}
+                    {{ form.currently_enrolled(class="form-check-input") }}
+                </div>
+                
+            </fieldset>
+            <div class="form-group">
+                {{ form.submit(class="btn btn-outline-info") }}
+            </div>
+        </form>
+    </div>
+{% endblock content %}
