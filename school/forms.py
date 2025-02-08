@@ -4,6 +4,7 @@ from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextA
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, NumberRange, Optional
 from school.models import User, Student, Transport
 from flask_login import current_user
+from datetime import date
 
 class RegistrationForm(FlaskForm):
     username = StringField('Username', 
@@ -113,13 +114,19 @@ class FeeForm(FlaskForm):
     transport_id = IntegerField('Transport ID', validators=[Optional()])
     submit = SubmitField('Save')
 
+    def validate_transport_used(form, field):
+        if not field.data:  # If transport_used is False (not checked)
+            form.transport_fee.data = 0
+            form.transport_fee_concession.data = 0
+            form.transport_id.data = 0
+
 class FeeBreakdownForm(FlaskForm):
     pen_num = IntegerField('PEN Number', validators=[DataRequired()])
     year = IntegerField('Year', validators=[DataRequired()])
-    fee_type = StringField('Fee Type', validators=[DataRequired(), Length(max=50)])
-    term = StringField('Term', validators=[DataRequired(), Length(max=5)])
+    fee_type = SelectField('Fee Type', choices=[('', 'None'), ('School', 'School'), ('Transport', 'Transport'), ('Application', 'Application')], validators=[Optional()])
+    term = SelectField('Term', choices=[('', 'None'), ('1', '1'), ('2', '2'), ('3', '3')], validators=[Optional()])
     paid = DecimalField('Paid Amount', validators=[DataRequired()])
     due = DecimalField('Due Amount', validators=[DataRequired()])
     receipt_no = IntegerField('Receipt No', validators=[Optional()])
-    fee_paid_date = DateField('Fee Paid Date', validators=[Optional()])
+    fee_paid_date = DateField('Fee Paid Date', validators=[Optional()], default=date.today)
     submit = SubmitField('Save')
