@@ -59,5 +59,20 @@
                 {{ form.submit(class="btn btn-outline-info") }}
             </div>
         </form>
+
+        <hr>
+        <form method="POST" action="{{ url_for('import_fee_breakdown_csv') }}" enctype="multipart/form-data">
+            <fieldset class="form-group">
+                <legend class="border-bottom mb-4">Import Fee Breakdown from CSV</legend>
+                <div class="form-group">
+                    <label class="form-control-label">CSV File</label>
+                    <input type="file" name="fee_breakdown_csv" class="form-control-file" accept=".csv" required>
+                </div>
+            </fieldset>
+            <div class="form-group">
+                <button type="submit" class="btn btn-outline-secondary">Import CSV</button>
+            </div>
+        </form>
+        
     </div>
 {% endblock content %}

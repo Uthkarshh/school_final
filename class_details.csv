@@ -1,0 +1,21 @@
+pen_num,year,current_class,section,roll_number,photo_id,language,vocational,currently_enrolled
+6637,2022,5,B,28,5799,French,Automobile,False
+9460,2023,2,D,33,4877,Hindi,Automobile,True
+8633,2025,11,E,14,5626,French,Computer Science,False
+9183,2023,11,B,33,8881,Spanish,Commerce,False
+8828,2021,6,E,18,7096,Hindi,Computer Science,True
+5999,2021,5,E,2,1177,French,Electronics,False
+3516,2022,11,A,16,2054,Spanish,Computer Science,False
+9159,2024,7,A,48,6014,German,Commerce,False
+9124,2024,7,E,49,4325,German,Commerce,True
+9411,2020,5,A,37,7083,Spanish,Electronics,True
+3263,2020,4,A,9,6279,Spanish,Electronics,False
+5499,2023,8,E,20,2731,English,Automobile,True
+7061,2023,4,D,45,3829,Spanish,Automobile,True
+8634,2021,3,G,40,1633,English,Computer Science,False
+4344,2020,10,E,30,9201,Hindi,Agriculture,True
+9563,2023,6,C,21,4285,French,Computer Science,False
+5722,2022,3,A,21,8372,German,Commerce,True
+3922,2024,11,E,43,7479,French,Electronics,False
+7227,2025,12,A,44,6646,German,Agriculture,False
+9692,2020,11,E,5,3735,Spanish,Agriculture,True

@@ -4,7 +4,10 @@ from school.forms import RegistrationForm, LoginForm, UpdateAccountForm, Student
 from school.models import User, Student, ClassDetails, Fee, FeeBreakdown, Transport
 from flask_login import login_user, current_user, logout_user, login_required
 import secrets
-import os
+from sqlalchemy.exc import IntegrityError
+import csv
+from io import TextIOWrapper
+from datetime import datetime
 from PIL import Image
 
 @app.route("/")
@@ -166,8 +169,116 @@ def student_form():
         db.session.add(student)
         db.session.commit()
         flash('Student record added successfully!', 'success')
-        return redirect(url_for('home'))
+        return redirect(url_for('student_form'))
     return render_template('student_form.html', title='Student Form', form=form)
+
+@app.route("/import_student_csv", methods=['GET', 'POST'])
+@login_required
+def import_student_csv():
+    if current_user.user_role != 'Admin':
+        abort(403)
+
+    if request.method == 'POST':
+        if 'student_csv' not in request.files:
+            flash('No file part', 'danger')
+            return redirect(request.url)
+
+        file = request.files['student_csv']
+
+        if file.filename == '':
+            flash('No selected file', 'danger')
+            return redirect(request.url)
+
+        if file and file.filename.endswith('.csv'):
+            try:
+                csv_file = TextIOWrapper(file.stream, encoding='utf-8')
+                csv_reader = csv.DictReader(csv_file)
+
+                students_imported = 0
+                students_updated = 0
+                students_failed = 0
+
+                for row in csv_reader:
+                    try:
+                        # Convert values safely, handle missing values using .get and strip
+                        pen_num = int(row.get("pen_num", "0").strip() or 0)
+                        admission_number = int(row.get("admission_number", "0").strip() or 0)
+                        aadhar_number = int(row.get("aadhar_number", "0").strip() or 0)
+                        student_name = row.get("student_name", "").strip()
+                        father_name = row.get("father_name", "").strip()
+                        mother_name = row.get("mother_name", "").strip()
+                        gender = row.get("gender", "").strip()
+                        date_of_birth_str = row.get("date_of_birth", "").strip()
+                        date_of_joining_str = row.get("date_of_joining", "").strip()
+                        contact_number = row.get("contact_number", "").strip()
+                        village = row.get("village", "").strip()
+
+                        # Convert date strings to date objects, handle potential empty date strings
+                        date_of_birth = datetime.strptime(date_of_birth_str, '%Y-%m-%d').date() if date_of_birth_str else None
+                        date_of_joining = datetime.strptime(date_of_joining_str, '%Y-%m-%d').date() if date_of_joining_str else None
+
+                        # Check if record exists based on pen_num
+                        existing_student = Student.query.filter_by(pen_num=pen_num).first()
+
+                        if existing_student:
+                            # Update existing record
+                            existing_student.admission_number = admission_number
+                            existing_student.aadhar_number = aadhar_number
+                            existing_student.student_name = student_name
+                            existing_student.father_name = father_name
+                            existing_student.mother_name = mother_name
+                            existing_student.gender = gender
+                            existing_student.date_of_birth = date_of_birth
+                            existing_student.date_of_joining = date_of_joining
+                            existing_student.contact_number = contact_number
+                            existing_student.village = village
+                            existing_student.updated_by = current_user.username # Track who updated
+                            students_updated += 1
+                        else:
+                            # Insert new record
+                            student = Student(
+                                pen_num=pen_num,
+                                admission_number=admission_number,
+                                aadhar_number=aadhar_number,
+                                student_name=student_name,
+                                father_name=father_name,
+                                mother_name=mother_name,
+                                gender=gender,
+                                date_of_birth=date_of_birth,
+                                date_of_joining=date_of_joining,
+                                contact_number=contact_number,
+                                village=village,
+                                created_by=current_user.username # Track who created
+                            )
+                            db.session.add(student)
+                            students_imported += 1
+
+                        db.session.flush()  # Commit each row
+
+                    except ValueError as ve:
+                        print(f"Data conversion error in row {row}: {ve}")
+                        flash(f"Data format error in row {row}: {ve}", "danger")
+                        students_failed += 1
+                    except IntegrityError as ie:
+                        print(f"Integrity error in row {row}: {ie}")
+                        db.session.rollback() # Rollback individual row
+                        flash(f"Database constraint error for row {row}: {ie}", "danger")
+                        students_failed += 1
+                    except Exception as e:
+                        print(f"Unexpected error in row {row}: {e}")
+                        db.session.rollback()
+                        flash(f"Unexpected error in row {row}: {e}", "danger")
+                        students_failed += 1
+
+                db.session.commit() # Final commit after all rows
+                flash(f'{students_imported} records imported, {students_updated} records updated, {students_failed} records failed.', 'success')
+
+            except Exception as e:
+                flash(f'Error processing CSV file: {str(e)}', 'danger')
+
+            return redirect(url_for('home')) # Redirect to home or student list page
+
+    return render_template('import_student_csv.html', title='Import Student CSV')
 
 
 @app.route("/transport_form", methods=['GET', 'POST'])
@@ -187,6 +298,71 @@ def transport_form():
         flash('Transport record added successfully!', 'success')
         return redirect(url_for('home'))
     return render_template('transport_form.html', title='Transport Form', form=form)
+
+@app.route("/import_transport_csv", methods=['GET', 'POST'])
+@login_required
+def import_transport_csv():
+    if current_user.user_role != 'Admin':
+        abort(403)
+
+    if request.method == 'POST':
+        if 'transport_csv' not in request.files:
+            flash('No file part', 'danger')
+            return redirect(request.url)
+
+        file = request.files['transport_csv']
+        
+        if file.filename == '':
+            flash('No selected file', 'danger')
+            return redirect(request.url)
+
+        if file and file.filename.endswith('.csv'):
+            try:
+                # Decode the file properly for universal support
+                csv_file = TextIOWrapper(file.stream, encoding='utf-8')
+                csv_reader = csv.DictReader(csv_file)  # Read CSV by column names
+                
+                transports_imported = 0
+                transports_failed = 0
+
+                for row in csv_reader:
+                    try:
+                        pick_up_point = row.get("pick_up_point", "").strip()
+                        route_number = row.get("route_number", "").strip()
+
+                        # Validate required fields
+                        if not pick_up_point or not route_number:
+                            raise ValueError("Missing required transport details")
+
+                        transport = Transport(
+                            pick_up_point=pick_up_point,
+                            route_number=route_number,
+                            created_by=current_user.username
+                        )
+
+                        db.session.add(transport)
+                        transports_imported += 1
+                    
+                    except ValueError as ve:
+                        print(f"Data format issue in row {row}: {ve}")
+                        transports_failed += 1
+                        db.session.rollback()  # Rollback only on failed row
+
+                    except Exception as e:
+                        print(f"Unexpected error in row {row}: {e}")
+                        transports_failed += 1
+                        db.session.rollback()
+
+                db.session.commit()  # Commit all valid records at once
+                flash(f'{transports_imported} transport records imported successfully! {transports_failed} records failed.', 'success')
+
+            except Exception as e:
+                flash(f'Error processing CSV file: {str(e)}', 'danger')
+
+            return redirect(url_for('home'))  # Redirect to a transport list page if needed
+
+    return render_template('import_transport_csv.html', title='Import Transport CSV')
+
 
 
 @app.route("/class_details_form", methods=['GET', 'POST'])
@@ -215,6 +391,106 @@ def class_details_form():
     return render_template('class_details_form.html', title='Class Details', form=form)
 
 
+@app.route("/import_class_details_csv", methods=['GET', 'POST'])
+@login_required
+def import_class_details_csv():
+    if current_user.user_role != 'Admin':
+        abort(403)
+
+    if request.method == 'POST':
+        if 'class_details_csv' not in request.files:
+            flash('No file part', 'danger')
+            return redirect(request.url)
+
+        file = request.files['class_details_csv']
+
+        if file.filename == '':
+            flash('No selected file', 'danger')
+            return redirect(request.url)
+
+        if file and file.filename.endswith('.csv'):
+            try:
+                csv_file = TextIOWrapper(file.stream, encoding='utf-8')
+                csv_reader = csv.DictReader(csv_file)
+
+                class_details_imported = 0
+                class_details_updated = 0
+                class_details_failed = 0
+
+                for row in csv_reader:
+                    try:
+                        # Convert values safely
+                        pen_num = int(row.get("pen_num", "0").strip() or 0)
+                        year = int(row.get("year", "0").strip() or 0)
+                        current_class = int(row.get("current_class", "0").strip() or 0)
+                        section = row.get("section", "").strip()
+                        roll_number = int(row.get("roll_number", "0").strip() or 0)
+                        photo_id = int(row.get("photo_id", "0").strip() or 0)
+                        language = row.get("language", "").strip()
+                        vocational = row.get("vocational", "").strip()
+                        currently_enrolled = row.get("currently_enrolled", "").strip().lower() in ["true", "1", "yes"]
+
+                        # Check if record exists
+                        existing_record = ClassDetails.query.filter_by(pen_num=pen_num, year=year).first()
+
+                        if existing_record:
+                            # Update existing record
+                            existing_record.current_class = current_class
+                            existing_record.section = section
+                            existing_record.roll_number = roll_number
+                            existing_record.photo_id = photo_id
+                            existing_record.language = language
+                            existing_record.vocational = vocational
+                            existing_record.currently_enrolled = currently_enrolled
+                            existing_record.updated_by = current_user.username  # Track who updated the record
+                            class_details_updated += 1
+                        else:
+                            # Insert new record
+                            class_details = ClassDetails(
+                                pen_num=pen_num,
+                                year=year,
+                                current_class=current_class,
+                                section=section,
+                                roll_number=roll_number,
+                                photo_id=photo_id,
+                                language=language,
+                                vocational=vocational,
+                                currently_enrolled=currently_enrolled,
+                                created_by=current_user.username
+                            )
+                            db.session.add(class_details)
+                            class_details_imported += 1
+
+                        db.session.flush()  # Commit only this row
+
+                    except ValueError as ve:
+                        print(f"Data conversion error in row {row}: {ve}")
+                        flash(f"Data format error in row {row}: {ve}", "danger")
+                        class_details_failed += 1
+                    except IntegrityError as ie:
+                        print(f"Integrity error in row {row}: {ie}")
+                        db.session.rollback()  # Rollback only current row
+                        flash(f"Database constraint error for row {row}: {ie}", "danger")
+                        class_details_failed += 1
+                    except Exception as e:
+                        print(f"Unexpected error in row {row}: {e}")
+                        db.session.rollback()
+                        flash(f"Unexpected error in row {row}: {e}", "danger")
+                        class_details_failed += 1
+
+                db.session.commit()  # Final commit after all records
+                flash(f'{class_details_imported} records imported, {class_details_updated} records updated, {class_details_failed} records failed.', 'success')
+
+            except Exception as e:
+                flash(f'Error processing CSV file: {str(e)}', 'danger')
+
+            return redirect(url_for('home'))
+
+    return render_template('import_class_details_csv.html', title='Import Class Details CSV')
+
+
+
+
 @app.route("/fee_form", methods=['GET', 'POST'])
 @login_required
 def fee_form():
@@ -240,6 +516,108 @@ def fee_form():
         return redirect(url_for('home'))
     return render_template('fee_form.html', title='Fee Form', form=form)
 
+@app.route("/import_fee_csv", methods=['GET', 'POST'])
+@login_required
+def import_fee_csv():
+    if current_user.user_role != 'Admin':
+        abort(403)
+
+    if request.method == 'POST':
+        if 'fee_csv' not in request.files:
+            flash('No file part', 'danger')
+            return redirect(request.url)
+
+        file = request.files['fee_csv']
+
+        if file.filename == '':
+            flash('No selected file', 'danger')
+            return redirect(request.url)
+
+        if file and file.filename.endswith('.csv'):
+            try:
+                csv_file = TextIOWrapper(file.stream, encoding='utf-8')
+                csv_reader = csv.DictReader(csv_file)
+
+                fees_imported = 0
+                fees_updated = 0
+                fees_failed = 0
+
+                for row in csv_reader:
+                    try:
+                        # Convert values safely, handle missing values using .get and strip
+                        pen_num = int(row.get("pen_num", "0").strip() or 0)
+                        year = int(row.get("year", "0").strip() or 0)
+                        school_fee = float(row.get("school_fee", "0.0").strip() or 0.0)
+                        concession_reason = row.get("concession_reason", "").strip()
+                        transport_used_str = row.get("transport_used", "").strip().lower()
+                        application_fee = float(row.get("application_fee", "0.0").strip() or 0.0)
+                        transport_fee = float(row.get("transport_fee", "0.0").strip() or 0.0)
+                        transport_fee_concession = float(row.get("transport_fee_concession", "0.0").strip() or 0.0)
+                        transport_id_str = row.get("transport_id", "").strip()
+
+                        # Convert boolean and integer values
+                        transport_used = transport_used_str in ["true", "1", "yes"]
+                        transport_id = int(transport_id_str) if transport_id_str else None
+
+                        # Check if record exists
+                        existing_fee = Fee.query.filter_by(pen_num=pen_num, year=year).first()
+
+                        if existing_fee:
+                            # Update existing record
+                            existing_fee.school_fee = school_fee
+                            existing_fee.concession_reason = concession_reason
+                            existing_fee.transport_used = transport_used
+                            existing_fee.application_fee = application_fee
+                            existing_fee.transport_fee = transport_fee
+                            existing_fee.transport_fee_concession = transport_fee_concession
+                            existing_fee.transport_id = transport_id
+                            existing_fee.updated_by = current_user.username # Track who updated
+                            fees_updated += 1
+                        else:
+                            # Insert new record
+                            fee = Fee(
+                                pen_num=pen_num,
+                                year=year,
+                                school_fee=school_fee,
+                                concession_reason=concession_reason,
+                                transport_used=transport_used,
+                                application_fee=application_fee,
+                                transport_fee=transport_fee,
+                                transport_fee_concession=transport_fee_concession,
+                                transport_id=transport_id,
+                                created_by=current_user.username # Track who created
+                            )
+                            db.session.add(fee)
+                            fees_imported += 1
+
+                        db.session.flush() # Commit each row
+
+                    except ValueError as ve:
+                        print(f"Data conversion error in row {row}: {ve}")
+                        flash(f"Data format error in row {row}: {ve}", "danger")
+                        fees_failed += 1
+                    except IntegrityError as ie:
+                        print(f"Integrity error in row {row}: {ie}")
+                        db.session.rollback() # Rollback individual row
+                        flash(f"Database constraint error for row {row}: {ie}", "danger")
+                        fees_failed += 1
+                    except Exception as e:
+                        print(f"Unexpected error in row {row}: {e}")
+                        db.session.rollback()
+                        flash(f"Unexpected error in row {row}: {e}", "danger")
+                        fees_failed += 1
+
+                db.session.commit() # Final commit after all rows
+                flash(f'{fees_imported} records imported, {fees_updated} records updated, {fees_failed} records failed.', 'success')
+
+            except Exception as e:
+                flash(f'Error processing CSV file: {str(e)}', 'danger')
+
+            return redirect(url_for('home'))
+
+    return render_template('import_fee_csv.html', title='Import Fee CSV')
+
+
 
 @app.route("/fee_breakdown_form", methods=['GET', 'POST'])
 @login_required
@@ -264,3 +642,100 @@ def fee_breakdown_form():
         flash('Fee breakdown added successfully!', 'success')
         return redirect(url_for('home'))
     return render_template('fee_breakdown_form.html', title='Fee Breakdown', form=form)
+
+@app.route("/import_fee_breakdown_csv", methods=['GET', 'POST'])
+@login_required
+def import_fee_breakdown_csv():
+    if current_user.user_role != 'Admin':
+        abort(403)
+
+    if request.method == 'POST':
+        if 'fee_breakdown_csv' not in request.files:
+            flash('No file part', 'danger')
+            return redirect(request.url)
+
+        file = request.files['fee_breakdown_csv']
+
+        if file.filename == '':
+            flash('No selected file', 'danger')
+            return redirect(request.url)
+
+        if file and file.filename.endswith('.csv'):
+            try:
+                csv_file = TextIOWrapper(file.stream, encoding='utf-8')
+                csv_reader = csv.DictReader(csv_file)
+
+                fee_breakdowns_imported = 0
+                fee_breakdowns_updated = 0
+                fee_breakdowns_failed = 0
+
+                for row in csv_reader:
+                    try:
+                        # Convert values safely, handle missing values using .get and strip
+                        pen_num = int(row.get("pen_num", "0").strip() or 0)
+                        year = int(row.get("year", "0").strip() or 0)
+                        fee_type = row.get("fee_type", "").strip()
+                        term = row.get("term", "").strip()
+                        paid = float(row.get("paid", "0.0").strip() or 0.0)
+                        due = float(row.get("due", "0.0").strip() or 0.0)
+                        receipt_no_str = row.get("receipt_no", "").strip()
+                        fee_paid_date_str = row.get("fee_paid_date", "").strip()
+
+                        # Convert receipt_no to integer, handle potential empty or non-integer values
+                        receipt_no = int(receipt_no_str) if receipt_no_str else None
+                        # Convert date strings to date objects, handle potential empty date strings
+                        fee_paid_date = datetime.strptime(fee_paid_date_str, '%Y-%m-%d').date() if fee_paid_date_str else None
+
+                        # Check if record exists
+                        existing_fee_breakdown = FeeBreakdown.query.filter_by(pen_num=pen_num, year=year, fee_type=fee_type, term=term).first()
+
+                        if existing_fee_breakdown:
+                            # Update existing record
+                            existing_fee_breakdown.paid = paid
+                            existing_fee_breakdown.due = due
+                            existing_fee_breakdown.receipt_no = receipt_no
+                            existing_fee_breakdown.fee_paid_date = fee_paid_date
+                            existing_fee_breakdown.updated_by = current_user.username # Track who updated
+                            fee_breakdowns_updated += 1
+                        else:
+                            # Insert new record
+                            fee_breakdown = FeeBreakdown(
+                                pen_num=pen_num,
+                                year=year,
+                                fee_type=fee_type,
+                                term=term,
+                                paid=paid,
+                                due=due,
+                                receipt_no=receipt_no,
+                                fee_paid_date=fee_paid_date,
+                                created_by=current_user.username # Track who created
+                            )
+                            db.session.add(fee_breakdown)
+                            fee_breakdowns_imported += 1
+
+                        db.session.flush() # Commit each row
+
+                    except ValueError as ve:
+                        print(f"Data conversion error in row {row}: {ve}")
+                        flash(f"Data format error in row {row}: {ve}", "danger")
+                        fee_breakdowns_failed += 1
+                    except IntegrityError as ie:
+                        print(f"Integrity error in row {row}: {ie}")
+                        db.session.rollback() # Rollback individual row
+                        flash(f"Database constraint error for row {row}: {ie}", "danger")
+                        fee_breakdowns_failed += 1
+                    except Exception as e:
+                        print(f"Unexpected error in row {row}: {e}")
+                        db.session.rollback()
+                        flash(f"Unexpected error in row {row}: {e}", "danger")
+                        fee_breakdowns_failed += 1
+
+                db.session.commit() # Final commit after all rows
+                flash(f'{fee_breakdowns_imported} records imported, {fee_breakdowns_updated} records updated, {fee_breakdowns_failed} records failed.', 'success')
+
+            except Exception as e:
+                flash(f'Error processing CSV file: {str(e)}', 'danger')
+
+            return redirect(url_for('home'))
+
+    return render_template('import_fee_breakdown_csv.html', title='Import Fee Breakdown CSV')
