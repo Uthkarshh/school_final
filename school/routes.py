@@ -9,6 +9,18 @@ import csv
 from io import TextIOWrapper
 from datetime import datetime
 from PIL import Image
+from functools import wraps  # Import wraps decorator
+
+# --- Custom Decorator for Admin Role ---
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or (current_user.user_role != 'Admin' and current_user.user_role != 'HR'):
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated_function
+# --- End of Decorator ---
+
 
 @app.route("/")
 @app.route("/home")
@@ -106,22 +118,19 @@ def account():
     elif request.method == 'GET':
         form.username.data = current_user.username
         form.email.data = current_user.email
+    return render_template('account.html', title='Account', form=form) # Added render_template here
 
 @app.route("/admin/users")
 @login_required
+@admin_required # Applying the admin_required decorator
 def admin_users():
-    if current_user.user_role != 'Admin':
-        abort(403) # Only admins can access this
-
     users = User.query.all() # Get all users now
     return render_template('admin_users.html', users=users, title='Admin - User Management')
 
 @app.route("/admin/users/toggle_approve/<int:user_id>")
 @login_required
+@admin_required # Applying the admin_required decorator
 def toggle_user_approval(user_id):
-    if current_user.user_role != 'Admin':
-        abort(403)
-
     user = User.query.get_or_404(user_id)
     user.is_approved = not user.is_approved # Toggle the approval status
     db.session.commit()
@@ -135,10 +144,8 @@ def toggle_user_approval(user_id):
 
 @app.route("/admin/users/reject/<int:user_id>")
 @login_required
+@admin_required # Applying the admin_required decorator
 def reject_user(user_id):
-    if current_user.user_role != 'Admin':
-        abort(403)
-
     user = User.query.get_or_404(user_id)
     db.session.delete(user) # Or you could set is_rejected=True instead of deleting
     db.session.commit()
@@ -147,9 +154,8 @@ def reject_user(user_id):
 
 @app.route("/student_form", methods=['GET', 'POST'])
 @login_required
+@admin_required # Applying the admin_required decorator
 def student_form():
-    if current_user.user_role != 'Admin':
-        abort(403)
     form = StudentForm()
     if form.validate_on_submit():
         student = Student(
@@ -174,10 +180,8 @@ def student_form():
 
 @app.route("/import_student_csv", methods=['GET', 'POST'])
 @login_required
+@admin_required # Applying the admin_required decorator
 def import_student_csv():
-    if current_user.user_role != 'Admin':
-        abort(403)
-
     if request.method == 'POST':
         if 'student_csv' not in request.files:
             flash('No file part', 'danger')
@@ -283,9 +287,8 @@ def import_student_csv():
 
 @app.route("/transport_form", methods=['GET', 'POST'])
 @login_required
+@admin_required # Applying the admin_required decorator
 def transport_form():
-    if current_user.user_role != 'Admin':
-        abort(403)
     form = TransportForm()
     if form.validate_on_submit():
         transport = Transport(
@@ -296,22 +299,20 @@ def transport_form():
         db.session.add(transport)
         db.session.commit()
         flash('Transport record added successfully!', 'success')
-        return redirect(url_for('home'))
+        return redirect(url_for('transport_form'))
     return render_template('transport_form.html', title='Transport Form', form=form)
 
 @app.route("/import_transport_csv", methods=['GET', 'POST'])
 @login_required
+@admin_required # Applying the admin_required decorator
 def import_transport_csv():
-    if current_user.user_role != 'Admin':
-        abort(403)
-
     if request.method == 'POST':
         if 'transport_csv' not in request.files:
             flash('No file part', 'danger')
             return redirect(request.url)
 
         file = request.files['transport_csv']
-        
+
         if file.filename == '':
             flash('No selected file', 'danger')
             return redirect(request.url)
@@ -321,14 +322,14 @@ def import_transport_csv():
                 # Decode the file properly for universal support
                 csv_file = TextIOWrapper(file.stream, encoding='utf-8')
                 csv_reader = csv.DictReader(csv_file)  # Read CSV by column names
-                
+
                 transports_imported = 0
                 transports_failed = 0
 
                 for row in csv_reader:
                     try:
                         pick_up_point = row.get("pick_up_point", "").strip()
-                        route_number = row.get("route_number", "").strip()
+                        route_number = int(row.get("route_number", "").strip())
 
                         # Validate required fields
                         if not pick_up_point or not route_number:
@@ -342,14 +343,14 @@ def import_transport_csv():
 
                         db.session.add(transport)
                         transports_imported += 1
-                    
+
                     except ValueError as ve:
-                        print(f"Data format issue in row {row}: {ve}")
+                        flash(f"Data format error in row {row}: {ve}", "danger")
                         transports_failed += 1
                         db.session.rollback()  # Rollback only on failed row
 
                     except Exception as e:
-                        print(f"Unexpected error in row {row}: {e}")
+                        flash(f"Unexpected error in row {row}: {e}", "danger")
                         transports_failed += 1
                         db.session.rollback()
 
@@ -367,9 +368,8 @@ def import_transport_csv():
 
 @app.route("/class_details_form", methods=['GET', 'POST'])
 @login_required
+@admin_required # Applying the admin_required decorator
 def class_details_form():
-    if current_user.user_role != 'Admin':
-        abort(403)
     form = ClassDetailsForm()
     if form.validate_on_submit():
         class_details = ClassDetails(
@@ -393,10 +393,8 @@ def class_details_form():
 
 @app.route("/import_class_details_csv", methods=['GET', 'POST'])
 @login_required
+@admin_required # Applying the admin_required decorator
 def import_class_details_csv():
-    if current_user.user_role != 'Admin':
-        abort(403)
-
     if request.method == 'POST':
         if 'class_details_csv' not in request.files:
             flash('No file part', 'danger')
@@ -488,26 +486,35 @@ def import_class_details_csv():
 
     return render_template('import_class_details_csv.html', title='Import Class Details CSV')
 
-
-
-
 @app.route("/fee_form", methods=['GET', 'POST'])
 @login_required
+@admin_required # Applying the admin_required decorator
 def fee_form():
-    if current_user.user_role != 'Admin':
-        abort(403)
     form = FeeForm()
     if form.validate_on_submit():
+        transport_used=form.transport_used.data
+        if transport_used:
+            pick_up_point = form.pick_up_point.data
+            transport = Transport.query.filter_by(pick_up_point=pick_up_point).first()
+            transport_id = transport.transport_id if transport else None # Get transport_id based on pick_up_point
+            transport_fee=form.transport_fee.data
+            transport_fee_concession=form.transport_fee_concession.data
+        else:
+            transport_id = None
+            transport_fee=0
+            transport_fee_concession=0
+
+
         fee = Fee(
             pen_num=form.pen_num.data,
             year=form.year.data,
             school_fee=form.school_fee.data,
             concession_reason=form.concession_reason.data,
-            transport_used=form.transport_used.data,
+            transport_used=transport_used,
             application_fee=form.application_fee.data,
-            transport_fee=form.transport_fee.data,
-            transport_fee_concession=form.transport_fee_concession.data,
-            transport_id=form.transport_id.data,
+            transport_fee=transport_fee,
+            transport_fee_concession=transport_fee_concession,
+            transport_id=transport_id, # Assign transport_id here
             created_by=current_user.username
         )
         db.session.add(fee)
@@ -518,10 +525,8 @@ def fee_form():
 
 @app.route("/import_fee_csv", methods=['GET', 'POST'])
 @login_required
+@admin_required # Applying the admin_required decorator
 def import_fee_csv():
-    if current_user.user_role != 'Admin':
-        abort(403)
-
     if request.method == 'POST':
         if 'fee_csv' not in request.files:
             flash('No file part', 'danger')
@@ -549,15 +554,20 @@ def import_fee_csv():
                         year = int(row.get("year", "0").strip() or 0)
                         school_fee = float(row.get("school_fee", "0.0").strip() or 0.0)
                         concession_reason = row.get("concession_reason", "").strip()
-                        transport_used_str = row.get("transport_used", "").strip().lower()
+                        transport_used = row.get("transport_used", "").strip().lower() in ["true", "1", "yes"]
                         application_fee = float(row.get("application_fee", "0.0").strip() or 0.0)
                         transport_fee = float(row.get("transport_fee", "0.0").strip() or 0.0)
                         transport_fee_concession = float(row.get("transport_fee_concession", "0.0").strip() or 0.0)
-                        transport_id_str = row.get("transport_id", "").strip()
+                        pick_up_point = row.get("pick_up_point", "").strip() # Get pick_up_point from CSV
 
-                        # Convert boolean and integer values
-                        transport_used = transport_used_str in ["true", "1", "yes"]
-                        transport_id = int(transport_id_str) if transport_id_str else None
+                        # Fetch transport_id based on pick_up_point
+                        transport = Transport.query.filter_by(pick_up_point=pick_up_point).first()
+                        transport_id = transport.transport_id if transport else None
+
+                        if not transport_used:
+                            transport_id = None
+                            transport_fee = 0
+                            transport_fee_concession = 0
 
                         # Check if record exists
                         existing_fee = Fee.query.filter_by(pen_num=pen_num, year=year).first()
@@ -570,7 +580,7 @@ def import_fee_csv():
                             existing_fee.application_fee = application_fee
                             existing_fee.transport_fee = transport_fee
                             existing_fee.transport_fee_concession = transport_fee_concession
-                            existing_fee.transport_id = transport_id
+                            existing_fee.transport_id = transport_id # Assign transport_id here
                             existing_fee.updated_by = current_user.username # Track who updated
                             fees_updated += 1
                         else:
@@ -584,7 +594,7 @@ def import_fee_csv():
                                 application_fee=application_fee,
                                 transport_fee=transport_fee,
                                 transport_fee_concession=transport_fee_concession,
-                                transport_id=transport_id,
+                                transport_id=transport_id, # Assign transport_id here
                                 created_by=current_user.username # Track who created
                             )
                             db.session.add(fee)
@@ -621,18 +631,50 @@ def import_fee_csv():
 
 @app.route("/fee_breakdown_form", methods=['GET', 'POST'])
 @login_required
+@admin_required # Applying the admin_required decorator
 def fee_breakdown_form():
-    if current_user.user_role != 'Admin':
-        abort(403)
     form = FeeBreakdownForm()
     if form.validate_on_submit():
+        pen_num = form.pen_num.data
+        year = form.year.data
+        fee_type = form.fee_type.data
+        term = form.term.data
+
+        fee_record = Fee.query.filter_by(pen_num=pen_num, year=year).first()
+        if not fee_record:
+            flash(f'Fee record not found for PEN Number: {pen_num} and Year: {year}. Please add fee details first.', 'danger')
+            return render_template('fee_breakdown_form.html', title='Fee Breakdown', form=form)
+
+        if fee_type == 'Application':
+            total_fee_for_type = fee_record.application_fee
+            terms_for_type = 1
+        elif fee_type == 'Transport':
+            if fee_record.transport_used:
+                total_fee_for_type = fee_record.transport_fee - fee_record.transport_fee_concession
+                terms_for_type = 3
+            else:
+                flash(f'Student with PEN Number: {pen_num} hasn\'t opted in for Transport for Year: {year}', 'danger')
+                return render_template('fee_breakdown_form.html', title='Fee Breakdown', form=form)
+        elif fee_type == 'School':
+            total_fee_for_type = fee_record.school_fee - fee_record.school_fee_concession
+            terms_for_type = 3
+
+        if terms_for_type > 0:
+            term_fee = total_fee_for_type / terms_for_type
+        else:
+            term_fee = int('0')
+
+        calculated_due = term_fee - form.paid.data
+
+
         fee_breakdown = FeeBreakdown(
-            pen_num=form.pen_num.data,
-            year=form.year.data,
-            fee_type=form.fee_type.data,
-            term=form.term.data,
+            pen_num=pen_num,
+            year=year,
+            fee_type=fee_type,
+            term=term,
+            payment_type=form.payment_type.data,
             paid=form.paid.data,
-            due=form.due.data,
+            due=calculated_due,
             receipt_no=form.receipt_no.data,
             fee_paid_date=form.fee_paid_date.data,
             created_by=current_user.username
@@ -645,10 +687,8 @@ def fee_breakdown_form():
 
 @app.route("/import_fee_breakdown_csv", methods=['GET', 'POST'])
 @login_required
+@admin_required # Applying the admin_required decorator
 def import_fee_breakdown_csv():
-    if current_user.user_role != 'Admin':
-        abort(403)
-
     if request.method == 'POST':
         if 'fee_breakdown_csv' not in request.files:
             flash('No file part', 'danger')
@@ -676,6 +716,7 @@ def import_fee_breakdown_csv():
                         year = int(row.get("year", "0").strip() or 0)
                         fee_type = row.get("fee_type", "").strip()
                         term = row.get("term", "").strip()
+                        payment_type = row.get("payment_type", "").strip()
                         paid = float(row.get("paid", "0.0").strip() or 0.0)
                         due = float(row.get("due", "0.0").strip() or 0.0)
                         receipt_no_str = row.get("receipt_no", "").strip()
@@ -691,6 +732,7 @@ def import_fee_breakdown_csv():
 
                         if existing_fee_breakdown:
                             # Update existing record
+                            existing_fee_breakdown.payment_type = payment_type
                             existing_fee_breakdown.paid = paid
                             existing_fee_breakdown.due = due
                             existing_fee_breakdown.receipt_no = receipt_no
@@ -704,6 +746,7 @@ def import_fee_breakdown_csv():
                                 year=year,
                                 fee_type=fee_type,
                                 term=term,
+                                payment_type=payment_type,
                                 paid=paid,
                                 due=due,
                                 receipt_no=receipt_no,

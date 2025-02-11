@@ -97,36 +97,37 @@ class ClassDetailsForm(FlaskForm):
     section = StringField('Section', validators=[DataRequired(), Length(max=2)])
     roll_number = IntegerField('Roll Number', validators=[DataRequired()])
     photo_id = IntegerField('Photo ID', validators=[DataRequired()])
-    language = StringField('Language', validators=[DataRequired(), Length(max=50)])
-    vocational = StringField('Vocational', validators=[DataRequired(), Length(max=50)])
+    language = SelectField('Language', choices=[('Telugu', 'Telugu'), ('Hindi', 'Hindi'),('Sanskrit', 'Sanskrit')], validators=[DataRequired()])
+    vocational = SelectField('Vocational', choices=[('Agriculture', 'Agriculture'), ('Artificial Intelligence', 'AI'), ('Physical Activity Trainer', 'PAT'), ('Tourism', 'Tourism')], validators=[DataRequired()])
     currently_enrolled = BooleanField('Currently Enrolled')
     submit = SubmitField('Save')
 
 class FeeForm(FlaskForm):
     pen_num = IntegerField('PEN Number', validators=[DataRequired()])
     year = IntegerField('Year', validators=[DataRequired()])
-    school_fee = DecimalField('School Fee', validators=[DataRequired()])
-    concession_reason = SelectField('Concession Reason', choices=[('', 'None'), ('Staff', 'Staff'), ('Sibling', 'Sibling'), ('OTP', 'OTP'), ('General', 'General'), ('TF', 'TF'), ('FP', 'FP'), ('EC', 'EC'), ('SC', 'SC')], validators=[Optional()])
+    school_fee = IntegerField('School Fee', validators=[DataRequired()])
+    concession_reason = SelectField('Concession Reason', choices=[('General', 'General'),('Staff', 'Staff'), ('Sibling', 'Sibling'), ('OTP', 'OTP'), ('TF', 'TF'), ('FP', 'FP'), ('EC', 'EC'), ('SC', 'SC')], validators=[DataRequired()])
     transport_used = BooleanField('Transport Used')
-    application_fee = DecimalField('Application Fee', validators=[DataRequired()])
-    transport_fee = DecimalField('Transport Fee', validators=[Optional()])
-    transport_fee_concession = DecimalField('Transport Fee Concession', validators=[Optional()])
-    transport_id = IntegerField('Transport ID', validators=[Optional()])
+    application_fee = IntegerField('Application Fee', validators=[DataRequired()])
+    transport_fee = IntegerField('Transport Fee', validators=[Optional()])
+    transport_fee_concession = IntegerField('Transport Fee Concession', validators=[Optional()])
+    pick_up_point = StringField('Pick-up Point', validators=[Optional(), Length(max=50)]) # Added pick_up_point
     submit = SubmitField('Save')
 
-    def validate_transport_used(form, field):
-        if not field.data:  # If transport_used is False (not checked)
-            form.transport_fee.data = 0
-            form.transport_fee_concession.data = 0
-            form.transport_id.data = 0
+    # def validate_transport_used(form, field):
+    #     if not field.data:  # If transport_used is False (not checked)
+    #         form.transport_fee.data = 0
+    #         form.transport_fee_concession.data = 0
+    #         # form.transport_id.data = 0 # Removed as transport_id is determined by pick_up_point, not user input and setting it to 0 is incorrect.
 
 class FeeBreakdownForm(FlaskForm):
     pen_num = IntegerField('PEN Number', validators=[DataRequired()])
     year = IntegerField('Year', validators=[DataRequired()])
-    fee_type = SelectField('Fee Type', choices=[('', 'None'), ('School', 'School'), ('Transport', 'Transport'), ('Application', 'Application')], validators=[Optional()])
-    term = SelectField('Term', choices=[('', 'None'), ('1', '1'), ('2', '2'), ('3', '3')], validators=[Optional()])
+    fee_type = SelectField('Fee Type', choices=[('School', 'School'), ('Transport', 'Transport'), ('Application', 'Application')], validators=[DataRequired()])
+    term = SelectField('Term', choices=[('1', '1'), ('2', '2'), ('3', '3')], validators=[DataRequired()])
+    payment_type = SelectField('Payment Type', choices=[('Online', 'Online'), ('Cash', 'Cash')], validators=[DataRequired()])
     paid = DecimalField('Paid Amount', validators=[DataRequired()])
-    due = DecimalField('Due Amount', validators=[DataRequired()])
-    receipt_no = IntegerField('Receipt No', validators=[Optional()])
-    fee_paid_date = DateField('Fee Paid Date', validators=[Optional()], default=date.today)
+    # due = DecimalField('Due Amount', validators=[DataRequired()])
+    receipt_no = IntegerField('Receipt No', validators=[DataRequired()])
+    fee_paid_date = DateField('Fee Paid Date', validators=[DataRequired()], default=date.today)
     submit = SubmitField('Save')

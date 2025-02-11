@@ -6,61 +6,124 @@
             {{ form.hidden_tag() }}
             <fieldset class="form-group">
                 <legend class="border-bottom mb-4">Fee Form</legend>
-                
-                <!-- PEN Number Field -->
+
                 <div class="form-group">
                     {{ form.pen_num.label(class="form-control-label") }}
-                    {{ form.pen_num(class="form-control form-control-lg") }}
+                    {% if form.pen_num.errors %}
+                        {{ form.pen_num(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.pen_num.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.pen_num(class="form-control form-control-lg") }}
+                    {% endif %}
                 </div>
-                
-                <!-- Year Field -->
+
                 <div class="form-group">
                     {{ form.year.label(class="form-control-label") }}
-                    {{ form.year(class="form-control form-control-lg") }}
+                    {% if form.year.errors %}
+                        {{ form.year(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.year.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.year(class="form-control form-control-lg") }}
+                    {% endif %}
                 </div>
-                
-                <!-- School Fee Field -->
+
                 <div class="form-group">
                     {{ form.school_fee.label(class="form-control-label") }}
-                    {{ form.school_fee(class="form-control form-control-lg") }}
+                    {% if form.school_fee.errors %}
+                        {{ form.school_fee(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.school_fee.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.school_fee(class="form-control form-control-lg") }}
+                    {% endif %}
                 </div>
-                
-                <!-- Concession Reason Field -->
+
                 <div class="form-group">
                     {{ form.concession_reason.label(class="form-control-label") }}
-                    {{ form.concession_reason(class="form-control form-control-lg") }}
+                    {% if form.concession_reason.errors %}
+                        {{ form.concession_reason(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.concession_reason.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.concession_reason(class="form-control form-control-lg") }}
+                    {% endif %}
                 </div>
-                
-                <!-- Transport Used Field -->
+
                 <div class="form-group">
                     {{ form.transport_used.label(class="form-control-label") }}
                     {{ form.transport_used() }}
                 </div>
-                
-                <!-- Application Fee Field -->
+
                 <div class="form-group">
                     {{ form.application_fee.label(class="form-control-label") }}
-                    {{ form.application_fee(class="form-control form-control-lg") }}
+                    {% if form.application_fee.errors %}
+                        {{ form.application_fee(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.application_fee.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.application_fee(class="form-control form-control-lg") }}
+                    {% endif %}
                 </div>
-                
-                <!-- Transport Fee Field -->
+
                 <div class="form-group">
                     {{ form.transport_fee.label(class="form-control-label") }}
-                    {{ form.transport_fee(class="form-control form-control-lg") }}
+                    {% if form.transport_fee.errors %}
+                        {{ form.transport_fee(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.transport_fee.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.transport_fee(class="form-control form-control-lg") }}
+                    {% endif %}
                 </div>
-                
-                <!-- Transport Fee Concession Field -->
+
                 <div class="form-group">
                     {{ form.transport_fee_concession.label(class="form-control-label") }}
-                    {{ form.transport_fee_concession(class="form-control form-control-lg") }}
+                    {% if form.transport_fee_concession.errors %}
+                        {{ form.transport_fee_concession(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.transport_fee_concession.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.transport_fee_concession(class="form-control form-control-lg") }}
+                    {% endif %}
                 </div>
-                
-                <!-- Transport ID Field -->
+
                 <div class="form-group">
-                    {{ form.transport_id.label(class="form-control-label") }}
-                    {{ form.transport_id(class="form-control form-control-lg") }}
+                    {{ form.pick_up_point.label(class="form-control-label") }}
+                    {% if form.pick_up_point.errors %}
+                        {{ form.pick_up_point(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.pick_up_point.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.pick_up_point(class="form-control form-control-lg") }}
+                    {% endif %}
                 </div>
-                
+
             </fieldset>
             <div class="form-group">
                 {{ form.submit(class="btn btn-outline-info") }}
@@ -80,6 +143,6 @@
                 <button type="submit" class="btn btn-outline-secondary">Import CSV</button>
             </div>
         </form>
-        
+
     </div>
 {% endblock content %}
