@@ -1,0 +1,182 @@
+/* ========================
+    GLOBAL VARIABLES
+======================== */
+:root {
+  --bg-color: #fafafa;
+  --text-color: #333333;
+  --heading-color: #444444;
+  --steel-color: #5f788a;
+  --nav-link-color: #cbd5db;
+  --nav-link-hover: #ffffff;
+  --border-color: #dddddd;
+  --accent-color: #428bca;
+  --transition-speed: 0.3s;
+  --border-radius: 4px;
+  --shadow-color: rgba(0, 0, 0, 0.05);
+}
+
+/* ========================
+    BASE STYLES
+======================== */
+body {
+  background: var(--bg-color);
+  color: var(--text-color);
+  margin-top: 5rem; /* Keep this, but it's handled better by Bootstrap's spacing */
+  font-family: "Open Sans", sans-serif; /* Update with your preferred font */
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--heading-color);
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+/* ========================
+    HEADER & NAV (Bootstrap Optimized)
+======================== */
+.site-header {
+  background-color: var(--steel-color); /*  Use the more general .bg-steel, see below. */
+}
+
+/*  We're using Bootstrap, so let's leverage its classes */
+.navbar {
+    background-color: var(--steel-color) !important; /* Use !important only when absolutely necessary */
+}
+
+.navbar-brand,
+.nav-link { /* Style both brand and links for consistency */
+    color: var(--nav-link-color) !important;  /* Again, use !important judiciously */
+    transition: color var(--transition-speed) ease;
+    font-weight: 400;
+}
+
+.navbar-brand:hover, /* Include hover state for navbar-brand*/
+.nav-link:hover {
+    color: var(--nav-link-hover) !important;
+    text-decoration: none; /* Remove underline on hover - standard Bootstrap behavior */
+}
+
+.nav-link.active { /* No need for .site-header prefix */
+    color: var(--nav-link-hover) !important;
+    font-weight: 600;
+}
+/* ========================
+    CONTENT SECTIONS (Bootstrap Optimized)
+======================== */
+.content-section {
+  background-color: #ffffff;
+  padding: 1.25rem; /* Use Bootstrap's spacing: 1.25rem (20px) */
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  margin-bottom: 1.25rem; /* Consistent with padding */
+  box-shadow: 0 0.25rem 0.5rem var(--shadow-color); /* More subtle shadow */
+  transition: box-shadow var(--transition-speed) ease;
+}
+
+.content-section:hover {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1); /* Slightly larger shadow on hover */
+}
+
+/* ========================
+    ARTICLES (Bootstrap Optimized)
+======================== */
+.article-title {
+  color: var(--heading-color);
+  font-size: 1.25rem; /* Consistent with Bootstrap's sizes */
+  font-weight: 600;
+  transition: color var(--transition-speed) ease;
+  /* Remove default link styles from <a> tags */
+  text-decoration: none;
+  display: block;  /* Makes the whole area clickable */
+}
+.article-title:hover {
+   color: var(--accent-color); /*  Consistent color on hover */
+}
+
+.article-content {
+  margin-top: 0.5rem;
+  white-space: pre-line;
+}
+
+.article-img {
+  height: 65px;
+  width: 65px;
+  margin-right: 1rem; /* Use Bootstrap spacing: 1rem (16px) */
+  object-fit: cover;
+  border-radius: 50%; /* Use Bootstrap's rounded-circle class */
+}
+.article-img, .account-img {
+    border-radius: 50%; /*Consistent styling*/
+}
+
+.article-metadata {
+  padding-bottom: 0.25rem; /* Bootstrap spacing */
+  margin-bottom: 0.5rem;  /* Bootstrap spacing */
+  border-bottom: 1px solid #e3e3e3;
+  font-size: 0.9rem;
+  color: var(--text-color);
+}
+
+.article-metadata a {
+    color: var(--text-color); /*Consistent color*/
+    text-decoration: none; /* Clean look */
+}
+
+.article-metadata a:hover {
+  color: var(--accent-color);
+  text-decoration: underline; /* Only underline on hover */
+}
+
+.article-svg {
+  width: 25px;
+  height: 25px;
+  vertical-align: middle;
+}
+
+/* ========================
+    ACCOUNT / PROFILE (Bootstrap Optimized)
+======================== */
+.account-img {
+  height: 125px;
+  width: 125px;
+  margin-right: 1.25rem; /* Bootstrap spacing */
+  margin-bottom: 1rem;    /* Bootstrap spacing */
+  object-fit: cover;
+  border-radius: 50%;     /* Use Bootstrap's rounded-circle class */
+}
+
+.account-heading {
+  font-size: 2.5rem; /*  Bootstrap size */
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+/* ========================
+    UTILITY CLASSES
+======================== */
+.bg-steel {
+  background-color: var(--steel-color);
+}
+
+/* ========================
+    RESPONSIVE (Bootstrap already handles this!)
+======================== */
+/* No need for extra media queries, Bootstrap's grid system is responsive by default */
+
+/* ========================
+    ALERTS (Bootstrap Optimized)
+======================== */
+/* Style flash messages using Bootstrap alert classes, no custom CSS needed */
+
+/* ========================
+    FORMS (if any, leverage Bootstrap forms)
+======================== */
+/*  If you add forms, use Bootstrap's form classes for styling and responsiveness.  */
+
+/* ========================
+   GENERAL IMPROVEMENTS
+======================== */
+/* Remove unnecessary prefixes, e.g., .site-header before .navbar-nav */
+/* Use Bootstrap's spacing and sizing utilities (e.g., .mt-3, .p-2, .h1 - .h6) */
+/* Prioritize using Bootstrap classes over custom styles where possible. */

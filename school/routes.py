@@ -32,7 +32,8 @@ def home():
         {"name": "Transport Form", "relative_path": url_for('transport_form')},
         {"name": "Class Details", "relative_path": url_for('class_details_form')},
         {"name": "Fee Form", "relative_path": url_for('fee_form')},
-        {"name": "Fee Breakdown", "relative_path": url_for('fee_breakdown_form')}
+        {"name": "Fee Breakdown", "relative_path": url_for('fee_breakdown_form')},
+        {"name": "Update Values", "relative_path": url_for('edit_table')}
     ]
 
     return render_template("home.html", pages=pages)
