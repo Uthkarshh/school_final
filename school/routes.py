@@ -6,6 +6,7 @@ from flask_login import login_user, current_user, logout_user, login_required
 import secrets
 from sqlalchemy.exc import IntegrityError
 import csv
+from flask_wtf import FlaskForm
 from io import TextIOWrapper
 from datetime import datetime
 from PIL import Image
@@ -33,7 +34,7 @@ def home():
         {"name": "Class Details", "relative_path": url_for('class_details_form')},
         {"name": "Fee Form", "relative_path": url_for('fee_form')},
         {"name": "Fee Breakdown", "relative_path": url_for('fee_breakdown_form')},
-        {"name": "Update Values", "relative_path": url_for('edit_table')}
+        {"name": "View Values", "relative_path": url_for('view_table')}
     ]
 
     return render_template("home.html", pages=pages)
@@ -783,3 +784,30 @@ def import_fee_breakdown_csv():
             return redirect(url_for('home'))
 
     return render_template('import_fee_breakdown_csv.html', title='Import Fee Breakdown CSV')
+
+class TableSelectForm(FlaskForm):
+    pass  # Empty form for CSRF token
+
+
+@app.route("/view_table", methods=["GET", "POST"])
+@login_required
+@admin_required
+def view_table():
+    form = TableSelectForm()  # Create form object
+    if request.method == "POST":
+        table_name = request.form.get("table_select")
+        if table_name == "student":
+            data = Student.query.all()
+        elif table_name == "classdetails":
+            data = ClassDetails.query.all()
+        elif table_name == "fee":
+            data = Fee.query.all()
+        elif table_name == "febreakdown":
+            data = FeeBreakdown.query.all()
+        elif table_name == "transport":
+            data = Transport.query.all()
+        else:
+            data = None
+            flash("Invalid table selected", "danger")
+        return render_template("view_table.html", data=data, table_name=table_name, form=form)
+    return render_template("view_table.html", form=form)
