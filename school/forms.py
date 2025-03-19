@@ -131,3 +131,8 @@ class FeeBreakdownForm(FlaskForm):
     receipt_no = IntegerField('Receipt No', validators=[DataRequired()])
     fee_paid_date = DateField('Fee Paid Date', validators=[DataRequired()], default=date.today)
     submit = SubmitField('Save')
+
+class TableSelectForm(FlaskForm):
+    start_date = DateField('Start Date', validators=[Optional()], format='%Y-%m-%d')
+    end_date = DateField('End Date', validators=[Optional()], format='%Y-%m-%d')
+    submit = SubmitField('Filter')

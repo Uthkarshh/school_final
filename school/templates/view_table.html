@@ -2,40 +2,64 @@
 {% block content %}
     <h2>View Table Data</h2>
     <form method="POST">
-        <form method="POST">
-            {{ form.csrf_token }}
-            <div class="form-group">
-                <label for="table_select">Select Table:</label>
-                <select class="form-control" id="table_select" name="table_select">
-                    <option value="student">Student</option>
-                    <option value="classdetails">Class Details</option>
-                    <option value="fee">Fee</option>
-                    <option value="febreakdown">Fee Breakdown</option>
-                    <option value="transport">Transport</option>
-                </select>
+        {{ form.csrf_token }}
+        <div class="form-group">
+            <label for="table_select">Select Table:</label>
+            <select class="form-control" id="table_select" name="table_select">
+                <option value="student">Student</option>
+                <option value="classdetails">Class Details</option>
+                <option value="fee">Fee</option>
+                <option value="feebreakdown">Fee Breakdown</option>
+                <option value="transport">Transport</option>
+            </select>
+        </div>
+        
+        <div class="row mt-3 mb-3">
+            <div class="col-md-5">
+                <div class="form-group">
+                    <label for="start_date">Start Date:</label>
+                    <input type="date" class="form-control" id="start_date" name="start_date" 
+                           value="{{ start_date.strftime('%Y-%m-%d') if start_date else '' }}">
+                </div>
             </div>
-            <button type="submit" class="btn btn-primary">View Data</button>
-        </form>
+            <div class="col-md-5">
+                <div class="form-group">
+                    <label for="end_date">End Date:</label>
+                    <input type="date" class="form-control" id="end_date" name="end_date"
+                           value="{{ end_date.strftime('%Y-%m-%d') if end_date else '' }}">
+                </div>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">View Data</button>
+    </form>
 
-        {% if data %}
-        <h3>Table: {{ table_name }}</h3>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    {% for column in data.__class__.__table__.columns %}
-                        <th>{{ column.name }}</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in data %}
+    {% if data %}
+        <div class="d-flex justify-content-between align-items-center mt-4 mb-2">
+            <h3>Table: {{ table_name }}</h3>
+            <a href="{{ url_for('export_csv', table_name=table_name, start_date=start_date.strftime('%Y-%m-%d') if start_date else '', end_date=end_date.strftime('%Y-%m-%d') if end_date else '') }}" 
+            class="btn btn-success"> <i class="fas fa-file-csv mr-1"></i> Export to CSV </a>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead class="thead-dark">
                     <tr>
-                        {% for column in row.__class__.__table__.columns %}
-                            <td>{{ row[column.name] }}</td>  {# Access row value directly using column name #}
+                        {% for column in data[0].__class__.__table__.columns %}
+                            <th>{{ column.name }}</th>
                         {% endfor %}
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                        <tr>
+                            {% for column in row.__class__.__table__.columns %}
+                                <td>{{ row[column.name] }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     {% endif %}
 {% endblock %}
