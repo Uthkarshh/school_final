@@ -736,12 +736,11 @@ def view_table():
 @app.route("/export_csv/<table_name>", methods=["GET"])
 @login_required
 def export_csv(table_name):
-    form = TableSelectForm()
-    print(f"User Authenticated Before Query: {current_user.is_authenticated}")
+    # print(f"User Authenticated Before Query: {current_user.is_authenticated}")
     
-    # Fetch session variables to ensure they're set
-    print(f"Session Start Date: {form.start_date.data}")
-    print(f"Session End Date: {form.end_date.data}")
+    # # Fetch session variables to ensure they're set
+    # print(f"Session Start Date: {session.get('start_date')}")
+    # print(f"Session End Date: {session.get('end_date')}")
     # Get date filters from request args, falling back to session
     start_date_str = request.args.get('start_date') or session.get('start_date')
     end_date_str = request.args.get('end_date') or session.get('end_date')
@@ -816,4 +815,5 @@ def export_csv(table_name):
     # Create response with CSV data
     response = Response(output, mimetype='text/csv')
     response.headers['Content-Disposition'] = f'attachment; filename={table_name}_{datetime.now().strftime("%Y%m%d")}.csv'
+    response.headers['X-Filename'] = f'{table_name}_{datetime.now().strftime("%Y%m%d")}.csv'
     return response

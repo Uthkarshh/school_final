@@ -1,16 +1,16 @@
 {% extends "layout.html" %}
 {% block content %}
     <h2>View Table Data</h2>
-    <form method="POST">
+    <form method="POST" id="dataFilterForm">
         {{ form.csrf_token }}
         <div class="form-group">
             <label for="table_select">Select Table:</label>
             <select class="form-control" id="table_select" name="table_select">
-                <option value="student">Student</option>
-                <option value="classdetails">Class Details</option>
-                <option value="fee">Fee</option>
-                <option value="feebreakdown">Fee Breakdown</option>
-                <option value="transport">Transport</option>
+                <option value="student" {% if table_name == 'student' %}selected{% endif %}>Student</option>
+                <option value="classdetails" {% if table_name == 'classdetails' %}selected{% endif %}>Class Details</option>
+                <option value="fee" {% if table_name == 'fee' %}selected{% endif %}>Fee</option>
+                <option value="feebreakdown" {% if table_name == 'feebreakdown' %}selected{% endif %}>Fee Breakdown</option>
+                <option value="transport" {% if table_name == 'transport' %}selected{% endif %}>Transport</option>
             </select>
         </div>
         
@@ -31,14 +31,17 @@
             </div>
         </div>
         
-        <button type="submit" class="btn btn-primary">View Data</button>
+        <div class="d-flex">
+            <button type="submit" class="btn btn-primary mr-2">View Data</button>
+            <button type="button" id="exportCsvBtn" class="btn btn-success">
+                <i class="fas fa-file-csv mr-1"></i> Export to CSV
+            </button>
+        </div>
     </form>
 
     {% if data %}
-        <div class="d-flex justify-content-between align-items-center mt-4 mb-2">
+        <div class="mt-4 mb-2">
             <h3>Table: {{ table_name }}</h3>
-            <a href="{{ url_for('export_csv', table_name=table_name, start_date=start_date.strftime('%Y-%m-%d') if start_date else '', end_date=end_date.strftime('%Y-%m-%d') if end_date else '') }}" 
-            class="btn btn-success"> <i class="fas fa-file-csv mr-1"></i> Export to CSV </a>
         </div>
         
         <div class="table-responsive">
@@ -62,4 +65,82 @@
             </table>
         </div>
     {% endif %}
+
+    <!-- JavaScript for AJAX-based CSV export -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const exportCsvBtn = document.getElementById('exportCsvBtn');
+            
+            if (exportCsvBtn) {
+                exportCsvBtn.addEventListener('click', function() {
+                    // Get form values directly for export
+                    const tableSelect = document.getElementById('table_select');
+                    const startDateInput = document.getElementById('start_date');
+                    const endDateInput = document.getElementById('end_date');
+                    
+                    const tableName = tableSelect.value;
+                    const startDate = startDateInput.value;
+                    const endDate = endDateInput.value;
+                    
+                    if (!tableName) {
+                        alert('Please select a table to export');
+                        return;
+                    }
+                    
+                    // Show loading state
+                    const originalText = exportCsvBtn.innerHTML;
+                    exportCsvBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Preparing download...';
+                    exportCsvBtn.disabled = true;
+                    
+                    // Create a new XMLHttpRequest
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('GET', `/export_csv/${tableName}?start_date=${startDate}&end_date=${endDate}`, true);
+                    xhr.responseType = 'blob'; // Important: blob response type for file downloads
+                    
+                    xhr.onload = function() {
+                        if (xhr.status === 200) {
+                            // Create a blob from the response
+                            const blob = new Blob([xhr.response], { type: 'text/csv' });
+                            
+                            // Get filename from header if available, or use default
+                            let filename = xhr.getResponseHeader('X-Filename') || `${tableName}_export.csv`;
+                            
+                            // Create download link and trigger it
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.style.display = 'none';
+                            a.href = url;
+                            a.download = filename;
+                            document.body.appendChild(a);
+                            a.click();
+                            
+                            // Clean up
+                            window.URL.revokeObjectURL(url);
+                            document.body.removeChild(a);
+                            
+                            // Reset button
+                            exportCsvBtn.innerHTML = originalText;
+                            exportCsvBtn.disabled = false;
+                        } else {
+                            // Handle error
+                            console.error('Download failed');
+                            alert('CSV download failed. Please try again.');
+                            exportCsvBtn.innerHTML = originalText;
+                            exportCsvBtn.disabled = false;
+                        }
+                    };
+                    
+                    xhr.onerror = function() {
+                        console.error('Download failed');
+                        alert('CSV download failed. Please try again.');
+                        exportCsvBtn.innerHTML = originalText;
+                        exportCsvBtn.disabled = false;
+                    };
+                    
+                    // Send the request
+                    xhr.send();
+                });
+            }
+        });
+    </script>
 {% endblock %}
