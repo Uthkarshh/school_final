@@ -1,46 +1,521 @@
 {% extends "layout.html" %}
 {% block content %}
-    <div class="container">
-        <h2>User Management</h2>
-        <p>Manage user accounts and access levels.</p>
-
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>User Role</th>
-                    <th>Approval Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in users %}
-                <tr>
-                    <td>{{ user.id }}</td>
-                    <td>{{ user.username }}</td>
-                    <td>{{ user.email }}</td>
-                    <td>{{ user.user_role }}</td>
-                    <td>
-                        {% if user.is_approved %}
-                            <span class="badge bg-success">Approved</span>
-                        {% else %}
-                            <span class="badge bg-warning text-dark">Pending Approval</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if user.is_approved %}
-                            <a href="{{ url_for('toggle_user_approval', user_id=user.id) }}" class="btn btn-warning btn-sm">Revoke Access</a>
-                        {% else %}
-                            <a href="{{ url_for('toggle_user_approval', user_id=user.id) }}" class="btn btn-success btn-sm">Approve</a>
-                        {% endif %}
-                        <a href="{{ url_for('reject_user', user_id=user.id) }}" class="btn btn-danger btn-sm">Reject User</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
+<div class="container py-4">
+    <!-- Page Header with Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2 class="mb-2 text-slate-800"><i class="fas fa-users-cog mr-2 text-indigo-600"></i>User Management</h2>
+            <p class="text-muted">Manage user accounts, roles, and access permissions</p>
+        </div>
     </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted font-weight-normal mb-0">Total Users</h6>
+                            <h3 class="font-weight-bold mt-2 mb-0 text-dark">{{ users|length }}</h3>
+                        </div>
+                        <div class="rounded-circle bg-indigo-100 p-3">
+                            <i class="fas fa-users text-indigo-600 fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted font-weight-normal mb-0">Approved Users</h6>
+                            <h3 class="font-weight-bold mt-2 mb-0 text-dark">{{ users|selectattr('is_approved', 'equalto', true)|list|length }}</h3>
+                        </div>
+                        <div class="rounded-circle bg-green-100 p-3">
+                            <i class="fas fa-user-check text-green-600 fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted font-weight-normal mb-0">Pending Approval</h6>
+                            <h3 class="font-weight-bold mt-2 mb-0 text-dark">{{ users|selectattr('is_approved', 'equalto', false)|list|length }}</h3>
+                        </div>
+                        <div class="rounded-circle bg-amber-100 p-3">
+                            <i class="fas fa-user-clock text-amber-600 fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted font-weight-normal mb-0">Admins</h6>
+                            <h3 class="font-weight-bold mt-2 mb-0 text-dark">{{ users|selectattr('user_role', 'equalto', 'Admin')|list|length }}</h3>
+                        </div>
+                        <div class="rounded-circle bg-rose-100 p-3">
+                            <i class="fas fa-user-shield text-rose-600 fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form id="filterForm" class="mb-0">
+                <div class="row align-items-end">
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <label for="searchInput" class="form-label text-slate-600 small font-weight-bold">Search Users</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text bg-white border-right-0 text-muted">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                            </div>
+                            <input type="text" class="form-control border-left-0" id="searchInput" placeholder="Search by name or email">
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3 mb-md-0">
+                        <label for="roleFilter" class="form-label text-slate-600 small font-weight-bold">Filter by Role</label>
+                        <select class="form-control custom-select" id="roleFilter">
+                            <option value="">All Roles</option>
+                            <option value="Admin">Admin</option>
+                            <option value="HR">HR</option>
+                            <option value="User">User</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3 mb-md-0">
+                        <label for="statusFilter" class="form-label text-slate-600 small font-weight-bold">Filter by Status</label>
+                        <select class="form-control custom-select" id="statusFilter">
+                            <option value="">All Statuses</option>
+                            <option value="approved">Approved</option>
+                            <option value="pending">Pending Approval</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-outline-secondary btn-block" id="resetFilters">
+                            Reset Filters
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3 border-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 font-weight-bold text-slate-800">User Accounts</h5>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-outline-primary" id="approveSelectedBtn" disabled>
+                        <i class="fas fa-check-circle mr-1"></i> Approve Selected
+                    </button>
+                    <button type="button" class="btn btn-outline-danger" id="rejectSelectedBtn" disabled>
+                        <i class="fas fa-trash-alt mr-1"></i> Reject Selected
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="border-0">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="selectAll">
+                                <label class="custom-control-label" for="selectAll"></label>
+                            </div>
+                        </th>
+                        <th class="border-0"><a href="#" class="text-slate-800 font-weight-bold" data-sort="id">ID <i class="fas fa-sort text-muted"></i></a></th>
+                        <th class="border-0"><a href="#" class="text-slate-800 font-weight-bold" data-sort="username">Username <i class="fas fa-sort text-muted"></i></a></th>
+                        <th class="border-0"><a href="#" class="text-slate-800 font-weight-bold" data-sort="email">Email <i class="fas fa-sort text-muted"></i></a></th>
+                        <th class="border-0"><a href="#" class="text-slate-800 font-weight-bold" data-sort="role">Role <i class="fas fa-sort text-muted"></i></a></th>
+                        <th class="border-0"><a href="#" class="text-slate-800 font-weight-bold" data-sort="status">Status <i class="fas fa-sort text-muted"></i></a></th>
+                        <th class="border-0 text-slate-800 font-weight-bold">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr data-user-id="{{ user.id }}" data-username="{{ user.username }}" data-role="{{ user.user_role }}" data-status="{{ 'approved' if user.is_approved else 'pending' }}">
+                        <td>
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input user-checkbox" id="user{{ user.id }}" data-id="{{ user.id }}">
+                                <label class="custom-control-label" for="user{{ user.id }}"></label>
+                            </div>
+                        </td>
+                        <td class="font-weight-medium">{{ user.id }}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle mr-2 text-white font-weight-bold">{{ user.username[0]|upper }}</div>
+                                <span class="font-weight-medium">{{ user.username }}</span>
+                            </div>
+                        </td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            {% if user.user_role == 'Admin' %}
+                                <span class="badge badge-soft-rose text-rose-700 font-weight-medium">{{ user.user_role }}</span>
+                            {% elif user.user_role == 'HR' %}
+                                <span class="badge badge-soft-indigo text-indigo-700 font-weight-medium">{{ user.user_role }}</span>
+                            {% else %}
+                                <span class="badge badge-soft-slate text-slate-700 font-weight-medium">{{ user.user_role }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.is_approved %}
+                                <span class="badge badge-soft-green text-green-700 font-weight-medium">Approved</span>
+                            {% else %}
+                                <span class="badge badge-soft-amber text-amber-700 font-weight-medium">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-slate-400 dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false">
+                                    Actions
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-right shadow-sm border-0">
+                                    {% if user.is_approved %}
+                                        <a href="{{ url_for('toggle_user_approval', user_id=user.id) }}" class="dropdown-item">
+                                            <i class="fas fa-ban text-amber-600 mr-2"></i> Revoke Access
+                                        </a>
+                                    {% else %}
+                                        <a href="{{ url_for('toggle_user_approval', user_id=user.id) }}" class="dropdown-item">
+                                            <i class="fas fa-check text-green-600 mr-2"></i> Approve
+                                        </a>
+                                    {% endif %}
+                                    <div class="dropdown-divider"></div>
+                                    <button class="dropdown-item reject-user" data-toggle="modal" data-target="#confirmRejectModal" data-id="{{ user.id }}" data-username="{{ user.username }}">
+                                        <i class="fas fa-trash-alt text-rose-600 mr-2"></i> Delete User
+                                    </button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer bg-white border-top-0 py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small">Showing <span id="visibleUsers" class="font-weight-medium">{{ users|length }}</span> of {{ users|length }} users</span>
+                </div>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Reject Modal -->
+<div class="modal fade" id="confirmRejectModal" tabindex="-1" aria-labelledby="confirmRejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-rose-600 text-white">
+                <h5 class="modal-title" id="confirmRejectModalLabel">Confirm User Deletion</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body py-4">
+                <div class="text-center mb-3">
+                    <div class="rounded-circle bg-rose-100 mx-auto mb-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-exclamation-triangle text-rose-600 fa-2x"></i>
+                    </div>
+                </div>
+                <p class="text-center mb-1">Are you sure you want to delete the user <strong id="deleteUsername" class="text-rose-600"></strong>?</p>
+                <p class="text-center text-muted small">This action cannot be undone. All data associated with this user will be permanently deleted.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+                <a href="#" id="confirmRejectBtn" class="btn btn-rose">Delete User</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Bulk Action Modal -->
+<div class="modal fade" id="confirmBulkActionModal" tabindex="-1" aria-labelledby="confirmBulkActionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-indigo-600 text-white">
+                <h5 class="modal-title" id="confirmBulkActionModalLabel">Confirm Bulk Action</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body py-4">
+                <div class="text-center mb-3">
+                    <div class="rounded-circle bg-indigo-100 mx-auto mb-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-users-cog text-indigo-600 fa-2x"></i>
+                    </div>
+                </div>
+                <p class="text-center mb-1" id="bulkActionMessage">Are you sure you want to perform this action on the selected users?</p>
+                <p class="text-center text-muted small" id="bulkActionWarning"></p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+                <a href="#" id="confirmBulkActionBtn" class="btn btn-indigo">Confirm</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Modern color palette */
+.text-slate-600 { color: #475569; }
+.text-slate-800 { color: #1e293b; }
+.text-indigo-600 { color: #4f46e5; }
+.text-rose-600 { color: #e11d48; }
+.text-amber-600 { color: #d97706; }
+.text-green-600 { color: #16a34a; }
+.bg-indigo-600 { background-color: #4f46e5; }
+.bg-indigo-100 { background-color: #e0e7ff; }
+.bg-rose-600 { background-color: #e11d48; }
+.bg-rose-100 { background-color: #ffe4e6; }
+.bg-amber-100 { background-color: #fef3c7; }
+.bg-green-100 { background-color: #dcfce7; }
+.bg-gray-50 { background-color: #f9fafb; }
+.btn-rose { background-color: #e11d48; color: white; }
+.btn-rose:hover { background-color: #be123c; color: white; }
+.btn-indigo { background-color: #4f46e5; color: white; }
+.btn-indigo:hover { background-color: #4338ca; color: white; }
+.btn-outline-slate-400 { color: #94a3b8; border-color: #cbd5e1; }
+.btn-outline-slate-400:hover { color: #475569; border-color: #94a3b8; background-color: #f8fafc; }
+
+/* Refined badges */
+.badge-soft-indigo { background-color: #e0e7ff; }
+.badge-soft-rose { background-color: #ffe4e6; }
+.badge-soft-slate { background-color: #f1f5f9; }
+.badge-soft-green { background-color: #dcfce7; }
+.badge-soft-amber { background-color: #fef3c7; }
+.text-indigo-700 { color: #4338ca; }
+.text-rose-700 { color: #be123c; }
+.text-slate-700 { color: #334155; }
+.text-green-700 { color: #15803d; }
+.text-amber-700 { color: #b45309; }
+
+/* Avatar style */
+.avatar-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    background-color: #4f46e5;
+}
+
+/* Card and table refinements */
+.card {
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+}
+.card-header {
+    border-top-left-radius: 0.5rem !important;
+    border-top-right-radius: 0.5rem !important;
+}
+.table th, .table td {
+    padding: 1rem;
+    vertical-align: middle;
+}
+.table tbody tr {
+    transition: all 0.1s ease-in-out;
+}
+.table tbody tr:hover {
+    background-color: rgba(243, 244, 246, 0.5);
+}
+.dropdown-menu {
+    border-radius: 0.375rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+.dropdown-item {
+    padding: 0.5rem 1.25rem;
+    transition: all 0.15s ease;
+}
+.dropdown-item:hover {
+    background-color: #f8fafc;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Confirm reject user
+    const confirmRejectModal = document.getElementById('confirmRejectModal');
+    if (confirmRejectModal) {
+        confirmRejectModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const userId = button.getAttribute('data-id');
+            const username = button.getAttribute('data-username');
+            
+            document.getElementById('deleteUsername').textContent = username;
+            document.getElementById('confirmRejectBtn').href = "{{ url_for('reject_user', user_id=0) }}".replace('0', userId);
+        });
+    }
+    
+    // Filter functionality
+    const searchInput = document.getElementById('searchInput');
+    const roleFilter = document.getElementById('roleFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const resetBtn = document.getElementById('resetFilters');
+    
+    function applyFilters() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const role = roleFilter.value;
+        const status = statusFilter.value;
+        
+        const rows = document.querySelectorAll('tbody tr');
+        let visibleCount = 0;
+        
+        rows.forEach(row => {
+            const username = row.getAttribute('data-username').toLowerCase();
+            const userRole = row.getAttribute('data-role');
+            const userStatus = row.getAttribute('data-status');
+            
+            const matchesSearch = username.includes(searchTerm);
+            const matchesRole = role === '' || userRole === role;
+            const matchesStatus = status === '' || userStatus === status;
+            
+            if (matchesSearch && matchesRole && matchesStatus) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        document.getElementById('visibleUsers').textContent = visibleCount;
+    }
+    
+    if (searchInput) searchInput.addEventListener('input', applyFilters);
+    if (roleFilter) roleFilter.addEventListener('change', applyFilters);
+    if (statusFilter) statusFilter.addEventListener('change', applyFilters);
+    
+    if (resetBtn) {
+        resetBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            roleFilter.value = '';
+            statusFilter.value = '';
+            applyFilters();
+        });
+    }
+    
+    // Bulk selection functionality
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const userCheckboxes = document.querySelectorAll('.user-checkbox');
+    const approveSelectedBtn = document.getElementById('approveSelectedBtn');
+    const rejectSelectedBtn = document.getElementById('rejectSelectedBtn');
+    const confirmBulkActionModal = document.getElementById('confirmBulkActionModal');
+    const bulkActionMessage = document.getElementById('bulkActionMessage');
+    const bulkActionWarning = document.getElementById('bulkActionWarning');
+    const confirmBulkActionBtn = document.getElementById('confirmBulkActionBtn');
+    
+    function updateBulkActionButtons() {
+        const selectedCount = document.querySelectorAll('.user-checkbox:checked').length;
+        approveSelectedBtn.disabled = selectedCount === 0;
+        rejectSelectedBtn.disabled = selectedCount === 0;
+    }
+    
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            userCheckboxes.forEach(checkbox => {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+            updateBulkActionButtons();
+        });
+    }
+    
+    userCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateBulkActionButtons();
+            
+            // Update "select all" checkbox
+            const allChecked = document.querySelectorAll('.user-checkbox:checked').length === userCheckboxes.length;
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = allChecked;
+            }
+        });
+    });
+    
+    // Handle bulk approve
+    if (approveSelectedBtn) {
+        approveSelectedBtn.addEventListener('click', function() {
+            const selectedUsers = document.querySelectorAll('.user-checkbox:checked');
+            const userIds = Array.from(selectedUsers).map(checkbox => checkbox.getAttribute('data-id'));
+            
+            if (userIds.length === 0) return;
+            
+            // Show confirmation modal
+            if (confirmBulkActionModal) {
+                bulkActionMessage.textContent = `Are you sure you want to approve ${userIds.length} selected users?`;
+                bulkActionWarning.textContent = '';
+                confirmBulkActionBtn.classList.remove('btn-rose');
+                confirmBulkActionBtn.classList.add('btn-indigo');
+                confirmBulkActionBtn.textContent = 'Approve Selected';
+                
+                // Set the action URL with user IDs as query params
+                confirmBulkActionBtn.onclick = function() {
+                    window.location.href = "{{ url_for('admin_users') }}/bulk_approve?ids=" + userIds.join(',');
+                };
+                
+                // Show the modal using Bootstrap's modal API
+                $('#confirmBulkActionModal').modal('show');
+            }
+        });
+    }
+    
+    // Handle bulk reject
+    if (rejectSelectedBtn) {
+        rejectSelectedBtn.addEventListener('click', function() {
+            const selectedUsers = document.querySelectorAll('.user-checkbox:checked');
+            const userIds = Array.from(selectedUsers).map(checkbox => checkbox.getAttribute('data-id'));
+            
+            if (userIds.length === 0) return;
+            
+            // Show confirmation modal
+            if (confirmBulkActionModal) {
+                bulkActionMessage.textContent = `Are you sure you want to delete ${userIds.length} selected users?`;
+                bulkActionWarning.textContent = 'This action cannot be undone and will permanently delete all selected users and their data.';
+                confirmBulkActionBtn.classList.remove('btn-indigo');
+                confirmBulkActionBtn.classList.add('btn-rose');
+                confirmBulkActionBtn.textContent = 'Delete Selected';
+                // Set the action URL with user IDs as query params
+                confirmBulkActionBtn.onclick = function() {
+                    window.location.href = "{{ url_for('admin_users') }}/bulk_reject?ids=" + userIds.join(',');
+                };
+                
+                // Show the modal using Bootstrap's modal API
+                $('#confirmBulkActionModal').modal('show');
+            }
+        });
+    }
+    
+    // Initialize bulk action buttons state
+    updateBulkActionButtons();
+});
+</script>
 {% endblock content %}

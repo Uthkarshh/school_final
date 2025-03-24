@@ -1,63 +1,242 @@
 {% extends "layout.html" %}
 
 {% block content %}
-    <div class="content-section">
-        <form method="POST" action="">
-            {{ form.hidden_tag() }}
-            <fieldset class="form-group">
-                <legend class="border-bottom mb-4">Fee Breakdown Form</legend>
-                
-                <!-- PEN Number Field -->
-                <div class="form-group">
-                    {{ form.pen_num.label(class="form-control-label") }}
-                    {{ form.pen_num(class="form-control form-control-lg") }}
+<div class="container py-4">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            {% if fee_breakdown %}
+            <div class="alert bg-indigo-100 text-indigo-700 d-flex align-items-center mb-4 border-0 rounded">
+                <i class="fas fa-info-circle me-3 text-indigo-600 fa-lg"></i>
+                <div>
+                    <h5 class="alert-heading mb-1">Edit Mode</h5>
+                    <p class="mb-0">You are editing an existing fee breakdown record for PEN: {{ fee_breakdown.pen_num }}, Year: {{ fee_breakdown.year }}, Type: {{ fee_breakdown.fee_type }}, Term: {{ fee_breakdown.term }}</p>
                 </div>
-                
-                <!-- Year Field -->
-                <div class="form-group">
-                    {{ form.year.label(class="form-control-label") }}
-                    {{ form.year(class="form-control form-control-lg") }}
-                </div>
-                
-                <!-- Fee Type Field -->
-                <div class="form-group">
-                    {{ form.fee_type.label(class="form-control-label") }}
-                    {{ form.fee_type(class="form-control form-control-lg") }}
-                </div>
-                
-                <!-- Term Field -->
-                <div class="form-group">
-                    {{ form.term.label(class="form-control-label") }}
-                    {{ form.term(class="form-control form-control-lg") }}
-                </div>
-                
-                <!-- Paid Amount Field -->
-                <div class="form-group">
-                    {{ form.paid.label(class="form-control-label") }}
-                    {{ form.paid(class="form-control form-control-lg") }}
-                </div>
-                
-                <!-- Due Amount Field -->
-                <div class="form-group">
-                    {{ form.due.label(class="form-control-label") }}
-                    {{ form.due(class="form-control form-control-lg") }}
-                </div>
-                
-                <!-- Receipt Number Field -->
-                <div class="form-group">
-                    {{ form.receipt_no.label(class="form-control-label") }}
-                    {{ form.receipt_no(class="form-control form-control-lg") }}
-                </div>
-                
-                <!-- Fee Paid Date Field -->
-                <div class="form-group">
-                    {{ form.fee_paid_date.label(class="form-control-label") }}
-                    {{ form.fee_paid_date(class="form-control form-control-lg") }}
-                </div>
-            </fieldset>
-            <div class="form-group">
-                {{ form.submit(class="btn btn-outline-info") }}
             </div>
-        </form>
+            {% endif %}
+            
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+                <fieldset class="form-group">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-file-invoice-dollar text-rose-600 me-2 fa-lg"></i>
+                        <h4 class="mb-0">Fee Breakdown Form</h4>
+                    </div>
+                    <hr class="mb-4">
+                    
+                    <div class="row g-3">
+                        <!-- Student Identification Section -->
+                        <div class="col-12 mb-2">
+                            <h5 class="text-slate-700 mb-3">Student Identification</h5>
+                        </div>
+                        
+                        <!-- PEN Number Field - Make readonly when editing -->
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form.pen_num.label(class="form-label") }}
+                                {% if fee_breakdown %}
+                                    {{ form.pen_num(class="form-control", readonly=true) }}
+                                    <small class="form-text text-muted">Primary key field cannot be modified during edit</small>
+                                {% else %}
+                                    {{ form.pen_num(class="form-control") }}
+                                    <small class="form-text text-muted">Enter student's Personal Education Number</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Year Field - Make readonly when editing -->
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form.year.label(class="form-label") }}
+                                {% if fee_breakdown %}
+                                    {{ form.year(class="form-control", readonly=true) }}
+                                    <small class="form-text text-muted">Primary key field cannot be modified during edit</small>
+                                {% else %}
+                                    {{ form.year(class="form-control") }}
+                                    <small class="form-text text-muted">Enter academic year (e.g., 2023-2024)</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Fee Information Section -->
+                        <div class="col-12 mt-2 mb-2">
+                            <h5 class="text-slate-700 mb-3">Fee Information</h5>
+                        </div>
+                        
+                        <!-- Fee Type Field - Make readonly when editing -->
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                {{ form.fee_type.label(class="form-label") }}
+                                {% if fee_breakdown %}
+                                    {{ form.fee_type(class="form-control", readonly=true) }}
+                                    <small class="form-text text-muted">Primary key field cannot be modified during edit</small>
+                                {% else %}
+                                    {{ form.fee_type(class="form-control") }}
+                                    <small class="form-text text-muted">Type of fee (e.g., Tuition, Transport)</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Term Field - Make readonly when editing -->
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                {{ form.term.label(class="form-label") }}
+                                {% if fee_breakdown %}
+                                    {{ form.term(class="form-control", readonly=true) }}
+                                    <small class="form-text text-muted">Primary key field cannot be modified during edit</small>
+                                {% else %}
+                                    {{ form.term(class="form-control") }}
+                                    <small class="form-text text-muted">School term (e.g., Term 1, Term 2)</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Payment Type Field - Make readonly when editing -->
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                {{ form.payment_type.label(class="form-label") }}
+                                {% if fee_breakdown %}
+                                    {{ form.payment_type(class="form-control", readonly=true) }}
+                                    <small class="form-text text-muted">Primary key field cannot be modified during edit</small>
+                                {% else %}
+                                    {{ form.payment_type(class="form-control") }}
+                                    <small class="form-text text-muted">Method of payment (e.g., Cash, Cheque)</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Payment Details Section -->
+                        <div class="col-12 mt-2 mb-2">
+                            <h5 class="text-slate-700 mb-3">Payment Details</h5>
+                        </div>
+                        
+                        <!-- Paid Amount Field - Can be modified in both modes -->
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                {{ form.paid.label(class="form-label") }}
+                                {{ form.paid(class="form-control") }}
+                                <small class="form-text text-muted">Amount paid by student</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Receipt Number Field - Can be modified in both modes -->
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                {{ form.receipt_no.label(class="form-label") }}
+                                {{ form.receipt_no(class="form-control") }}
+                                <small class="form-text text-muted">Receipt number for this payment</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Fee Paid Date Field - Can be modified in both modes -->
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                {{ form.fee_paid_date.label(class="form-label") }}
+                                {{ form.fee_paid_date(class="form-control") }}
+                                <small class="form-text text-muted">Date when payment was received</small>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                
+                <div class="d-flex mt-4">
+                    {% if fee_breakdown %}
+                        <button type="submit" class="btn btn-green">
+                            <i class="fas fa-save me-2"></i>Update Record
+                        </button>
+                        <a href="{{ url_for('fee_breakdown_form') }}" class="btn btn-outline-slate ms-2">
+                            <i class="fas fa-times me-2"></i>Cancel Edit
+                        </a>
+                    {% else %}
+                        <button type="submit" class="btn btn-accent">
+                            <i class="fas fa-plus-circle me-2"></i>Add Fee Payment
+                        </button>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
     </div>
+
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body p-4">
+            <form method="POST" action="{{ url_for('import_fee_breakdown_csv') }}" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                <fieldset class="form-group">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-file-upload text-indigo-600 me-2 fa-lg"></i>
+                        <h4 class="mb-0">Import Fee Breakdown Records</h4>
+                    </div>
+                    <hr class="mb-4">
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group mb-3">
+                                <label class="form-label">CSV File</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0">
+                                        <i class="fas fa-file-csv text-slate-500"></i>
+                                    </span>
+                                    <input type="file" name="fee_breakdown_csv" class="form-control border-start-0 ps-0" accept=".csv" required>
+                                </div>
+                                <small class="form-text text-muted">
+                                    The CSV file should contain columns for all required fee breakdown fields
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-indigo">
+                        <i class="fas fa-file-import me-2"></i>Import CSV
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Help Card -->
+    <div class="card bg-gray-50 border-0 shadow-sm mt-4">
+        <div class="card-body p-3">
+            <div class="d-flex">
+                <div class="icon-circle bg-rose-100 text-rose-600 me-3">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <div>
+                    <h5 class="card-title mb-2">Fee Breakdown Management</h5>
+                    <p class="card-text mb-0 text-slate-600">
+                        Fee Breakdown records track individual payments made by students for various fee types across different terms. Each record represents a specific payment transaction with details such as amount, receipt number, and payment date.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CSV Format Information -->
+    <div class="card bg-indigo-50 border-0 shadow-sm mt-3">
+        <div class="card-body p-3">
+            <div class="d-flex align-items-center mb-2">
+                <i class="fas fa-info-circle text-indigo-600 me-2"></i>
+                <h6 class="mb-0">CSV Import Format</h6>
+            </div>
+            <p class="text-slate-600 small mb-2">Your CSV file should have the following columns:</p>
+            <code class="bg-white p-2 d-block mb-0 border rounded text-slate-800" style="font-size: 0.8rem">
+                pen_num,year,fee_type,term,payment_type,paid,receipt_no,fee_paid_date
+            </code>
+        </div>
+    </div>
+
+    <!-- Additional Information Card -->
+    <div class="card bg-amber-50 border-0 shadow-sm mt-3 mb-3">
+        <div class="card-body p-3">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-exclamation-circle text-amber-600 me-2"></i>
+                <div>
+                    <h6 class="mb-1">Important Note</h6>
+                    <p class="text-slate-600 small mb-0">
+                        This form records individual payments. For setting up fee structures, please use the Fee Form. Each student can have multiple fee breakdown records for different fee types, terms, and payment methods.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock content %}

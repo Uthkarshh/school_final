@@ -1,71 +1,207 @@
 {% extends "layout.html" %}
 
 {% block content %}
-    <div class="content-section">
-        <form method="POST" action="">
-            {{ form.hidden_tag() }}
-            <fieldset class="form-group">
-                <legend class="border-bottom mb-4">Class Details Form</legend>
-                
-                <!-- PEN Number Field -->
-                <div class="form-group">
-                    {{ form.pen_num.label(class="form-control-label") }}
-                    {{ form.pen_num(class="form-control form-control-lg") }}
+<div class="container py-4">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            {% if class_details %}
+            <div class="alert bg-indigo-100 text-indigo-700 d-flex align-items-center mb-4 border-0 rounded">
+                <i class="fas fa-info-circle me-3 text-indigo-600 fa-lg"></i>
+                <div>
+                    <h5 class="alert-heading mb-1">Edit Mode</h5>
+                    <p class="mb-0">You are editing an existing record for PEN: {{ class_details.pen_num }}, Year: {{ class_details.year }}</p>
                 </div>
-                
-                <!-- Year Field -->
-                <div class="form-group">
-                    {{ form.year.label(class="form-control-label") }}
-                    {{ form.year(class="form-control form-control-lg") }}
-                </div>
-                
-                <!-- Current Class Field -->
-                <div class="form-group">
-                    {{ form.current_class.label(class="form-control-label") }}
-                    {{ form.current_class(class="form-control form-control-lg") }}
-                </div>
-                
-                <!-- Section Field -->
-                <div class="form-group">
-                    {{ form.section.label(class="form-control-label") }}
-                    {{ form.section(class="form-control form-control-lg") }}
-                </div>
-                
-                <!-- Roll Number Field -->
-                <div class="form-group">
-                    {{ form.roll_number.label(class="form-control-label") }}
-                    {{ form.roll_number(class="form-control form-control-lg") }}
-                </div>
-                
-                <!-- Photo ID Field -->
-                <div class="form-group">
-                    {{ form.photo_id.label(class="form-control-label") }}
-                    {{ form.photo_id(class="form-control form-control-lg") }}
-                </div>
-                
-                <!-- Language Field -->
-                <div class="form-group">
-                    {{ form.language.label(class="form-control-label") }}
-                    {{ form.language(class="form-control form-control-lg") }}
-                </div>
-                
-                <!-- Vocational Field -->
-                <div class="form-group">
-                    {{ form.vocational.label(class="form-control-label") }}
-                    {{ form.vocational(class="form-control form-control-lg") }}
-                </div>
-                
-                <!-- Currently Enrolled Field -->
-                <div class="form-group">
-                    {{ form.currently_enrolled.label(class="form-control-label") }}
-                    {{ form.currently_enrolled() }}
-                </div>                
-                
-                
-            </fieldset>
-            <div class="form-group">
-                {{ form.submit(class="btn btn-outline-info") }}
             </div>
-        </form>
+            {% endif %}
+            
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+                <fieldset class="form-group">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-chalkboard-teacher text-green-600 me-2 fa-lg"></i>
+                        <h4 class="mb-0">Class Details Form</h4>
+                    </div>
+                    <hr class="mb-4">
+                    
+                    <div class="row g-3">
+                        <!-- PEN Number Field - Make readonly when editing -->
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form.pen_num.label(class="form-label") }}
+                                {% if class_details %}
+                                    {{ form.pen_num(class="form-control", readonly=true) }}
+                                    <small class="form-text text-muted">Primary key field cannot be modified during edit</small>
+                                {% else %}
+                                    {{ form.pen_num(class="form-control") }}
+                                    <small class="form-text text-muted">Enter student's Personal Education Number</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Year Field - Make readonly when editing -->
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form.year.label(class="form-label") }}
+                                {% if class_details %}
+                                    {{ form.year(class="form-control", readonly=true) }}
+                                    <small class="form-text text-muted">Primary key field cannot be modified during edit</small>
+                                {% else %}
+                                    {{ form.year(class="form-control") }}
+                                    <small class="form-text text-muted">Enter academic year (e.g., 2023-2024)</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Current Class Field -->
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                {{ form.current_class.label(class="form-label") }}
+                                {{ form.current_class(class="form-control") }}
+                                <small class="form-text text-muted">Student's current grade level</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Section Field -->
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                {{ form.section.label(class="form-label") }}
+                                {{ form.section(class="form-control") }}
+                                <small class="form-text text-muted">Class section (e.g., A, B, C)</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Roll Number Field -->
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                {{ form.roll_number.label(class="form-label") }}
+                                {{ form.roll_number(class="form-control") }}
+                                <small class="form-text text-muted">Student's roll number in class</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Photo ID Field -->
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                {{ form.photo_id.label(class="form-label") }}
+                                {{ form.photo_id(class="form-control") }}
+                                <small class="form-text text-muted">Student's photo identification number</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Language Field -->
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                {{ form.language.label(class="form-label") }}
+                                {{ form.language(class="form-control") }}
+                                <small class="form-text text-muted">Student's chosen language subject</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Vocational Field -->
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                {{ form.vocational.label(class="form-label") }}
+                                {{ form.vocational(class="form-control") }}
+                                <small class="form-text text-muted">Student's vocational subject if applicable</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Currently Enrolled Field -->
+                        <div class="col-12">
+                            <div class="form-group mb-3">
+                                <div class="form-check">
+                                    {{ form.currently_enrolled(class="form-check-input") }}
+                                    {{ form.currently_enrolled.label(class="form-check-label") }}
+                                </div>
+                                <small class="form-text text-muted">Indicates if the student is currently enrolled in this class</small>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                <div class="d-flex mt-4">
+                    {% if class_details %}
+                        <button type="submit" class="btn btn-green">
+                            <i class="fas fa-save me-2"></i>Update Record
+                        </button>
+                        <a href="{{ url_for('class_details_form') }}" class="btn btn-outline-slate ms-2">
+                            <i class="fas fa-times me-2"></i>Cancel Edit
+                        </a>
+                    {% else %}
+                        <button type="submit" class="btn btn-accent">
+                            <i class="fas fa-plus-circle me-2"></i>Add Class Details
+                        </button>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
     </div>
+
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body p-4">
+            <form method="POST" action="{{ url_for('import_class_details_csv') }}" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                <fieldset class="form-group">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-file-upload text-indigo-600 me-2 fa-lg"></i>
+                        <h4 class="mb-0">Import Class Details</h4>
+                    </div>
+                    <hr class="mb-4">
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group mb-3">
+                                <label class="form-label">CSV File</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0">
+                                        <i class="fas fa-file-csv text-slate-500"></i>
+                                    </span>
+                                    <input type="file" name="class_details_csv" class="form-control border-start-0 ps-0" accept=".csv" required>
+                                </div>
+                                <small class="form-text text-muted">
+                                    The CSV file should contain columns for all required class detail fields
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-indigo">
+                        <i class="fas fa-file-import me-2"></i>Import CSV
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Help Card -->
+    <div class="card bg-gray-50 border-0 shadow-sm mt-4">
+        <div class="card-body p-3">
+            <div class="d-flex">
+                <div class="icon-circle bg-green-100 text-green-600 me-3">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <div>
+                    <h5 class="card-title mb-2">Class Details Management</h5>
+                    <p class="card-text mb-0 text-slate-600">
+                        Class Details records manage student enrollment information including class, section, and subject selections for a specific academic year. These records are essential for academic tracking and fee calculations.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CSV Format Information -->
+    <div class="card bg-indigo-50 border-0 shadow-sm mt-3">
+        <div class="card-body p-3">
+            <div class="d-flex align-items-center mb-2">
+                <i class="fas fa-info-circle text-indigo-600 me-2"></i>
+                <h6 class="mb-0">CSV Import Format</h6>
+            </div>
+            <p class="text-slate-600 small mb-2">Your CSV file should have the following columns:</p>
+            <code class="bg-white p-2 d-block mb-0 border rounded text-slate-800" style="font-size: 0.8rem">
+                pen_num,year,current_class,section,roll_number,photo_id,language,vocational,currently_enrolled
+            </code>
+        </div>
+    </div>
+</div>
 {% endblock content %}
