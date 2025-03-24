@@ -1,61 +1,142 @@
 {% extends "layout.html" %}
 
 {% block content %}
-    <div class="content-section">
-        <form method="POST" action="">
-            {{ form.hidden_tag() }}
-            <fieldset class="form-group">
-                <legend class="border-bottom mb-4">Transport Form</legend>
-                
-                <!-- Pick-up Point Field -->
-                <div class="form-group">
-                    {{ form.pick_up_point.label(class="form-control-label") }}
-                    {% if form.pick_up_point.errors %}
-                    {{ form.pick_up_point(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.pick_up_point.errors %}
-                            <span> {{ error }} </span>
-                        {% endfor %}
+<div class="container py-4">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            {% if transport %}
+            <div class="alert bg-indigo-100 text-indigo-700 d-flex align-items-center mb-4 border-0 rounded">
+                <i class="fas fa-info-circle me-3 text-indigo-600 fa-lg"></i>
+                <div>
+                    <h5 class="alert-heading mb-1">Edit Mode</h5>
+                    <p class="mb-0">You are editing transport record for Route #{{ transport.route_number }} - {{ transport.pick_up_point }}</p>
+                </div>
+            </div>
+            {% endif %}
+            
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+                <fieldset class="form-group">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-bus-alt text-amber-600 me-2 fa-lg"></i>
+                        <h4 class="mb-0">Transport Form</h4>
                     </div>
+                    <hr class="mb-4">
+                    
+                    <div class="row g-3">
+                        <!-- Route Number Field - Make readonly when editing -->
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form.route_number.label(class="form-label") }}
+                                {% if form.route_number.errors %}
+                                    {{ form.route_number(class="form-control is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.route_number.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% elif transport %}
+                                    {{ form.route_number(class="form-control", readonly=true) }}
+                                    <small class="form-text text-muted">Primary key field cannot be modified during edit</small>
+                                {% else %}
+                                    {{ form.route_number(class="form-control") }}
+                                    <small class="form-text text-muted">Enter the unique route identifier</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Pick-up Point Field -->
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form.pick_up_point.label(class="form-label") }}
+                                {% if form.pick_up_point.errors %}
+                                    {{ form.pick_up_point(class="form-control is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.pick_up_point.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.pick_up_point(class="form-control") }}
+                                    <small class="form-text text-muted">Enter the location name where students are picked up</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                </fieldset>
+                <div class="d-flex mt-4">
+                    {% if transport %}
+                        <button type="submit" class="btn btn-green">
+                            <i class="fas fa-save me-2"></i>Update Record
+                        </button>
+                        <a href="{{ url_for('transport_form') }}" class="btn btn-outline-slate ms-2">
+                            <i class="fas fa-times me-2"></i>Cancel Edit
+                        </a>
                     {% else %}
-                        {{ form.pick_up_point(class="form-control form-control-lg") }}
+                        <button type="submit" class="btn btn-accent">
+                            <i class="fas fa-plus-circle me-2"></i>Add Transport Record
+                        </button>
                     {% endif %}
                 </div>
-                
-                <!-- Route Number Field -->
-                <div class="form-group">
-                    {{ form.route_number.label(class="form-control-label") }}
-                    {% if form.route_number.errors %}
-                    {{ form.route_number(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.route_number.errors %}
-                            <span> {{ error }} </span>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                        {{ form.route_number(class="form-control form-control-lg") }}
-                    {% endif %}
-                </div>
-                
-            </fieldset>
-            <div class="form-group">
-                {{ form.submit(class="btn btn-outline-info") }}
-            </div>
-        </form>
-
-        <hr>
-        <form method="POST" action="{{ url_for('import_transport_csv') }}" enctype="multipart/form-data">
-            <fieldset class="form-group">
-                <legend class="border-bottom mb-4">Import Transport Records from CSV</legend>
-                <div class="form-group">
-                    <label class="form-control-label">CSV File</label>
-                    <input type="file" name="transport_csv" class="form-control-file" accept=".csv" required>
-                </div>
-            </fieldset>
-            <div class="form-group">
-                <button type="submit" class="btn btn-outline-secondary">Import CSV</button>
-            </div>
-        </form>
-
+            </form>
+        </div>
     </div>
+
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body p-4">
+            <form method="POST" action="{{ url_for('import_transport_csv') }}" enctype="multipart/form-data">
+                <!-- CSRF Token - This was missing in the previous version -->
+                {{ form.hidden_tag() }}
+                
+                <fieldset class="form-group">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-file-upload text-indigo-600 me-2 fa-lg"></i>
+                        <h4 class="mb-0">Import Transport Records</h4>
+                    </div>
+                    <hr class="mb-4">
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group mb-3">
+                                <label class="form-label">CSV File</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0">
+                                        <i class="fas fa-file-csv text-slate-500"></i>
+                                    </span>
+                                    <input type="file" name="transport_csv" class="form-control border-start-0 ps-0" accept=".csv" required>
+                                </div>
+                                <small class="form-text text-muted">
+                                    The CSV file should contain columns for 'route_number' and 'pick_up_point'
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-indigo">
+                        <i class="fas fa-file-import me-2"></i>Import CSV
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Help Card -->
+    <div class="card bg-gray-50 border-0 shadow-sm mt-4">
+        <div class="card-body p-3">
+            <div class="d-flex">
+                <div class="icon-circle bg-amber-100 text-amber-600 me-3">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <div>
+                    <h5 class="card-title mb-2">Transport Management Tips</h5>
+                    <p class="card-text mb-0 text-slate-600">
+                        Transport records link pick-up points to specific bus routes. These records will be used to assign students to buses and calculate transport fees.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock content %}

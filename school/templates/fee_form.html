@@ -1,148 +1,309 @@
 {% extends "layout.html" %}
 
 {% block content %}
-    <div class="content-section">
-        <form method="POST" action="">
-            {{ form.hidden_tag() }}
-            <fieldset class="form-group">
-                <legend class="border-bottom mb-4">Fee Form</legend>
-
-                <div class="form-group">
-                    {{ form.pen_num.label(class="form-control-label") }}
-                    {% if form.pen_num.errors %}
-                        {{ form.pen_num(class="form-control form-control-lg is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in form.pen_num.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ form.pen_num(class="form-control form-control-lg") }}
-                    {% endif %}
+<div class="container py-4">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            {% if fee_record %}
+            <div class="alert bg-indigo-100 text-indigo-700 d-flex align-items-center mb-4 border-0 rounded">
+                <i class="fas fa-info-circle me-3 text-indigo-600 fa-lg"></i>
+                <div>
+                    <h5 class="alert-heading mb-1">Edit Mode</h5>
+                    <p class="mb-0">You are editing an existing fee record for PEN: {{ fee_record.pen_num }}, Year: {{ fee_record.year }}</p>
                 </div>
-
-                <div class="form-group">
-                    {{ form.year.label(class="form-control-label") }}
-                    {% if form.year.errors %}
-                        {{ form.year(class="form-control form-control-lg is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in form.year.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ form.year(class="form-control form-control-lg") }}
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    {{ form.school_fee.label(class="form-control-label") }}
-                    {% if form.school_fee.errors %}
-                        {{ form.school_fee(class="form-control form-control-lg is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in form.school_fee.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ form.school_fee(class="form-control form-control-lg") }}
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    {{ form.concession_reason.label(class="form-control-label") }}
-                    {% if form.concession_reason.errors %}
-                        {{ form.concession_reason(class="form-control form-control-lg is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in form.concession_reason.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ form.concession_reason(class="form-control form-control-lg") }}
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    {{ form.transport_used.label(class="form-control-label") }}
-                    {{ form.transport_used() }}
-                </div>
-
-                <div class="form-group">
-                    {{ form.application_fee.label(class="form-control-label") }}
-                    {% if form.application_fee.errors %}
-                        {{ form.application_fee(class="form-control form-control-lg is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in form.application_fee.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ form.application_fee(class="form-control form-control-lg") }}
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    {{ form.transport_fee.label(class="form-control-label") }}
-                    {% if form.transport_fee.errors %}
-                        {{ form.transport_fee(class="form-control form-control-lg is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in form.transport_fee.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ form.transport_fee(class="form-control form-control-lg") }}
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    {{ form.transport_fee_concession.label(class="form-control-label") }}
-                    {% if form.transport_fee_concession.errors %}
-                        {{ form.transport_fee_concession(class="form-control form-control-lg is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in form.transport_fee_concession.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ form.transport_fee_concession(class="form-control form-control-lg") }}
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    {{ form.pick_up_point.label(class="form-control-label") }}
-                    {% if form.pick_up_point.errors %}
-                        {{ form.pick_up_point(class="form-control form-control-lg is-invalid") }}
-                        <div class="invalid-feedback">
-                            {% for error in form.pick_up_point.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        {{ form.pick_up_point(class="form-control form-control-lg") }}
-                    {% endif %}
-                </div>
-
-            </fieldset>
-            <div class="form-group">
-                {{ form.submit(class="btn btn-outline-info") }}
             </div>
-        </form>
-
-        <hr>
-        <form method="POST" action="{{ url_for('import_fee_csv') }}" enctype="multipart/form-data">
-            <fieldset class="form-group">
-                <legend class="border-bottom mb-4">Import Fee Records from CSV</legend>
-                <div class="form-group">
-                    <label class="form-control-label">CSV File</label>
-                    <input type="file" name="fee_csv" class="form-control-file" accept=".csv" required>
+            {% endif %}
+            
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+                <fieldset class="form-group">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-money-check-alt text-green-600 me-2 fa-lg"></i>
+                        <h4 class="mb-0">Fee Form</h4>
+                    </div>
+                    <hr class="mb-4">
+                    
+                    <div class="row g-3">
+                        <!-- Student Identification Section -->
+                        <div class="col-12 mb-2">
+                            <h5 class="text-slate-700 mb-3">Student Identification</h5>
+                        </div>
+                        
+                        <!-- PEN Number Field -->
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form.pen_num.label(class="form-label") }}
+                                {% if form.pen_num.errors %}
+                                    {{ form.pen_num(class="form-control is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.pen_num.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% elif fee_record %}
+                                    {{ form.pen_num(class="form-control", readonly=true) }}
+                                    <small class="form-text text-muted">Primary key field cannot be modified during edit</small>
+                                {% else %}
+                                    {{ form.pen_num(class="form-control") }}
+                                    <small class="form-text text-muted">Enter student's Personal Education Number</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Year Field -->
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form.year.label(class="form-label") }}
+                                {% if form.year.errors %}
+                                    {{ form.year(class="form-control is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.year.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% elif fee_record %}
+                                    {{ form.year(class="form-control", readonly=true) }}
+                                    <small class="form-text text-muted">Primary key field cannot be modified during edit</small>
+                                {% else %}
+                                    {{ form.year(class="form-control") }}
+                                    <small class="form-text text-muted">Enter academic year (e.g., 2023-2024)</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- School Fee Section -->
+                        <div class="col-12 mt-2 mb-2">
+                            <h5 class="text-slate-700 mb-3">School Fees</h5>
+                        </div>
+                        
+                        <!-- School Fee Field -->
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                {{ form.school_fee.label(class="form-label") }}
+                                {% if form.school_fee.errors %}
+                                    {{ form.school_fee(class="form-control is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.school_fee.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.school_fee(class="form-control") }}
+                                    <small class="form-text text-muted">Total school fee amount</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Concession Reason Field -->
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                {{ form.concession_reason.label(class="form-label") }}
+                                {% if form.concession_reason.errors %}
+                                    {{ form.concession_reason(class="form-control is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.concession_reason.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.concession_reason(class="form-control") }}
+                                    <small class="form-text text-muted">Reason if fee concession is applicable</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Application Fee Field -->
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                {{ form.application_fee.label(class="form-label") }}
+                                {% if form.application_fee.errors %}
+                                    {{ form.application_fee(class="form-control is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.application_fee.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.application_fee(class="form-control") }}
+                                    <small class="form-text text-muted">One-time application fee</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Transport Details Section -->
+                        <div class="col-12 mt-2 mb-2">
+                            <h5 class="text-slate-700 mb-3">Transport Details</h5>
+                        </div>
+                        
+                        <!-- Transport Used Field -->
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <div class="form-check">
+                                    {{ form.transport_used(class="form-check-input") }}
+                                    {{ form.transport_used.label(class="form-check-label") }}
+                                </div>
+                                <small class="form-text text-muted">Check if student uses school transport</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Pick-up Point Field -->
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form.pick_up_point.label(class="form-label") }}
+                                {% if form.pick_up_point.errors %}
+                                    {{ form.pick_up_point(class="form-control is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.pick_up_point.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.pick_up_point(class="form-control") }}
+                                    <small class="form-text text-muted">Location where student is picked up</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Transport Fee Field -->
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form.transport_fee.label(class="form-label") }}
+                                {% if form.transport_fee.errors %}
+                                    {{ form.transport_fee(class="form-control is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.transport_fee.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.transport_fee(class="form-control") }}
+                                    <small class="form-text text-muted">Regular transport fee amount</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Transport Fee Concession Field -->
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form.transport_fee_concession.label(class="form-label") }}
+                                {% if form.transport_fee_concession.errors %}
+                                    {{ form.transport_fee_concession(class="form-control is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.transport_fee_concession.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.transport_fee_concession(class="form-control") }}
+                                    <small class="form-text text-muted">Concession amount on transport fee if applicable</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                
+                <div class="d-flex mt-4">
+                    {% if fee_record %}
+                        <button type="submit" class="btn btn-green">
+                            <i class="fas fa-save me-2"></i>Update Record
+                        </button>
+                        <a href="{{ url_for('fee_form') }}" class="btn btn-outline-slate ms-2">
+                            <i class="fas fa-times me-2"></i>Cancel Edit
+                        </a>
+                    {% else %}
+                        <button type="submit" class="btn btn-accent">
+                            <i class="fas fa-plus-circle me-2"></i>Add Fee Record
+                        </button>
+                    {% endif %}
                 </div>
-            </fieldset>
-            <div class="form-group">
-                <button type="submit" class="btn btn-outline-secondary">Import CSV</button>
-            </div>
-        </form>
-
+            </form>
+        </div>
     </div>
+
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body p-4">
+            <form method="POST" action="{{ url_for('import_fee_csv') }}" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                <fieldset class="form-group">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-file-upload text-indigo-600 me-2 fa-lg"></i>
+                        <h4 class="mb-0">Import Fee Records</h4>
+                    </div>
+                    <hr class="mb-4">
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group mb-3">
+                                <label class="form-label">CSV File</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0">
+                                        <i class="fas fa-file-csv text-slate-500"></i>
+                                    </span>
+                                    <input type="file" name="fee_csv" class="form-control border-start-0 ps-0" accept=".csv" required>
+                                </div>
+                                <small class="form-text text-muted">
+                                    The CSV file should contain columns for all required fee record fields
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-indigo">
+                        <i class="fas fa-file-import me-2"></i>Import CSV
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Help Card -->
+    <div class="card bg-gray-50 border-0 shadow-sm mt-4">
+        <div class="card-body p-3">
+            <div class="d-flex">
+                <div class="icon-circle bg-green-100 text-green-600 me-3">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <div>
+                    <h5 class="card-title mb-2">Fee Management Information</h5>
+                    <p class="card-text mb-0 text-slate-600">
+                        This form establishes the fee structure for each student for a specific academic year. It includes school fees, application fees, and transport fees if applicable. Use the Fee Breakdown form to record individual payments against these fee categories.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CSV Format Information -->
+    <div class="card bg-indigo-50 border-0 shadow-sm mt-3">
+        <div class="card-body p-3">
+            <div class="d-flex align-items-center mb-2">
+                <i class="fas fa-info-circle text-indigo-600 me-2"></i>
+                <h6 class="mb-0">CSV Import Format</h6>
+            </div>
+            <p class="text-slate-600 small mb-2">Your CSV file should have the following columns:</p>
+            <code class="bg-white p-2 d-block mb-0 border rounded text-slate-800" style="font-size: 0.8rem">
+                pen_num,year,school_fee,concession_reason,transport_used,application_fee,transport_fee,transport_fee_concession,pick_up_point
+            </code>
+        </div>
+    </div>
+
+    <!-- Tips Card -->
+    <div class="card bg-amber-50 border-0 shadow-sm mt-3 mb-3">
+        <div class="card-body p-3">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-star text-amber-600 me-2"></i>
+                <div>
+                    <h6 class="mb-1">Fee Management Tips</h6>
+                    <ul class="text-slate-600 small mb-0 ps-3">
+                        <li>Set up the fee structure for each student at the beginning of the academic year</li>
+                        <li>Any concessions in fees should be noted with appropriate reasons</li>
+                        <li>For transport fees, ensure the pick-up point is accurately recorded</li>
+                        <li>Use the Fee Breakdown form to track individual payments throughout the year</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock content %}

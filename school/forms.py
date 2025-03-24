@@ -132,7 +132,13 @@ class FeeBreakdownForm(FlaskForm):
     fee_paid_date = DateField('Fee Paid Date', validators=[DataRequired()], default=date.today)
     submit = SubmitField('Save')
 
+# Add this field to your existing TableSelectForm class
 class TableSelectForm(FlaskForm):
-    start_date = DateField('Start Date', validators=[Optional()], format='%Y-%m-%d')
-    end_date = DateField('End Date', validators=[Optional()], format='%Y-%m-%d')
-    submit = SubmitField('Filter')
+    table_select = SelectField('Select Table', 
+                           choices=[('student', 'Student'), ('classdetails', 'Class Details'), 
+                                   ('fee', 'Fee'), ('feebreakdown', 'Fee Breakdown'), 
+                                   ('transport', 'Transport')])
+    start_date = DateField('Start Date', format='%Y-%m-%d', validators=[Optional()])
+    end_date = DateField('End Date', format='%Y-%m-%d', validators=[Optional()])
+    pen_num = StringField('PEN Number', validators=[Optional()])
+    submit = SubmitField('View Data')

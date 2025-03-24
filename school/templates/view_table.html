@@ -1,86 +1,244 @@
 {% extends "layout.html" %}
+
 {% block content %}
-    <h2>View Table Data</h2>
-    <form method="POST" id="dataFilterForm">
-        {{ form.csrf_token }}
-        <div class="form-group">
-            <label for="table_select">Select Table:</label>
-            <select class="form-control" id="table_select" name="table_select">
-                <option value="student" {% if table_name == 'student' %}selected{% endif %}>Student</option>
-                <option value="classdetails" {% if table_name == 'classdetails' %}selected{% endif %}>Class Details</option>
-                <option value="fee" {% if table_name == 'fee' %}selected{% endif %}>Fee</option>
-                <option value="feebreakdown" {% if table_name == 'feebreakdown' %}selected{% endif %}>Fee Breakdown</option>
-                <option value="transport" {% if table_name == 'transport' %}selected{% endif %}>Transport</option>
-            </select>
-        </div>
-        
-        <div class="row mt-3 mb-3">
-            <div class="col-md-5">
-                <div class="form-group">
-                    <label for="start_date">Start Date:</label>
-                    <input type="date" class="form-control" id="start_date" name="start_date" 
-                           value="{{ start_date.strftime('%Y-%m-%d') if start_date else '' }}">
-                </div>
+<div class="container py-4">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center mb-3">
+                <i class="fas fa-table text-indigo-600 me-2 fa-lg"></i>
+                <h4 class="mb-0">View Table Data</h4>
             </div>
-            <div class="col-md-5">
-                <div class="form-group">
-                    <label for="end_date">End Date:</label>
-                    <input type="date" class="form-control" id="end_date" name="end_date"
-                           value="{{ end_date.strftime('%Y-%m-%d') if end_date else '' }}">
+            <hr class="mb-4">
+
+            <form method="POST" id="dataFilterForm">
+                {{ form.csrf_token }}
+                <fieldset class="form-group">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="table_select" class="form-label">Select Table:</label>
+                                <select class="form-control" id="table_select" name="table_select">
+                                    <option value="student" {% if table_name == 'student' %}selected{% endif %}>Student</option>
+                                    <option value="classdetails" {% if table_name == 'classdetails' %}selected{% endif %}>Class Details</option>
+                                    <option value="fee" {% if table_name == 'fee' %}selected{% endif %}>Fee</option>
+                                    <option value="feebreakdown" {% if table_name == 'feebreakdown' %}selected{% endif %}>Fee Breakdown</option>
+                                    <option value="transport" {% if table_name == 'transport' %}selected{% endif %}>Transport</option>
+                                </select>
+                                <small class="form-text text-muted">Choose the table to view data from</small>
+                            </div>
+                        </div>
+
+                        <!-- Fixed PEN Number filter -->
+                        <div class="col-md-4">
+                            <div class="form-group mb-3" id="penNumberFilterGroup">
+                                <label for="pen_num" class="form-label">PEN Number:</label>
+                                <input type="text" class="form-control" id="pen_num" name="pen_num"
+                                       value="{{ session.get('pen_num', '') }}">
+                                <small class="form-text text-muted">Filter data by a specific PEN number</small>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="start_date" class="form-label">Start Date:</label>
+                                <input type="date" class="form-control" id="start_date" name="start_date"
+                                       value="{{ start_date.strftime('%Y-%m-%d') if start_date else '' }}">
+                                <small class="form-text text-muted">Filter records starting from this date</small>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label for="end_date" class="form-label">End Date:</label>
+                                <input type="date" class="form-control" id="end_date" name="end_date"
+                                       value="{{ end_date.strftime('%Y-%m-%d') if end_date else '' }}">
+                                <small class="form-text text-muted">Filter records up to this date</small>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <div class="d-flex mt-4">
+                    <button type="submit" class="btn btn-accent me-2">
+                        <i class="fas fa-eye me-2"></i>View Data
+                    </button>
+                    <button type="button" id="exportCsvBtn" class="btn btn-success">
+                        <i class="fas fa-file-csv me-2"></i>Export to CSV
+                    </button>
                 </div>
-            </div>
+            </form>
         </div>
-        
-        <div class="d-flex">
-            <button type="submit" class="btn btn-primary mr-2">View Data</button>
-            <button type="button" id="exportCsvBtn" class="btn btn-success">
-                <i class="fas fa-file-csv mr-1"></i> Export to CSV
-            </button>
-        </div>
-    </form>
+    </div>
 
     {% if data %}
-        <div class="mt-4 mb-2">
-            <h3>Table: {{ table_name }}</h3>
-        </div>
-        
-        <div class="table-responsive">
-            <table class="table table-striped">
-                <thead class="thead-dark">
-                    <tr>
-                        {% for column in data[0].__class__.__table__.columns %}
-                            <th>{{ column.name }}</th>
-                        {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in data %}
-                        <tr>
-                            {% for column in row.__class__.__table__.columns %}
-                                <td>{{ row[column.name] }}</td>
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-body p-4">
+                <h4 class="card-title mb-4">Table: {{ table_name }}</h4>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead class="thead-dark">
+                            <tr>
+                                {% for column in data[0].__class__.__table__.columns %}
+                                    <th>{{ column.name }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in data %}
+                                <tr>
+                                    {% for column in row.__class__.__table__.columns %}
+                                        <td>{{ row[column.name] }}</td>
+                                    {% endfor %}
+                                </tr>
                             {% endfor %}
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Edit Record functionality -->
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-body p-4">
+                <h5 class="card-title mb-3">Edit Record</h5>
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <select id="editRowSelect" class="form-control">
+                                <option value="">-- Select a record to edit --</option>
+                                {% for row in data %}
+                                    {% if table_name == 'student' %}
+                                        <option value="{{ row.pen_num }}">PEN: {{ row.pen_num }} - {{ row.student_name }}</option>
+                                    {% elif table_name == 'classdetails' %}
+                                        <option value="{{ row.pen_num }},{{ row.year }}">PEN: {{ row.pen_num }} - Year: {{ row.year }} - Class: {{ row.current_class }}{{ row.section }}</option>
+                                    {% elif table_name == 'fee' %}
+                                        <option value="{{ row.pen_num }},{{ row.year }}">PEN: {{ row.pen_num }} - Year: {{ row.year }} - School Fee: {{ row.school_fee }}</option>
+                                    {% elif table_name == 'feebreakdown' %}
+                                        <option value="{{ row.pen_num }},{{ row.year }},{{ row.fee_type }},{{ row.term }},{{ row.payment_type }}">
+                                            PEN: {{ row.pen_num }} - {{ row.fee_type }} ({{ row.term }}) - Paid: {{ row.paid }}
+                                        </option>
+                                    {% elif table_name == 'transport' %}
+                                        <option value="{{ row.transport_id }}">ID: {{ row.transport_id }} - {{ row.pick_up_point }} (Route: {{ row.route_number }})</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                            <button id="editRecordBtn" class="btn btn-indigo">
+                                <i class="fas fa-edit me-2"></i>Edit Record
+                            </button>
+                        </div>
+                        <small class="form-text text-muted">Select a record from the table above to edit its details</small>
+                    </div>
+                </div>
+            </div>
         </div>
     {% endif %}
 
-    <!-- JavaScript for AJAX-based CSV export -->
+    <!-- Help Card -->
+    <div class="card bg-gray-50 border-0 shadow-sm mt-4">
+        <div class="card-body p-3">
+            <div class="d-flex">
+                <div class="icon-circle bg-indigo-100 text-indigo-600 me-3">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <div>
+                    <h5 class="card-title mb-2">Data Viewing and Exporting</h5>
+                    <p class="card-text mb-0 text-slate-600">
+                        This page allows you to view and export data from various tables within the school database. You can filter the data by table, PEN number, and date range.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tips Card -->
+    <div class="card bg-amber-50 border-0 shadow-sm mt-3 mb-3">
+        <div class="card-body p-3">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-star text-amber-600 me-2"></i>
+                <div>
+                    <h6 class="mb-1">Tips for Viewing Data</h6>
+                    <ul class="text-slate-600 small mb-0 ps-3">
+                        <li>Use the table selection to switch between different data sets.</li>
+                        <li>Apply filters to narrow down the data to the specific records you need.</li>
+                        <li>The export button allows you to download the currently viewed data as a CSV file.</li>
+                        <li>Select a specific record to edit by using the edit record functionality at the bottom of the page.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- JavaScript for AJAX-based CSV export and table filtering -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const tableSelect = document.getElementById('table_select');
+            const penNumberFilterGroup = document.getElementById('penNumberFilterGroup');
             const exportCsvBtn = document.getElementById('exportCsvBtn');
+            const editRecordBtn = document.getElementById('editRecordBtn');
+            const editRowSelect = document.getElementById('editRowSelect');
+            
+            // Function to toggle PEN number filter visibility
+            function togglePenNumberFilter() {
+                if (tableSelect.value === 'transport') {
+                    penNumberFilterGroup.style.display = 'none';
+                } else {
+                    penNumberFilterGroup.style.display = 'block';
+                }
+            }
+            
+            // Set initial visibility based on selected table
+            togglePenNumberFilter();
+            
+            // Toggle visibility when table selection changes
+            if (tableSelect) {
+                tableSelect.addEventListener('change', togglePenNumberFilter);
+            }
+            
+            // Handle edit record button click
+            if (editRecordBtn && editRowSelect) {
+                editRecordBtn.addEventListener('click', function() {
+                    const selectedValue = editRowSelect.value;
+                    if (!selectedValue) {
+                        alert('Please select a record to edit');
+                        return;
+                    }
+                    
+                    const table = '{{ table_name }}';
+                    let url = '';
+                    
+                    if (table === 'student') {
+                        url = `/student_form?edit_pen_num=${selectedValue}`;
+                    } else if (table === 'classdetails') {
+                        const [pen_num, year] = selectedValue.split(',');
+                        url = `/class_details_form?edit_pen_num=${pen_num}&edit_year=${year}`;
+                    } else if (table === 'fee') {
+                        const [pen_num, year] = selectedValue.split(',');
+                        url = `/fee_form?edit_pen_num=${pen_num}&edit_year=${year}`;
+                    } else if (table === 'feebreakdown') {
+                        const [pen_num, year, fee_type, term, payment_type] = selectedValue.split(',');
+                        url = `/fee_breakdown_form?edit_pen_num=${pen_num}&edit_year=${year}&edit_fee_type=${encodeURIComponent(fee_type)}&edit_term=${encodeURIComponent(term)}&edit_payment_type=${encodeURIComponent(payment_type)}`;
+                    } else if (table === 'transport') {
+                        url = `/transport_form?edit_id=${selectedValue}`;
+                    }
+                    
+                    if (url) {
+                        window.location.href = url;
+                    }
+                });
+            }
             
             if (exportCsvBtn) {
                 exportCsvBtn.addEventListener('click', function() {
                     // Get form values directly for export
-                    const tableSelect = document.getElementById('table_select');
                     const startDateInput = document.getElementById('start_date');
                     const endDateInput = document.getElementById('end_date');
+                    const penNumInput = document.getElementById('pen_num');
                     
                     const tableName = tableSelect.value;
                     const startDate = startDateInput.value;
                     const endDate = endDateInput.value;
+                    const penNum = penNumInput.value;
                     
                     if (!tableName) {
                         alert('Please select a table to export');
@@ -92,9 +250,17 @@
                     exportCsvBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Preparing download...';
                     exportCsvBtn.disabled = true;
                     
+                    // Build URL with all filters
+                    let exportUrl = `/export_csv/${tableName}?`;
+                    if (startDate) exportUrl += `start_date=${startDate}&`;
+                    if (endDate) exportUrl += `end_date=${endDate}&`;
+                    if (penNum && tableName !== 'transport') exportUrl += `pen_num=${penNum}&`;
+                    // Remove trailing & if present
+                    exportUrl = exportUrl.endsWith('&') ? exportUrl.slice(0, -1) : exportUrl;
+                    
                     // Create a new XMLHttpRequest
                     const xhr = new XMLHttpRequest();
-                    xhr.open('GET', `/export_csv/${tableName}?start_date=${startDate}&end_date=${endDate}`, true);
+                    xhr.open('GET', exportUrl, true);
                     xhr.responseType = 'blob'; // Important: blob response type for file downloads
                     
                     xhr.onload = function() {

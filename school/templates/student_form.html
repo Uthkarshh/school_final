@@ -1,124 +1,278 @@
 {% extends "layout.html" %}
 
 {% block content %}
-    <div class="content-section">
-        <form method="POST" action="">
-            {{ form.hidden_tag() }}
-            <fieldset class="form-group">
-                <legend class="border-bottom mb-4">Student Form</legend>
-                
-                <!-- PEN Number Field -->
-                <div class="form-group">
-                    {{ form.pen_num.label(class="form-control-label") }}
-                    {% if form.pen_num.errors %}
-                    {{ form.pen_num(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.pen_num.errors %}
-                            <span> {{ error }} </span>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                        {{ form.pen_num(class="form-control form-control-lg") }}
-                    {% endif %}
+<div class="container py-4">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            {% if student %}
+            <div class="alert bg-indigo-100 text-indigo-700 d-flex align-items-center mb-4 border-0 rounded">
+                <i class="fas fa-info-circle me-3 text-indigo-600 fa-lg"></i>
+                <div>
+                    <h5 class="alert-heading mb-1">Edit Mode</h5>
+                    <p class="mb-0">You are editing student record for PEN: {{ student.pen_num }} - {{ student.student_name }}</p>
                 </div>
-                
-                <!-- Admission Number Field -->
-                <div class="form-group">
-                    {{ form.admission_number.label(class="form-control-label") }}
-                    {% if form.admission_number.errors %}
-                    {{ form.admission_number(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.admission_number.errors %}
-                            <span> {{ error }} </span>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                        {{ form.admission_number(class="form-control form-control-lg") }}
-                    {% endif %}
-                </div>
-                
-                <!-- Aadhar Number Field -->
-                <div class="form-group">
-                    {{ form.aadhar_number.label(class="form-control-label") }}
-                    {% if form.aadhar_number.errors %}
-                    {{ form.aadhar_number(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.aadhar_number.errors %}
-                            <span> {{ error }} </span>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                        {{ form.aadhar_number(class="form-control form-control-lg") }}
-                    {% endif %}
-                </div>
-                
-                <!-- Student Name Field -->
-                <div class="form-group">
-                    {{ form.student_name.label(class="form-control-label") }}
-                    {{ form.student_name(class="form-control form-control-lg") }}
-                </div>
-                
-                <!-- Father Name Field -->
-                <div class="form-group">
-                    {{ form.father_name.label(class="form-control-label") }}
-                    {{ form.father_name(class="form-control form-control-lg") }}
-                </div>
-                
-                <!-- Mother Name Field -->
-                <div class="form-group">
-                    {{ form.mother_name.label(class="form-control-label") }}
-                    {{ form.mother_name(class="form-control form-control-lg") }}
-                </div>
-                
-                <!-- Gender Field -->
-                <div class="form-group">
-                    {{ form.gender.label(class="form-control-label") }}
-                    {{ form.gender(class="form-control form-control-lg") }}
-                </div>
-                
-                <!-- Date of Birth Field -->
-                <div class="form-group">
-                    {{ form.date_of_birth.label(class="form-control-label") }}
-                    {{ form.date_of_birth(class="form-control form-control-lg") }}
-                </div>
-                
-                <!-- Date of Joining Field -->
-                <div class="form-group">
-                    {{ form.date_of_joining.label(class="form-control-label") }}
-                    {{ form.date_of_joining(class="form-control form-control-lg") }}
-                </div>
-                
-                <!-- Contact Number Field -->
-                <div class="form-group">
-                    {{ form.contact_number.label(class="form-control-label") }}
-                    {{ form.contact_number(class="form-control form-control-lg") }}
-                </div>
-                
-                <!-- Village Field -->
-                <div class="form-group">
-                    {{ form.village.label(class="form-control-label") }}
-                    {{ form.village(class="form-control form-control-lg") }}
-                </div>
-                
-            </fieldset>
-            <div class="form-group">
-                {{ form.submit(class="btn btn-outline-info") }}
             </div>
-        </form>
+            {% endif %}
+            
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+                <fieldset class="form-group">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-user-graduate text-indigo-600 me-2 fa-lg"></i>
+                        <h4 class="mb-0">Student Form</h4>
+                    </div>
+                    <hr class="mb-4">
+                    
+                    <div class="row g-3">
+                        <!-- Student Information Section -->
+                        <div class="col-12 mb-2">
+                            <h5 class="text-slate-700 mb-3">Student Information</h5>
+                        </div>
+                        
+                        <!-- PEN Number Field - Make readonly when editing -->
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                {{ form.pen_num.label(class="form-label") }}
+                                {% if form.pen_num.errors %}
+                                    {{ form.pen_num(class="form-control is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.pen_num.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% elif student %}
+                                    {{ form.pen_num(class="form-control", readonly=true) }}
+                                    <small class="form-text text-muted">Primary key field cannot be modified during edit</small>
+                                {% else %}
+                                    {{ form.pen_num(class="form-control") }}
+                                    <small class="form-text text-muted">Student's Personal Education Number</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Admission Number Field -->
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                {{ form.admission_number.label(class="form-label") }}
+                                {% if form.admission_number.errors %}
+                                    {{ form.admission_number(class="form-control is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.admission_number.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.admission_number(class="form-control") }}
+                                    <small class="form-text text-muted">School admission/registration number</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Aadhar Number Field -->
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                {{ form.aadhar_number.label(class="form-label") }}
+                                {% if form.aadhar_number.errors %}
+                                    {{ form.aadhar_number(class="form-control is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.aadhar_number.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.aadhar_number(class="form-control") }}
+                                    <small class="form-text text-muted">Government issued Aadhar card number</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Student Name Field -->
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form.student_name.label(class="form-label") }}
+                                {{ form.student_name(class="form-control") }}
+                                <small class="form-text text-muted">Full name of the student</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Gender Field -->
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form.gender.label(class="form-label") }}
+                                {{ form.gender(class="form-control") }}
+                                <small class="form-text text-muted">Student's gender</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Date of Birth Field -->
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form.date_of_birth.label(class="form-label") }}
+                                {{ form.date_of_birth(class="form-control") }}
+                                <small class="form-text text-muted">Student's date of birth (YYYY-MM-DD)</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Date of Joining Field -->
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form.date_of_joining.label(class="form-label") }}
+                                {{ form.date_of_joining(class="form-control") }}
+                                <small class="form-text text-muted">Date when student joined the school (YYYY-MM-DD)</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Family Information Section -->
+                        <div class="col-12 mt-2 mb-2">
+                            <h5 class="text-slate-700 mb-3">Family Information</h5>
+                        </div>
+                        
+                        <!-- Father Name Field -->
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form.father_name.label(class="form-label") }}
+                                {{ form.father_name(class="form-control") }}
+                                <small class="form-text text-muted">Full name of student's father</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Mother Name Field -->
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form.mother_name.label(class="form-label") }}
+                                {{ form.mother_name(class="form-control") }}
+                                <small class="form-text text-muted">Full name of student's mother</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Contact Information Section -->
+                        <div class="col-12 mt-2 mb-2">
+                            <h5 class="text-slate-700 mb-3">Contact Information</h5>
+                        </div>
+                        
+                        <!-- Contact Number Field -->
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form.contact_number.label(class="form-label") }}
+                                {{ form.contact_number(class="form-control") }}
+                                <small class="form-text text-muted">Primary contact phone number</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Village Field -->
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                {{ form.village.label(class="form-label") }}
+                                {{ form.village(class="form-control") }}
+                                <small class="form-text text-muted">Student's village or residential area</small>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                
+                <div class="d-flex mt-4">
+                    {% if student %}
+                        <button type="submit" class="btn btn-green">
+                            <i class="fas fa-save me-2"></i>Update Record
+                        </button>
+                        <a href="{{ url_for('student_form') }}" class="btn btn-outline-slate ms-2">
+                            <i class="fas fa-times me-2"></i>Cancel Edit
+                        </a>
+                    {% else %}
+                        <button type="submit" class="btn btn-accent">
+                            <i class="fas fa-plus-circle me-2"></i>Add Student
+                        </button>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
 
-        <hr>
-        <form method="POST" action="{{ url_for('import_student_csv') }}" enctype="multipart/form-data">
-            <fieldset class="form-group">
-                <legend class="border-bottom mb-4">Import Students from CSV</legend>
-                <div class="form-group">
-                    <label class="form-control-label">CSV File</label>
-                    <input type="file" name="student_csv" class="form-control-file" accept=".csv" required>
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body p-4">
+            <form method="POST" action="{{ url_for('import_student_csv') }}" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                <fieldset class="form-group">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-file-upload text-indigo-600 me-2 fa-lg"></i>
+                        <h4 class="mb-0">Import Students</h4>
+                    </div>
+                    <hr class="mb-4">
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group mb-3">
+                                <label class="form-label">CSV File</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0">
+                                        <i class="fas fa-file-csv text-slate-500"></i>
+                                    </span>
+                                    <input type="file" name="student_csv" class="form-control border-start-0 ps-0" accept=".csv" required>
+                                </div>
+                                <small class="form-text text-muted">
+                                    Upload a CSV file with student information for bulk import
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-indigo">
+                        <i class="fas fa-file-import me-2"></i>Import Students
+                    </button>
                 </div>
-            </fieldset>
-            <div class="form-group">
-                <button type="submit" class="btn btn-outline-secondary">Import CSV</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Help Card -->
+    <div class="card bg-gray-50 border-0 shadow-sm mt-4">
+        <div class="card-body p-3">
+            <div class="d-flex">
+                <div class="icon-circle bg-indigo-100 text-indigo-600 me-3">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <div>
+                    <h5 class="card-title mb-2">Student Management</h5>
+                    <p class="card-text mb-0 text-slate-600">
+                        This form is used to add or update student personal and contact information. Each student needs a unique PEN (Personal Education Number) which will be used to link their fee records, class details, and transport information.
+                    </p>
+                </div>
             </div>
-        </form>
+        </div>
     </div>
+    
+    <!-- CSV Format Information -->
+    <div class="card bg-indigo-50 border-0 shadow-sm mt-3">
+        <div class="card-body p-3">
+            <div class="d-flex align-items-center mb-2">
+                <i class="fas fa-info-circle text-indigo-600 me-2"></i>
+                <h6 class="mb-0">CSV Import Format</h6>
+            </div>
+            <p class="text-slate-600 small mb-2">Your CSV file should have the following columns:</p>
+            <code class="bg-white p-2 d-block mb-0 border rounded text-slate-800" style="font-size: 0.8rem">
+                pen_num,admission_number,aadhar_number,student_name,father_name,mother_name,gender,date_of_birth,date_of_joining,contact_number,village
+            </code>
+        </div>
     </div>
+
+    <!-- Tips Card -->
+    <div class="card bg-amber-50 border-0 shadow-sm mt-3 mb-3">
+        <div class="card-body p-3">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-star text-amber-600 me-2"></i>
+                <div>
+                    <h6 class="mb-1">Student Record Tips</h6>
+                    <ul class="text-slate-600 small mb-0 ps-3">
+                        <li>Ensure that the PEN number is unique for each student</li>
+                        <li>The Aadhar number should be exactly 12 digits</li>
+                        <li>Dates should be in YYYY-MM-DD format</li>
+                        <li>After adding a student, create corresponding class details record</li>
+                        <li>Update contact information whenever it changes to maintain accurate records</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock content %}

@@ -1,182 +1,643 @@
-/* ========================
-    GLOBAL VARIABLES
-======================== */
+/* ======================== GLOBAL VARIABLES ======================== */
 :root {
-  --bg-color: #fafafa;
-  --text-color: #333333;
-  --heading-color: #444444;
-  --steel-color: #5f788a;
-  --nav-link-color: #cbd5db;
+  /* Core color palette - modernized & refined */
+  --bg-color: #f8fafc;
+  --text-color: #334155;
+  --heading-color: #1e293b;
+  --steel-color: #475569;
+  --nav-link-color: #e2e8f0;
   --nav-link-hover: #ffffff;
-  --border-color: #dddddd;
-  --accent-color: #428bca;
-  --transition-speed: 0.3s;
-  --border-radius: 4px;
-  --shadow-color: rgba(0, 0, 0, 0.05);
+  --border-color: #e2e8f0;
+  --accent-color: #3b82f6;
+  --transition-speed: 0.25s;
+  --border-radius: 6px;
+  --shadow-color: rgba(0, 0, 0, 0.04);
+  
+  /* Extended color palette - refined for better harmony */
+  --indigo-100: #e0e7ff;
+  --indigo-500: #6366f1;
+  --indigo-600: #4f46e5;
+  --rose-100: #ffe4e6;
+  --rose-600: #e11d48;
+  --amber-100: #fef3c7;
+  --amber-600: #d97706;
+  --green-100: #dcfce7;
+  --green-600: #16a34a;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --slate-800: #1e293b;
+  
+  /* Subtle neutrals for background variation */
+  --neutral-50: #f9fafb;
+  --neutral-100: #f3f4f6;
+  --neutral-200: #e5e7eb;
 }
 
-/* ========================
-    BASE STYLES
-======================== */
+/* ======================== BASE STYLES ======================== */
 body {
   background: var(--bg-color);
   color: var(--text-color);
-  margin-top: 5rem; /* Keep this, but it's handled better by Bootstrap's spacing */
-  font-family: "Open Sans", sans-serif; /* Update with your preferred font */
-  line-height: 1.6;
+  margin-top: 5rem;
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  line-height: 1.65;
+  font-size: 1rem;
+  -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
   color: var(--heading-color);
-  margin-bottom: 1rem;
+  margin-bottom: 1.125rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+}
+
+a {
+  color: var(--accent-color);
+  transition: all var(--transition-speed) ease-in-out;
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--indigo-600);
+}
+
+/* ======================== HEADER & NAV ======================== */
+.site-header {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.navbar {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid var(--border-color);
+  padding: 0.75rem 1.25rem;
+}
+
+.navbar-brand {
+  color: var(--heading-color) !important;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-size: 1.25rem;
+  transition: color var(--transition-speed) ease;
+}
+
+.navbar-brand:hover {
+  color: var(--accent-color) !important;
+}
+
+.nav-link {
+  color: var(--slate-600) !important;
+  transition: color var(--transition-speed) ease;
+  font-weight: 500;
+  padding: 0.625rem 1rem !important;
+  border-radius: var(--border-radius);
+}
+
+.nav-link:hover {
+  color: var(--accent-color) !important;
+  background-color: var(--neutral-50);
+}
+
+.nav-link.active {
+  color: var(--accent-color) !important;
   font-weight: 600;
 }
 
-/* ========================
-    HEADER & NAV (Bootstrap Optimized)
-======================== */
-.site-header {
-  background-color: var(--steel-color); /*  Use the more general .bg-steel, see below. */
-}
-
-/*  We're using Bootstrap, so let's leverage its classes */
-.navbar {
-    background-color: var(--steel-color) !important; /* Use !important only when absolutely necessary */
-}
-
-.navbar-brand,
-.nav-link { /* Style both brand and links for consistency */
-    color: var(--nav-link-color) !important;  /* Again, use !important judiciously */
-    transition: color var(--transition-speed) ease;
-    font-weight: 400;
-}
-
-.navbar-brand:hover, /* Include hover state for navbar-brand*/
-.nav-link:hover {
-    color: var(--nav-link-hover) !important;
-    text-decoration: none; /* Remove underline on hover - standard Bootstrap behavior */
-}
-
-.nav-link.active { /* No need for .site-header prefix */
-    color: var(--nav-link-hover) !important;
-    font-weight: 600;
-}
-/* ========================
-    CONTENT SECTIONS (Bootstrap Optimized)
-======================== */
+/* ======================== CONTENT SECTIONS ======================== */
 .content-section {
   background-color: #ffffff;
-  padding: 1.25rem; /* Use Bootstrap's spacing: 1.25rem (20px) */
+  padding: 1.5rem;
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
-  margin-bottom: 1.25rem; /* Consistent with padding */
-  box-shadow: 0 0.25rem 0.5rem var(--shadow-color); /* More subtle shadow */
-  transition: box-shadow var(--transition-speed) ease;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 6px var(--shadow-color);
+  transition: transform var(--transition-speed) ease, 
+              box-shadow var(--transition-speed) ease;
 }
 
 .content-section:hover {
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1); /* Slightly larger shadow on hover */
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
 }
 
-/* ========================
-    ARTICLES (Bootstrap Optimized)
-======================== */
+/* ======================== ARTICLES ======================== */
 .article-title {
   color: var(--heading-color);
-  font-size: 1.25rem; /* Consistent with Bootstrap's sizes */
-  font-weight: 600;
+  font-size: 1.375rem;
+  font-weight: 700;
   transition: color var(--transition-speed) ease;
-  /* Remove default link styles from <a> tags */
   text-decoration: none;
-  display: block;  /* Makes the whole area clickable */
+  display: block;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
 }
+
 .article-title:hover {
-   color: var(--accent-color); /*  Consistent color on hover */
+  color: var(--accent-color);
 }
 
 .article-content {
-  margin-top: 0.5rem;
+  margin-top: 0.75rem;
   white-space: pre-line;
+  color: var(--slate-600);
+  line-height: 1.7;
 }
 
 .article-img {
-  height: 65px;
-  width: 65px;
-  margin-right: 1rem; /* Use Bootstrap spacing: 1rem (16px) */
+  height: 70px;
+  width: 70px;
+  margin-right: 1.25rem;
   object-fit: cover;
-  border-radius: 50%; /* Use Bootstrap's rounded-circle class */
-}
-.article-img, .account-img {
-    border-radius: 50%; /*Consistent styling*/
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 .article-metadata {
-  padding-bottom: 0.25rem; /* Bootstrap spacing */
-  margin-bottom: 0.5rem;  /* Bootstrap spacing */
-  border-bottom: 1px solid #e3e3e3;
-  font-size: 0.9rem;
-  color: var(--text-color);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.875rem;
+  color: var(--slate-500);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
 .article-metadata a {
-    color: var(--text-color); /*Consistent color*/
-    text-decoration: none; /* Clean look */
+  color: var(--slate-600);
+  text-decoration: none;
+  font-weight: 500;
 }
 
 .article-metadata a:hover {
   color: var(--accent-color);
-  text-decoration: underline; /* Only underline on hover */
+  text-decoration: none;
 }
 
 .article-svg {
-  width: 25px;
-  height: 25px;
+  width: 20px;
+  height: 20px;
   vertical-align: middle;
+  margin-right: 0.25rem;
+  opacity: 0.75;
 }
 
-/* ========================
-    ACCOUNT / PROFILE (Bootstrap Optimized)
-======================== */
+/* ======================== ACCOUNT / PROFILE ======================== */
 .account-img {
-  height: 125px;
-  width: 125px;
-  margin-right: 1.25rem; /* Bootstrap spacing */
-  margin-bottom: 1rem;    /* Bootstrap spacing */
+  height: 140px;
+  width: 140px;
+  margin-right: 1.5rem;
+  margin-bottom: 1rem;
   object-fit: cover;
-  border-radius: 50%;     /* Use Bootstrap's rounded-circle class */
+  border-radius: 50%;
+  border: 4px solid white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
 }
 
 .account-heading {
-  font-size: 2.5rem; /*  Bootstrap size */
-  font-weight: 700;
-  margin-bottom: 1rem;
+  font-size: 2.25rem;
+  font-weight: 800;
+  margin-bottom: 0.75rem;
+  color: var(--heading-color);
+  letter-spacing: -0.025em;
 }
 
-/* ========================
-    UTILITY CLASSES
-======================== */
+/* ======================== UTILITY CLASSES ======================== */
 .bg-steel {
   background-color: var(--steel-color);
+  color: white;
 }
 
-/* ========================
-    RESPONSIVE (Bootstrap already handles this!)
-======================== */
-/* No need for extra media queries, Bootstrap's grid system is responsive by default */
+/* ======================== COLOR UTILITY CLASSES ======================== */
+/* Text colors */
+.text-slate-400 { color: var(--slate-400); }
+.text-slate-500 { color: var(--slate-500); }
+.text-slate-600 { color: var(--slate-600); }
+.text-slate-700 { color: var(--slate-700); }
+.text-slate-800 { color: var(--slate-800); }
+.text-indigo-500 { color: var(--indigo-500); }
+.text-indigo-600 { color: var(--indigo-600); }
+.text-rose-600 { color: var(--rose-600); }
+.text-accent { color: var(--accent-color); }
 
-/* ========================
-    ALERTS (Bootstrap Optimized)
-======================== */
-/* Style flash messages using Bootstrap alert classes, no custom CSS needed */
+/* Background colors */
+.bg-indigo-100 { background-color: var(--indigo-100); }
+.bg-indigo-600 { background-color: var(--indigo-600); }
+.bg-rose-100 { background-color: var(--rose-100); }
+.bg-amber-100 { background-color: var(--amber-100); }
+.bg-green-100 { background-color: var(--green-100); }
+.bg-gray-50 { background-color: var(--neutral-50); }
+.bg-accent { background-color: var(--accent-color); }
 
-/* ========================
-    FORMS (if any, leverage Bootstrap forms)
-======================== */
-/*  If you add forms, use Bootstrap's form classes for styling and responsiveness.  */
+/* Background gradients */
+.bg-gradient-indigo {
+  background: linear-gradient(135deg, var(--indigo-600), #818cf8);
+}
 
-/* ========================
-   GENERAL IMPROVEMENTS
-======================== */
-/* Remove unnecessary prefixes, e.g., .site-header before .navbar-nav */
-/* Use Bootstrap's spacing and sizing utilities (e.g., .mt-3, .p-2, .h1 - .h6) */
-/* Prioritize using Bootstrap classes over custom styles where possible. */
+.bg-gradient-accent {
+  background: linear-gradient(135deg, var(--accent-color), #60a5fa);
+}
+
+/* ======================== BUTTON STYLES ======================== */
+.btn {
+  font-weight: 500;
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--border-radius);
+  transition: all var(--transition-speed) ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.btn-indigo {
+  background-color: var(--indigo-600);
+  color: white;
+  border: none;
+}
+
+.btn-indigo:hover {
+  background-color: #4338ca;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(79, 70, 229, 0.25);
+}
+
+.btn-accent {
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+}
+
+.btn-accent:hover {
+  background-color: #2563eb;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25);
+}
+
+.btn-rose {
+  background-color: var(--rose-600);
+  color: white;
+  border: none;
+}
+
+.btn-rose:hover {
+  background-color: #be123c;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(225, 29, 72, 0.25);
+}
+
+.btn-outline-indigo {
+  color: var(--indigo-600);
+  border: 1px solid var(--indigo-600);
+  background-color: transparent;
+}
+
+.btn-outline-indigo:hover {
+  background-color: var(--indigo-600);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.btn-outline-accent {
+  color: var(--accent-color);
+  border: 1px solid var(--accent-color);
+  background-color: transparent;
+}
+
+.btn-outline-accent:hover {
+  background-color: var(--accent-color);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.btn-outline-slate {
+  color: var(--slate-600);
+  border: 1px solid var(--slate-400);
+  background-color: transparent;
+}
+
+.btn-outline-slate:hover {
+  background-color: var(--neutral-50);
+  color: var(--slate-700);
+  border-color: var(--slate-500);
+  transform: translateY(-1px);
+}
+
+/* ======================== BADGE STYLES ======================== */
+.badge {
+  font-size: 0.75rem;
+  padding: 0.35em 0.65em;
+  border-radius: 9999px;
+  letter-spacing: 0.025em;
+}
+
+.badge-soft-indigo {
+  background-color: var(--indigo-100);
+  color: #4338ca;
+  font-weight: 500;
+}
+
+.badge-soft-rose {
+  background-color: var(--rose-100);
+  color: #be123c;
+  font-weight: 500;
+}
+
+.badge-soft-slate {
+  background-color: #f1f5f9;
+  color: var(--slate-700);
+  font-weight: 500;
+}
+
+.badge-soft-green {
+  background-color: var(--green-100);
+  color: #15803d;
+  font-weight: 500;
+}
+
+.badge-soft-amber {
+  background-color: var(--amber-100);
+  color: #b45309;
+  font-weight: 500;
+}
+
+.badge-soft-accent {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  font-weight: 500;
+}
+
+/* ======================== AVATAR AND ICON STYLES ======================== */
+.avatar-circle {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--accent-color);
+  color: white;
+  font-size: 2.5rem;
+  font-weight: bold;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 3px solid white;
+}
+
+.avatar-sm {
+  width: 40px;
+  height: 40px;
+  font-size: 1.25rem;
+  border-width: 2px;
+}
+
+.avatar-lg {
+  width: 140px;
+  height: 140px;
+  font-size: 3.5rem;
+  border-width: 4px;
+}
+
+.icon-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-speed) ease;
+}
+
+.icon-circle:hover {
+  transform: translateY(-2px);
+}
+
+/* ======================== TABLE STYLES ======================== */
+.table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+.table th {
+  background-color: var(--neutral-50);
+  font-weight: 600;
+  color: var(--slate-700);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.table th, .table td {
+  padding: 1rem 1.25rem;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.table tbody tr {
+  transition: background-color 0.15s ease-in-out;
+}
+
+.table tbody tr:hover {
+  background-color: var(--neutral-50);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ======================== CARD STYLES ======================== */
+.card {
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 3px var(--shadow-color);
+  transition: transform var(--transition-speed) ease, 
+              box-shadow var(--transition-speed) ease;
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.07);
+}
+
+.card-header {
+  padding: 1.25rem 1.5rem;
+  background-color: var(--neutral-50);
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 600;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.card-footer {
+  padding: 1rem 1.5rem;
+  background-color: var(--neutral-50);
+  border-top: 1px solid var(--border-color);
+}
+
+/* ======================== FORM STYLES ======================== */
+.form-control {
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  transition: border-color var(--transition-speed) ease,
+              box-shadow var(--transition-speed) ease;
+  height: auto; /* Ensure height is calculated properly */
+}
+
+.form-control:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  outline: none;
+}
+
+.form-label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--slate-700);
+}
+
+/* Fix for dropdown cutoff issues */
+select.form-control, 
+.form-select {
+  padding-right: 2.5rem; /* Increase right padding for dropdown arrow */
+  text-overflow: ellipsis; /* Add ellipsis for long text */
+  white-space: nowrap; /* Prevent text wrapping */
+  overflow: hidden; /* Hide overflow */
+  appearance: none; /* Use custom styling */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 12px;
+}
+
+/* Style for form field icons and spacing */
+.form-icon-group {
+  position: relative;
+}
+
+.form-icon-group .form-control {
+  padding-left: 2.75rem; /* Space for icon */
+}
+
+.form-icon-group .icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--slate-500);
+  pointer-events: none;
+}
+
+/* Fix for icons next to text labels */
+.icon-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* Space between icon and text */
+}
+
+.icon-label svg,
+.icon-label i,
+.icon-label .icon {
+  flex-shrink: 0;
+}
+
+/* Fix for dropdown arrow spacing */
+.form-arrow {
+  position: relative;
+}
+
+.form-arrow::after {
+  content: '';
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0.75rem;
+  height: 0.75rem;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  pointer-events: none;
+}
+
+/* ======================== RESPONSIVE STYLES ======================== */
+@media (max-width: 768px) {
+  .avatar-circle {
+    width: 80px;
+    height: 80px;
+    font-size: 2rem;
+  }
+  
+  .avatar-lg {
+    width: 110px;
+    height: 110px;
+    font-size: 2.75rem;
+  }
+
+  .account-img {
+    height: 110px;
+    width: 110px;
+  }
+  
+  .account-heading {
+    font-size: 1.75rem;
+  }
+  
+  .article-title {
+    font-size: 1.25rem;
+  }
+  
+  .content-section {
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 576px) {
+  body {
+    margin-top: 4.5rem;
+  }
+  
+  .article-img {
+    height: 60px;
+    width: 60px;
+    margin-right: 1rem;
+  }
+  
+  .navbar {
+    padding: 0.5rem 1rem;
+  }
+  
+  .content-section {
+    padding: 1rem;
+  }
+  
+  /* Improve dropdown display on small screens */
+  select.form-control,
+  .form-select {
+    font-size: 16px; /* Prevent iOS zoom on focus */
+  }
+}
+
+/* ======================== SECURITY ITEM STYLES ======================== */
+.security-item {
+  transition: all var(--transition-speed) ease;
+  padding: 1.25rem;
+  border-radius: var(--border-radius);
+  border: 1px solid transparent;
+}
+
+.security-item:hover {
+  background-color: var(--neutral-50);
+  border-color: var(--border-color);
+}
