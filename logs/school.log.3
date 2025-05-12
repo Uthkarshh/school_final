@@ -1,0 +1,75 @@
+2025-05-12 03:25:19,008 INFO: School Fee Application startup [in /media/uthkarsh/HDD1/school_fee/school_final/run.py:17]
+2025-05-12 03:25:43,275 ERROR: Exception on /login [POST] [in /media/uthkarsh/HDD1/school_fee/school_final/.school/lib/python3.12/site-packages/flask/app.py:838]
+Traceback (most recent call last):
+  File "/media/uthkarsh/HDD1/school_fee/school_final/.school/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1964, in _exec_single_context
+    self.dialect.do_execute(
+  File "/media/uthkarsh/HDD1/school_fee/school_final/.school/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 942, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedColumn: column users.last_login does not exist
+LINE 1: ...password, users.is_approved AS users_is_approved, users.last...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/media/uthkarsh/HDD1/school_fee/school_final/.school/lib/python3.12/site-packages/flask/app.py", line 1473, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/uthkarsh/HDD1/school_fee/school_final/.school/lib/python3.12/site-packages/flask/app.py", line 882, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/uthkarsh/HDD1/school_fee/school_final/.school/lib/python3.12/site-packages/flask/app.py", line 880, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/uthkarsh/HDD1/school_fee/school_final/.school/lib/python3.12/site-packages/flask/app.py", line 865, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/uthkarsh/HDD1/school_fee/school_final/school/routes.py", line 255, in login
+    user = User.query.filter_by(email=form.email.data).first()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/uthkarsh/HDD1/school_fee/school_final/.school/lib/python3.12/site-packages/sqlalchemy/orm/query.py", line 2754, in first
+    return self.limit(1)._iter().first()  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/media/uthkarsh/HDD1/school_fee/school_final/.school/lib/python3.12/site-packages/sqlalchemy/orm/query.py", line 2853, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/media/uthkarsh/HDD1/school_fee/school_final/.school/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2365, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/uthkarsh/HDD1/school_fee/school_final/.school/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 2251, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/uthkarsh/HDD1/school_fee/school_final/.school/lib/python3.12/site-packages/sqlalchemy/orm/context.py", line 305, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "/media/uthkarsh/HDD1/school_fee/school_final/.school/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1416, in execute
+    return meth(
+           ^^^^^
+  File "/media/uthkarsh/HDD1/school_fee/school_final/.school/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 515, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/uthkarsh/HDD1/school_fee/school_final/.school/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1638, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/uthkarsh/HDD1/school_fee/school_final/.school/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1843, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/media/uthkarsh/HDD1/school_fee/school_final/.school/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1983, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/media/uthkarsh/HDD1/school_fee/school_final/.school/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2352, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/media/uthkarsh/HDD1/school_fee/school_final/.school/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1964, in _exec_single_context
+    self.dialect.do_execute(
+  File "/media/uthkarsh/HDD1/school_fee/school_final/.school/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 942, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column users.last_login does not exist
+LINE 1: ...password, users.is_approved AS users_is_approved, users.last...
+                                                             ^
+
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.user_role AS users_user_role, users.password AS users_password, users.is_approved AS users_is_approved, users.last_login AS users_last_login, users.failed_login_attempts AS users_failed_login_attempts, users.account_locked_until AS users_account_locked_until 
+FROM users 
+WHERE users.email = %(email_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'email_1': 'uthkarsh.31@gmail.com', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)

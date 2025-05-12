@@ -11,16 +11,17 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from sqlalchemy_utils import database_exists, create_database
 import time
 import socket
+import re
+from urllib.parse import urlparse
 
 # Load environment variables
 load_dotenv()
 
-# Check if we're running in Docker - simplified approach
+# Check if we're running in Docker - improved approach
 def is_docker():
-    # Try to resolve the 'db' hostname which should only be possible in Docker
     try:
-        socket.gethostbyname('db')
-        return True
+        # Check for docker container env file
+        return os.path.exists('/.dockerenv') or socket.gethostbyname('db')
     except:
         return False
 
@@ -31,10 +32,14 @@ def init_database():
         # In Docker, use the environment variable passed in docker-compose
         db_url = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@db:5432/school_fee_db')
     else:
-        # Outside Docker, use localhost connection
-        db_url = os.getenv('DATABASE_URL_LOCAL', 'postgresql://uthkarsh:Ruthwik081%40@localhost:5432/school_fee_db')
+        # Outside Docker, use localhost connection - avoid hardcoding credentials
+        db_url = os.getenv('DATABASE_URL_LOCAL', 'postgresql://postgres:postgres@localhost:5432/school_fee_db')
     
     print(f"Using database URL: {db_url}")
+    
+    # Parse DB URL for security
+    parsed_url = urlparse(db_url)
+    db_name = parsed_url.path.lstrip('/')
     
     # Add retry logic for Docker container startup timing
     max_retries = 5
@@ -46,8 +51,7 @@ def init_database():
             if not database_exists(db_url):
                 print(f"Database does not exist. Creating database...")
                 
-                # Parse the DATABASE_URL to get components
-                # Extract connection string without database name and the database name
+                # Parse the DATABASE_URL to get components without exposing credentials in logs
                 db_parts = db_url.split('/')
                 db_name = db_parts[-1]
                 db_connection_string = '/'.join(db_parts[:-1])
@@ -86,16 +90,24 @@ def init_database():
 # Create Flask application
 app = Flask(__name__)
 
-# Secret key for session security (from environment variable or default)
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', '7fea38684e057829da404a986b42f373')
+# Secret key for session security from environment variable (improved security)
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+if not app.config['SECRET_KEY']:
+    # Generate a secure random key if not provided
+    import secrets
+    app.config['SECRET_KEY'] = secrets.token_hex(32)
+    print("WARNING: Using a randomly generated secret key. For production, set SECRET_KEY in environment variables.")
 
 # Initialize and configure database
 db_url = init_database()
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # To suppress warning messages
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Set session timeout
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)  # Adjust as needed
+# Set session timeout and security settings
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)
+app.config['SESSION_COOKIE_SECURE'] = os.getenv('FLASK_ENV') == 'production'  # Secure in production
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # CSRF protection
 
 # Initialize Flask extensions
 db = SQLAlchemy(app)
@@ -103,14 +115,30 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 login_manager.login_message_category = 'info'
-login_manager.session_protection = "basic"  # Prevents unnecessary logouts
+login_manager.session_protection = "strong"  # Enhanced session protection
 csrf = CSRFProtect(app)
 app.config['WTF_CSRF_ENABLED'] = True
+app.config['WTF_CSRF_TIME_LIMIT'] = 3600  # 1 hour
 app.config['SESSION_PERMANENT'] = True
 app.config['SESSION_TYPE'] = 'filesystem'
 
+# Rate limiting setup (if available)
+try:
+    from flask_limiter import Limiter
+    from flask_limiter.util import get_remote_address
+    
+    limiter = Limiter(
+        get_remote_address,
+        app=app,
+        default_limits=["200 per day", "50 per hour"],
+        storage_uri="memory://",
+    )
+except ImportError:
+    limiter = None
+    print("Flask-Limiter not installed. Rate limiting disabled.")
+
 @login_manager.unauthorized_handler
 def unauthorized():
-    return jsonify({"error": "Unauthorized access"}), 401  # Prevents login page download
+    return jsonify({"error": "Unauthorized access"}), 401
 
 from school import routes

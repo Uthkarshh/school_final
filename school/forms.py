@@ -84,6 +84,21 @@ class StudentForm(FlaskForm):
     village = StringField('Village', validators=[DataRequired(), Length(max=50)])
     submit = SubmitField('Save')
 
+    def validate_date_of_birth(self, field):
+        """Ensure student is of reasonable age"""
+        if field.data:
+            today = date.today()
+            age = today.year - field.data.year - ((today.month, today.day) < (field.data.month, field.data.day))
+            if age < 3 or age > 30:
+                raise ValidationError('Please enter a valid date of birth (age 3-30)')
+    
+    def validate_aadhar_number(self, field):
+        """Validate Aadhar number format (12 digits)"""
+        if field.data:
+            aadhar_str = str(field.data)
+            if len(aadhar_str) != 12:
+                raise ValidationError('Aadhar number must be 12 digits')
+
 class TransportForm(FlaskForm):
     transport_id = IntegerField('Transport ID', validators=[Optional()])
     pick_up_point = StringField('Pick-up Point', validators=[DataRequired(), Length(max=50)])
