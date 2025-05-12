@@ -4,7 +4,7 @@ from school.forms import (
     RegistrationForm, LoginForm, UpdateAccountForm, StudentForm, 
     ClassDetailsForm, FeeBreakdownForm, FeeForm, TransportForm, TableSelectForm
 )
-from school.models import User, Student, ClassDetails, Fee, FeeBreakdown, Transport
+from school.models import User, Student, ClassDetails, Fee, FeeBreakdown, Transport, ActivityLog
 from flask_login import login_user, current_user, logout_user, login_required
 from sqlalchemy.exc import IntegrityError
 import csv
@@ -20,6 +20,19 @@ def admin_required(f):
             abort(403)
         return f(*args, **kwargs)
     return decorated_function
+
+def log_activity(action_type, entity_type, entity_id, description):
+    """Log user activity to the activity_log table"""
+    if current_user.is_authenticated:
+        activity = ActivityLog(
+            user_id=current_user.id,
+            action_type=action_type,
+            entity_type=entity_type,
+            entity_id=str(entity_id),
+            description=description
+        )
+        db.session.add(activity)
+        db.session.commit()
 
 def get_record_by_primary_key(model, **primary_keys):
     """Lookup a record by its primary key(s)"""
@@ -79,21 +92,101 @@ def prepare_csv_response(data, fieldnames, table_name):
     response.headers['X-Filename'] = filename
     return response
 
+@app.template_filter('datetime')
+def format_datetime(value):
+    if isinstance(value, str):
+        try:
+            value = datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
+        except:
+            return value
+    
+    # For "today" timestamps
+    today = datetime.now().date()
+    if value.date() == today:
+        return f"Today at {value.strftime('%I:%M %p')}"
+    
+    # For "yesterday" timestamps
+    yesterday = today - timedelta(days=1)
+    if value.date() == yesterday:
+        return f"Yesterday at {value.strftime('%I:%M %p')}"
+    
+    # For older timestamps
+    days_diff = (today - value.date()).days
+    if days_diff < 7:
+        return f"{days_diff} days ago"
+    else:
+        return value.strftime('%b %d, %Y')
+
+
 # --- Route Definitions ---
 @app.route("/")
 @app.route("/home")
 def home():
     pages = [
-        {"name": "Register", "relative_path": url_for('register')},
-        {"name": "Login", "relative_path": url_for('login')},
-        {"name": "Student Form", "relative_path": url_for('student_form')},
-        {"name": "Transport Form", "relative_path": url_for('transport_form')},
-        {"name": "Class Details", "relative_path": url_for('class_details_form')},
-        {"name": "Fee Form", "relative_path": url_for('fee_form')},
-        {"name": "Fee Breakdown", "relative_path": url_for('fee_breakdown_form')},
-        {"name": "View Values", "relative_path": url_for('view_table')}
+        {"name": "Dashboard", "relative_path": url_for('home')},
+        {"name": "Students", "relative_path": url_for('student_form')},
+        {"name": "Classes", "relative_path": url_for('class_details_form')},
+        {"name": "Fees", "relative_path": url_for('fee_form')},
+        {"name": "Transport", "relative_path": url_for('transport_form')},
+        {"name": "Reports", "relative_path": url_for('view_table')},
+        {"name": "Users", "relative_path": url_for('admin_users') if current_user.is_authenticated and current_user.user_role == 'Admin' else "#"},
+        {"name": "Profile", "relative_path": url_for('account')},
+        {"name": "Settings", "relative_path": "#"}
     ]
-    return render_template("home.html", pages=pages)
+
+    stats = {
+        'student_count': 0,
+        'fee_collection': 0,
+        'transport_routes': 0,
+        'pending_fees': 0,
+        'fee_data': {'months': [], 'totals': []},
+        'fee_type_distribution': {}
+    }
+    
+    recent_activities = []
+
+    if current_user.is_authenticated:
+        # Basic stats
+        stats['student_count'] = Student.query.count()
+        stats['fee_collection'] = db.session.query(db.func.sum(FeeBreakdown.paid)).scalar() or 0
+        stats['transport_routes'] = db.session.query(db.func.count(db.distinct(Transport.route_number))).scalar() or 0
+        stats['pending_fees'] = FeeBreakdown.query.filter(FeeBreakdown.due > 0).count()
+      
+        # If you've created the ActivityLog model, fetch recent activities
+        if 'ActivityLog' in globals():
+            recent_activities = ActivityLog.query.order_by(
+                ActivityLog.created_at.desc()
+            ).limit(5).all()
+        else:
+            # Fallback to using created_at and updated_by from various tables
+            # Get recent student records
+            student_activities = []
+            for student in Student.query.order_by(Student.created_at.desc()).limit(3):
+                student_activities.append({
+                    'action_type': 'added',
+                    'entity_type': 'Student',
+                    'description': f"Added student: {student.student_name}",
+                    'user': {'username': student.created_by},
+                    'created_at': student.created_at
+                })
+            
+            # Get recent fee payments
+            fee_activities = []
+            for fee in FeeBreakdown.query.order_by(FeeBreakdown.created_at.desc()).limit(3):
+                fee_activities.append({
+                    'action_type': 'added',
+                    'entity_type': 'Fee',
+                    'description': f"Fee payment of ₹{float(fee.paid)} received for PEN {fee.pen_num}",
+                    'user': {'username': fee.created_by},
+                    'created_at': fee.created_at
+                })
+            
+            # Combine and sort activities
+            all_activities = student_activities + fee_activities
+            recent_activities = sorted(all_activities, key=lambda x: x['created_at'], reverse=True)[:5]
+
+    return render_template("home.html", pages=pages, stats=stats, recent_activities=recent_activities)
+
 
 @app.route("/about")
 @login_required
@@ -124,6 +217,7 @@ def register():
         if first_user:
             flash('Your admin account has been automatically approved. You can now log in.', 'info')
             flash('Admin role set automatically.', 'info')
+            log_activity('added', 'User', user.id, f"First admin account created: {user.username}")
         else:
             flash('Your registration is pending admin approval. You will be notified once your account is approved.', 'info')
             flash('User role will be reviewed by admin.', 'info')
@@ -143,6 +237,7 @@ def login():
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             if user.is_approved:
                 login_user(user, remember=form.remember.data)
+                log_activity('login', 'User', user.id, f"User logged in: {user.username}")
                 next_page = request.args.get('next')
                 return redirect(next_page) if next_page else redirect(url_for('home'))
             else:
@@ -154,6 +249,8 @@ def login():
 
 @app.route("/logout")
 def logout():
+    if current_user.is_authenticated:
+        log_activity('logout', 'User', current_user.id, f"User logged out: {current_user.username}")
     logout_user()
     return redirect(url_for('home'))
 
@@ -162,9 +259,11 @@ def logout():
 def account():
     form = UpdateAccountForm()
     if form.validate_on_submit():
+        old_username = current_user.username
         current_user.username = form.username.data
         current_user.email = form.email.data
         db.session.commit()
+        log_activity('updated', 'User', current_user.id, f"User profile updated: {old_username} → {current_user.username}")
         flash('Your account has been updated!', 'success')
         return redirect(url_for('account'))
     elif request.method == 'GET':
@@ -189,7 +288,10 @@ def toggle_user_approval(user_id):
     user.is_approved = not user.is_approved
     db.session.commit()
 
-    flash_message = f'User {user.username} has been {"approved" if user.is_approved else "access revoked"}.'
+    action = "approved" if user.is_approved else "access revoked"
+    log_activity('updated', 'User', user.id, f"User {action}: {user.username}")
+    
+    flash_message = f'User {user.username} has been {action}.'
     flash_category = 'success' if user.is_approved else 'warning'
     flash(flash_message, flash_category)
 
@@ -203,6 +305,7 @@ def reject_user(user_id):
     username = user.username
     db.session.delete(user)
     db.session.commit()
+    log_activity('deleted', 'User', user_id, f"User rejected and deleted: {username}")
     flash(f'User {username} has been rejected and deleted.', 'danger')
     return redirect(url_for('admin_users'))
 
@@ -228,6 +331,7 @@ def bulk_approve_users():
         if not user.is_approved:
             user.is_approved = True
             approved_count += 1
+            log_activity('updated', 'User', user.id, f"User approved in bulk operation: {user.username}")
     
     db.session.commit()
     
@@ -257,8 +361,11 @@ def bulk_reject_users():
     deleted_count = 0
     
     for user in users:
+        username = user.username
+        user_id = user.id
         db.session.delete(user)
         deleted_count += 1
+        log_activity('deleted', 'User', user_id, f"User rejected in bulk operation: {username}")
     
     db.session.commit()
     
@@ -316,6 +423,8 @@ def student_form():
             existing_student.updated_by = current_user.username
             
             db.session.commit()
+            log_activity('updated', 'Student', form.pen_num.data, 
+                        f"Updated student record: {form.student_name.data}")
             flash('Student record updated successfully!', 'success')
         else:
             # Create new record
@@ -335,6 +444,8 @@ def student_form():
             )
             db.session.add(student)
             db.session.commit()
+            log_activity('added', 'Student', form.pen_num.data, 
+                        f"Added new student: {form.student_name.data}")
             flash('Student record added successfully!', 'success')
             
         return redirect(url_for('student_form'))
@@ -415,6 +526,8 @@ def import_student_csv():
                 
             # Final commit
             db.session.commit()
+            log_activity('imported', 'Student', 'BULK', 
+                        f"Imported {stats['imported']} students, updated {stats['updated']} records via CSV")
             flash(f"{stats['imported']} records imported, {stats['updated']} records updated, {stats['failed']} records failed.", 'success')
             return redirect(url_for('home'))
             
@@ -436,6 +549,8 @@ def transport_form():
         )
         db.session.add(transport)
         db.session.commit()
+        log_activity('added', 'Transport', transport.transport_id, 
+                    f"Added transport route #{form.route_number.data} for {form.pick_up_point.data}")
         flash('Transport record added successfully!', 'success')
         return redirect(url_for('transport_form'))
         
@@ -473,6 +588,8 @@ def import_transport_csv():
                     stats['failed'] += 1
                     
             db.session.commit()
+            log_activity('imported', 'Transport', 'BULK', 
+                        f"Imported {stats['imported']} transport routes via CSV")
             flash(f"{stats['imported']} transport records imported, {stats['failed']} records failed.", 'success')
             return redirect(url_for('home'))
             
@@ -533,6 +650,14 @@ def class_details_form():
             existing_record.updated_by = current_user.username
             
             db.session.commit()
+            
+            # Get student name for activity log
+            student = Student.query.get(form.pen_num.data)
+            student_name = student.student_name if student else "Unknown"
+            
+            log_activity('updated', 'ClassDetails', f"{form.pen_num.data}-{form.year.data}", 
+                        f"Updated class details for student: {student_name}, Class: {form.current_class.data}-{form.section.data}")
+            
             flash('Class details updated successfully!', 'success')
         else:
             # Create new record
@@ -550,6 +675,14 @@ def class_details_form():
             )
             db.session.add(class_details)
             db.session.commit()
+            
+            # Get student name for activity log
+            student = Student.query.get(form.pen_num.data)
+            student_name = student.student_name if student else "Unknown"
+            
+            log_activity('added', 'ClassDetails', f"{form.pen_num.data}-{form.year.data}", 
+                        f"Added class details for student: {student_name}, Class: {form.current_class.data}-{form.section.data}")
+            
             flash('Class details added successfully!', 'success')
             
         return redirect(url_for('home'))
@@ -617,6 +750,9 @@ def import_class_details_csv():
                     stats['failed'] += 1
                     
             db.session.commit()
+            log_activity('imported', 'ClassDetails', 'BULK', 
+                        f"Imported {stats['imported']} class records, updated {stats['updated']} via CSV")
+            
             flash(f"{stats['imported']} records imported, {stats['updated']} records updated, {stats['failed']} records failed.", 'success')
             return redirect(url_for('home'))
             
@@ -679,6 +815,10 @@ def fee_form():
             year=form.year.data
         ).first()
         
+        # Get student name for activity log
+        student = Student.query.get(form.pen_num.data)
+        student_name = student.student_name if student else "Unknown"
+        
         if existing_fee:
             # Update existing record
             existing_fee.school_fee = form.school_fee.data
@@ -691,6 +831,10 @@ def fee_form():
             existing_fee.updated_by = current_user.username
             
             db.session.commit()
+            
+            log_activity('updated', 'Fee', f"{form.pen_num.data}-{form.year.data}", 
+                        f"Updated fee record for student: {student_name}, Year: {form.year.data}")
+            
             flash('Fee record updated successfully!', 'success')
         else:
             # Create new record
@@ -708,6 +852,10 @@ def fee_form():
             )
             db.session.add(fee)
             db.session.commit()
+            
+            log_activity('added', 'Fee', f"{form.pen_num.data}-{form.year.data}", 
+                        f"Added fee record for student: {student_name}, Year: {form.year.data}")
+            
             flash('Fee record added successfully!', 'success')
             
         return redirect(url_for('home'))
@@ -785,6 +933,9 @@ def import_fee_csv():
                     stats['failed'] += 1
                     
             db.session.commit()
+            log_activity('imported', 'Fee', 'BULK', 
+                        f"Imported {stats['imported']} fee records, updated {stats['updated']} via CSV")
+            
             flash(f"{stats['imported']} records imported, {stats['updated']} records updated, {stats['failed']} records failed.", 'success')
             return redirect(url_for('home'))
             
@@ -843,6 +994,10 @@ def fee_breakdown_form():
             flash(f'Fee record not found for PEN Number: {pen_num} and Year: {year}. Please add fee details first.', 'danger')
             return render_template('fee_breakdown_form.html', title='Fee Breakdown', form=form, fee_breakdown=fee_breakdown)
 
+        # Get student name for activity log
+        student = Student.query.get(pen_num)
+        student_name = student.student_name if student else "Unknown"
+
         # Calculate term fee amount
         terms_for_type = 1 if fee_type == 'Application' else 3
         
@@ -878,6 +1033,12 @@ def fee_breakdown_form():
             existing_fee_breakdown.updated_by = current_user.username
             
             db.session.commit()
+            
+            log_activity('updated', 'FeeBreakdown', 
+                        f"{pen_num}-{year}-{fee_type}-{term}-{payment_type}", 
+                        f"Updated fee payment of ₹{form.paid.data} for {student_name}, " +
+                        f"Fee type: {fee_type}, Term: {term}")
+            
             flash('Fee breakdown updated successfully!', 'success')
         else:
             # Create new record
@@ -894,6 +1055,12 @@ def fee_breakdown_form():
                 created_by=current_user.username
             ))
             db.session.commit()
+            
+            log_activity('added', 'FeeBreakdown', 
+                        f"{pen_num}-{year}-{fee_type}-{term}-{payment_type}", 
+                        f"Received fee payment of ₹{form.paid.data} from {student_name}, " +
+                        f"Fee type: {fee_type}, Term: {term}")
+            
             flash('Fee breakdown added successfully!', 'success')
             
         return redirect(url_for('home'))
@@ -963,6 +1130,10 @@ def import_fee_breakdown_csv():
                     stats['failed'] += 1
                     
             db.session.commit()
+            
+            log_activity('imported', 'FeeBreakdown', 'BULK', 
+                        f"Imported {stats['imported']} fee payments, updated {stats['updated']} via CSV")
+            
             flash(f"{stats['imported']} records imported, {stats['updated']} records updated, {stats['failed']} records failed.", 'success')
             return redirect(url_for('home'))
             
@@ -1053,6 +1224,11 @@ def view_table():
                 query = query.filter(model.pen_num == pen_num)
             
             data = query.all()
+            
+            log_activity('viewed', table_name, 'QUERY', 
+                       f"Viewed {table_name} data with filters: " + 
+                       (f"date range {start_date} to {end_date}" if start_date and end_date else "no date filter") + 
+                       (f", PEN: {pen_num}" if pen_num else ""))
         else:
             flash("Invalid table selected", "danger")
             
@@ -1116,6 +1292,11 @@ def export_csv(table_name):
         query = query.filter(model.pen_num == pen_num)
     
     data = query.all()
+    
+    log_activity('exported', table_name, 'CSV', 
+               f"Exported {table_name} data to CSV with filters: " + 
+               (f"date range {start_date} to {end_date}" if start_date and end_date else "no date filter") + 
+               (f", PEN: {pen_num}" if pen_num else ""))
     
     # Generate CSV response
     return prepare_csv_response(data, config["fields"], table_name)

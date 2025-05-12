@@ -179,3 +179,21 @@ class FeeBreakdown(db.Model):
 @event.listens_for(FeeBreakdown, 'before_update')
 def before_feebreakdown_save(mapper, connection, target):
     set_user_metadata(target)
+
+
+class ActivityLog(db.Model):
+    __tablename__ = 'activity_log'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    action_type = db.Column(db.String(50), nullable=False)  # e.g., "added", "updated", "deleted"
+    entity_type = db.Column(db.String(50), nullable=False)  # e.g., "Student", "Fee", "Transport"
+    entity_id = db.Column(db.String(50), nullable=False)    # Primary key of the affected entity
+    description = db.Column(db.String(255), nullable=False) # Human-readable description
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    
+    # Relationship
+    user = db.relationship('User', backref=db.backref('activities', lazy=True))
+    
+    def __repr__(self):
+        return f"Activity('{self.action_type}', '{self.entity_type}', '{self.entity_id}')"
