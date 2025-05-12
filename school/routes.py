@@ -4,7 +4,7 @@ from school.forms import (
     RegistrationForm, LoginForm, UpdateAccountForm, StudentForm, 
     ClassDetailsForm, FeeBreakdownForm, FeeForm, TransportForm, TableSelectForm
 )
-from school.models import User, Student, ClassDetails, Fee, FeeBreakdown, Transport, ActivityLog
+from school.models import User, Student, ClassDetails, Fee, FeeBreakdown, Transport, ActivityLog, parse_date_from_string
 from flask_login import login_user, current_user, logout_user, login_required
 from sqlalchemy.exc import IntegrityError
 import csv
@@ -22,14 +22,15 @@ def admin_required(f):
     return decorated_function
 
 def log_activity(action_type, entity_type, entity_id, description):
-    """Log user activity to the activity_log table"""
+    """Log user activity to the activity_log table with IP address tracking"""
     if current_user.is_authenticated:
         activity = ActivityLog(
             user_id=current_user.id,
             action_type=action_type,
             entity_type=entity_type,
             entity_id=str(entity_id),
-            description=description
+            description=description,
+            ip_address=request.remote_addr
         )
         db.session.add(activity)
         db.session.commit()
@@ -43,7 +44,7 @@ def get_record_by_primary_key(model, **primary_keys):
 
 
 def process_csv_import(request_files, file_key, process_row_func, redirect_url):
-    """Generic CSV import processor with error handling"""
+    """Generic CSV import processor with error handling and format detection"""
     if file_key not in request_files:
         flash('No file part', 'danger')
         return redirect(request.url)
@@ -58,13 +59,23 @@ def process_csv_import(request_files, file_key, process_row_func, redirect_url):
         return redirect(request.url)
 
     try:
-        csv_file = TextIOWrapper(file.stream, encoding='utf-8')
+        csv_file = TextIOWrapper(file.stream, encoding='utf-8-sig')  # Handle UTF-8 with BOM
         csv_reader = csv.DictReader(csv_file)
+        
+        # Check if we have column headers with format specifications
+        if csv_reader.fieldnames:
+            print(f"CSV Headers: {csv_reader.fieldnames}")
+        
+        # Pass to the processing function
         return process_row_func(csv_reader)
     except Exception as e:
         flash(f'Error processing CSV file: {str(e)}', 'danger')
+        print(f"CSV processing error: {str(e)}")
+        import traceback
+        traceback.print_exc()
     
     return redirect(url_for(redirect_url))
+
 
 def apply_date_filter(query, model, start_date, end_date):
     """Apply date filters to a query"""
@@ -461,26 +472,72 @@ def import_student_csv():
         def process_student_rows(csv_reader):
             stats = {'imported': 0, 'updated': 0, 'failed': 0}
             
+            # Map column headers that might include format specifications
+            date_column_map = {}
+            if csv_reader.fieldnames:
+                for field in csv_reader.fieldnames:
+                    # Check if this is a date field with format specification
+                    if 'date_of_birth' in field.lower():
+                        date_column_map['date_of_birth'] = field
+                    elif 'date_of_joining' in field.lower():
+                        date_column_map['date_of_joining'] = field
+            
             for row in csv_reader:
                 try:
-                    # Process data with fallbacks
-                    pen_num = int(row.get("pen_num", "0").strip() or 0)
-                    admission_number = int(row.get("admission_number", "0").strip() or 0)
-                    aadhar_number = int(row.get("aadhar_number", "0").strip() or 0)
-                    student_name = row.get("student_name", "").strip()
-                    father_name = row.get("father_name", "").strip()
-                    mother_name = row.get("mother_name", "").strip()
-                    gender = row.get("gender", "").strip()
-                    contact_number = row.get("contact_number", "").strip()
-                    village = row.get("village", "").strip()
+                    # Process data with safe type conversion
+                    try:
+                        pen_num = int(str(row.get("pen_num", "0")).strip() or 0)
+                        admission_number = int(str(row.get("admission_number", "0")).strip() or 0)
+                        aadhar_number = int(str(row.get("aadhar_number", "0")).strip() or 0)
+                    except ValueError as ve:
+                        raise ValueError(f"Invalid number format: {str(ve)}")
+                        
+                    student_name = str(row.get("student_name", "")).strip()
+                    father_name = str(row.get("father_name", "")).strip()
+                    mother_name = str(row.get("mother_name", "")).strip()
+                    gender = str(row.get("gender", "")).strip()
+                    contact_number = str(row.get("contact_number", "")).strip()
+                    village = str(row.get("village", "")).strip()
+                    
+                    # Get date values using the mapped column names
+                    date_of_birth_str = str(row.get(date_column_map.get('date_of_birth', 'date_of_birth'), "")).strip()
+                    date_of_joining_str = str(row.get(date_column_map.get('date_of_joining', 'date_of_joining'), "")).strip()
+                    
+                    # Parse dates with the specified format in the header (mm.dd.yyyy)
+                    date_of_birth = None
+                    date_of_joining = None
+                    
+                    if date_of_birth_str:
+                        try:
+                            date_of_birth = datetime.strptime(date_of_birth_str, '%d.%m.%Y').date()
+                        except ValueError:
+                            try:
+                                # Try alternate format
+                                date_of_birth = datetime.strptime(date_of_birth_str, '%m.%d.%Y').date()
+                            except ValueError:
+                                raise ValueError(f"Invalid date format for date_of_birth: {date_of_birth_str}")
+                    else:
+                        # Use a default date if one is not provided
+                        date_of_birth = datetime(2000, 1, 1).date()
+                    
+                    if date_of_joining_str:
+                        try:
+                            date_of_joining = datetime.strptime(date_of_joining_str, '%d.%m.%Y').date()
+                        except ValueError:
+                            try:
+                                # Try alternate format
+                                date_of_joining = datetime.strptime(date_of_joining_str, '%m.%d.%Y').date()
+                            except ValueError:
+                                raise ValueError(f"Invalid date format for date_of_joining: {date_of_joining_str}")
+                    else:
+                        # Use a default date if one is not provided
+                        date_of_joining = datetime.now().date()
 
-                    # Date handling
-                    date_of_birth_str = row.get("date_of_birth", "").strip()
-                    date_of_joining_str = row.get("date_of_joining", "").strip()
-                    date_of_birth = datetime.strptime(date_of_birth_str, '%Y-%m-%d').date() if date_of_birth_str else None
-                    date_of_joining = datetime.strptime(date_of_joining_str, '%Y-%m-%d').date() if date_of_joining_str else None
+                    # Basic validation
+                    if not pen_num or not admission_number or not student_name:
+                        raise ValueError("Missing required student details")
 
-                    # Check for existing record with batch processing
+                    # Check for existing record
                     existing_student = Student.query.filter_by(pen_num=pen_num).first()
 
                     if existing_student:
@@ -518,17 +575,22 @@ def import_student_csv():
                     # Periodically flush to reduce memory usage
                     if (stats['imported'] + stats['updated']) % 100 == 0:
                         db.session.flush()
-                    
+                        
                 except Exception as e:
                     db.session.rollback()
                     flash(f"Error in row {stats['imported'] + stats['updated'] + stats['failed'] + 1}: {str(e)}", "danger")
                     stats['failed'] += 1
-                
+                    
             # Final commit
-            db.session.commit()
-            log_activity('imported', 'Student', 'BULK', 
-                        f"Imported {stats['imported']} students, updated {stats['updated']} records via CSV")
-            flash(f"{stats['imported']} records imported, {stats['updated']} records updated, {stats['failed']} records failed.", 'success')
+            try:
+                db.session.commit()
+                log_activity('imported', 'Student', 'BULK', 
+                            f"Imported {stats['imported']} students, updated {stats['updated']} records via CSV")
+                flash(f"{stats['imported']} records imported, {stats['updated']} records updated, {stats['failed']} records failed.", 'success')
+            except Exception as e:
+                db.session.rollback()
+                flash(f"Database error during commit: {str(e)}", "danger")
+                
             return redirect(url_for('home'))
             
         return process_csv_import(request.files, 'student_csv', process_student_rows, 'home')
@@ -564,13 +626,25 @@ def import_transport_csv():
         def process_transport_rows(csv_reader):
             stats = {'imported': 0, 'failed': 0}
             
+            # Track existing pick-up points to avoid duplicates
+            existing_pick_up_points = {t.pick_up_point.lower() for t in Transport.query.all()}
+            
             for row in csv_reader:
                 try:
-                    pick_up_point = row.get("pick_up_point", "").strip()
-                    route_number = int(row.get("route_number", "").strip())
+                    pick_up_point = str(row.get("pick_up_point", "")).strip()
+                    
+                    try:
+                        route_number = int(str(row.get("route_number", "")).strip() or 0)
+                    except ValueError:
+                        raise ValueError("Invalid route number format")
 
                     if not pick_up_point or not route_number:
                         raise ValueError("Missing required transport details")
+                        
+                    # Check for duplicate pick-up points (case insensitive)
+                    if pick_up_point.lower() in existing_pick_up_points:
+                        flash(f"Pick-up point '{pick_up_point}' already exists - skipping", "warning")
+                        continue
 
                     db.session.add(Transport(
                         pick_up_point=pick_up_point,
@@ -578,6 +652,7 @@ def import_transport_csv():
                         created_by=current_user.username
                     ))
                     stats['imported'] += 1
+                    existing_pick_up_points.add(pick_up_point.lower())
 
                     # Periodic flush
                     if stats['imported'] % 100 == 0:
@@ -587,11 +662,18 @@ def import_transport_csv():
                     flash(f"Error in row {stats['imported'] + stats['failed'] + 1}: {str(e)}", "danger")
                     stats['failed'] += 1
                     
-            db.session.commit()
-            log_activity('imported', 'Transport', 'BULK', 
-                        f"Imported {stats['imported']} transport routes via CSV")
-            flash(f"{stats['imported']} transport records imported, {stats['failed']} records failed.", 'success')
+            # Final commit
+            try:
+                db.session.commit()
+                log_activity('imported', 'Transport', 'BULK', 
+                            f"Imported {stats['imported']} transport routes via CSV")
+                flash(f"{stats['imported']} transport records imported, {stats['failed']} records failed.", 'success')
+            except Exception as e:
+                db.session.rollback()
+                flash(f"Database error during commit: {str(e)}", "danger")
+                
             return redirect(url_for('home'))
+
             
         return process_csv_import(request.files, 'transport_csv', process_transport_rows, 'home')
         
@@ -700,15 +782,32 @@ def import_class_details_csv():
             
             for row in csv_reader:
                 try:
-                    pen_num = int(row.get("pen_num", "0").strip() or 0)
-                    year = int(row.get("year", "0").strip() or 0)
-                    current_class = int(row.get("current_class", "0").strip() or 0)
-                    section = row.get("section", "").strip()
-                    roll_number = int(row.get("roll_number", "0").strip() or 0)
-                    photo_id = int(row.get("photo_id", "0").strip() or 0)
-                    language = row.get("language", "").strip()
-                    vocational = row.get("vocational", "").strip()
-                    currently_enrolled = row.get("currently_enrolled", "").strip().lower() in ["true", "1", "yes"]
+                    # Process data with safe type conversion
+                    try:
+                        pen_num = int(str(row.get("pen_num", "0")).strip() or 0)
+                        year = int(str(row.get("year", "0")).strip() or 0)
+                        current_class = int(str(row.get("current_class", "0")).strip() or 0)
+                        roll_number = int(str(row.get("roll_number", "0")).strip() or 0)
+                        photo_id = int(str(row.get("photo_id", "0")).strip() or 0)
+                    except ValueError as ve:
+                        raise ValueError(f"Invalid number format: {str(ve)}")
+                        
+                    section = str(row.get("section", "")).strip()
+                    language = str(row.get("language", "")).strip()
+                    vocational = str(row.get("vocational", "")).strip()
+                    
+                    # Boolean conversion
+                    currently_enrolled_str = str(row.get("currently_enrolled", "")).strip().lower()
+                    currently_enrolled = currently_enrolled_str in ["true", "1", "yes", "y", "t"]
+
+                    # Basic validation
+                    if not pen_num or not year or not current_class:
+                        raise ValueError("Missing required class details")
+
+                    # Check if student exists
+                    student = Student.query.get(pen_num)
+                    if not student:
+                        raise ValueError(f"Student with PEN {pen_num} does not exist")
 
                     # Check if record exists
                     existing_record = ClassDetails.query.filter_by(pen_num=pen_num, year=year).first()
@@ -749,13 +848,17 @@ def import_class_details_csv():
                     flash(f"Error in row {stats['imported'] + stats['updated'] + stats['failed'] + 1}: {str(e)}", "danger")
                     stats['failed'] += 1
                     
-            db.session.commit()
-            log_activity('imported', 'ClassDetails', 'BULK', 
-                        f"Imported {stats['imported']} class records, updated {stats['updated']} via CSV")
-            
-            flash(f"{stats['imported']} records imported, {stats['updated']} records updated, {stats['failed']} records failed.", 'success')
+            # Final commit
+            try:
+                db.session.commit()
+                log_activity('imported', 'ClassDetails', 'BULK', 
+                            f"Imported {stats['imported']} class records, updated {stats['updated']} via CSV")
+                flash(f"{stats['imported']} records imported, {stats['updated']} records updated, {stats['failed']} records failed.", 'success')
+            except Exception as e:
+                db.session.rollback()
+                flash(f"Database error during commit: {str(e)}", "danger")
+                
             return redirect(url_for('home'))
-            
         return process_csv_import(request.files, 'class_details_csv', process_class_details_rows, 'home')
         
     return render_template('import_class_details_csv.html', title='Import Class Details CSV')
@@ -875,18 +978,48 @@ def import_fee_csv():
             
             for row in csv_reader:
                 try:
-                    pen_num = int(row.get("pen_num", "0").strip() or 0)
-                    year = int(row.get("year", "0").strip() or 0)
-                    school_fee = float(row.get("school_fee", "0.0").strip() or 0.0)
-                    concession_reason = row.get("concession_reason", "").strip()
-                    transport_used = row.get("transport_used", "").strip().lower() in ["true", "1", "yes"]
-                    application_fee = float(row.get("application_fee", "0.0").strip() or 0.0)
-                    transport_fee = float(row.get("transport_fee", "0.0").strip() or 0.0)
-                    transport_fee_concession = float(row.get("transport_fee_concession", "0.0").strip() or 0.0)
-                    pick_up_point = row.get("pick_up_point", "").strip()
+                    # Process data with safe type conversion
+                    try:
+                        pen_num = int(str(row.get("pen_num", "0")).strip() or 0)
+                        year = int(str(row.get("year", "0")).strip() or 0)
+                        school_fee = float(str(row.get("school_fee", "0.0")).strip() or 0.0)
+                        application_fee = float(str(row.get("application_fee", "0.0")).strip() or 0.0)
+                        transport_fee = float(str(row.get("transport_fee", "0.0")).strip() or 0.0)
+                        transport_fee_concession = float(str(row.get("transport_fee_concession", "0.0")).strip() or 0.0)
+                    except ValueError as ve:
+                        raise ValueError(f"Invalid number format: {str(ve)}")
+                        
+                    concession_reason = str(row.get("concession_reason", "")).strip()
+                    
+                    # Boolean conversion
+                    transport_used_str = str(row.get("transport_used", "")).strip().lower()
+                    transport_used = transport_used_str in ["true", "1", "yes", "y", "t"]
+                    
+                    pick_up_point = str(row.get("pick_up_point", "")).strip()
+
+                    # Basic validation
+                    if not pen_num or not year:
+                        raise ValueError("Missing required fee details")
+
+                    # Check if student exists
+                    student = Student.query.get(pen_num)
+                    if not student:
+                        raise ValueError(f"Student with PEN {pen_num} does not exist")
 
                     # Get transport_id from prefetched data
                     transport_id = transports.get(pick_up_point) if transport_used and pick_up_point else None
+                    
+                    if transport_used and not transport_id and pick_up_point:
+                        # If the pick-up point doesn't exist but is needed, create it
+                        new_transport = Transport(
+                            pick_up_point=pick_up_point,
+                            route_number=int(str(row.get("route_number", "0")).strip() or 0),
+                            created_by=current_user.username
+                        )
+                        db.session.add(new_transport)
+                        db.session.flush()  # Get the ID immediately
+                        transport_id = new_transport.transport_id
+                        transports[pick_up_point] = transport_id  # Update cache
                     
                     if not transport_used:
                         transport_id = None
@@ -932,11 +1065,16 @@ def import_fee_csv():
                     flash(f"Error in row {stats['imported'] + stats['updated'] + stats['failed'] + 1}: {str(e)}", "danger")
                     stats['failed'] += 1
                     
-            db.session.commit()
-            log_activity('imported', 'Fee', 'BULK', 
-                        f"Imported {stats['imported']} fee records, updated {stats['updated']} via CSV")
-            
-            flash(f"{stats['imported']} records imported, {stats['updated']} records updated, {stats['failed']} records failed.", 'success')
+            # Final commit
+            try:
+                db.session.commit()
+                log_activity('imported', 'Fee', 'BULK', 
+                            f"Imported {stats['imported']} fee records, updated {stats['updated']} via CSV")
+                flash(f"{stats['imported']} records imported, {stats['updated']} records updated, {stats['failed']} records failed.", 'success')
+            except Exception as e:
+                db.session.rollback()
+                flash(f"Database error during commit: {str(e)}", "danger")
+                
             return redirect(url_for('home'))
             
         return process_csv_import(request.files, 'fee_csv', process_fee_rows, 'home')
@@ -1075,29 +1213,83 @@ def import_fee_breakdown_csv():
         def process_fee_breakdown_rows(csv_reader):
             stats = {'imported': 0, 'updated': 0, 'failed': 0}
             
+            # Map column headers that might include format specifications
+            date_column_map = {}
+            if csv_reader.fieldnames:
+                for field in csv_reader.fieldnames:
+                    # Check if this is a date field with format specification
+                    if 'fee_paid_date' in field.lower():
+                        date_column_map['fee_paid_date'] = field
+            
             for row in csv_reader:
                 try:
-                    pen_num = int(row.get("pen_num", "0").strip() or 0)
-                    year = int(row.get("year", "0").strip() or 0)
-                    fee_type = row.get("fee_type", "").strip()
-                    term = row.get("term", "").strip()
-                    payment_type = row.get("payment_type", "").strip()
-                    paid = float(row.get("paid", "0.0").strip() or 0.0)
-                    due = float(row.get("due", "0.0").strip() or 0.0)
-                    receipt_no_str = row.get("receipt_no", "").strip()
-                    fee_paid_date_str = row.get("fee_paid_date", "").strip()
+                    # Process data with safe type conversion
+                    try:
+                        pen_num = int(str(row.get("pen_num", "0")).strip() or 0)
+                        year = int(str(row.get("year", "0")).strip() or 0)
+                        paid = float(str(row.get("paid", "0.0")).strip() or 0.0)
+                        due = float(str(row.get("due", "0.0")).strip() or 0.0)
+                        
+                        receipt_no_str = str(row.get("receipt_no", "")).strip()
+                        receipt_no = int(receipt_no_str) if receipt_no_str else None
+                    except ValueError as ve:
+                        raise ValueError(f"Invalid number format: {str(ve)}")
+                        
+                    fee_type = str(row.get("fee_type", "")).strip()
+                    term = str(row.get("term", "")).strip()
+                    payment_type = str(row.get("payment_type", "")).strip()
+                    
+                    # Get date values using the mapped column names
+                    fee_paid_date_str = str(row.get(date_column_map.get('fee_paid_date', 'fee_paid_date'), "")).strip()
+                    fee_paid_date = None
+                    
+                    # Parse the date with the format specified in the header
+                    if fee_paid_date_str:
+                        try:
+                            # Try dd.mm.yyyy format first (common in your data)
+                            fee_paid_date = datetime.strptime(fee_paid_date_str, '%d.%m.%Y').date()
+                        except ValueError:
+                            try:
+                                # Try mm.dd.yyyy format
+                                fee_paid_date = datetime.strptime(fee_paid_date_str, '%m.%d.%Y').date()
+                            except ValueError:
+                                try:
+                                    # Try yyyy-mm-dd format
+                                    fee_paid_date = datetime.strptime(fee_paid_date_str, '%Y-%m-%d').date()
+                                except ValueError:
+                                    try:
+                                        # Try dd/mm/yyyy format
+                                        fee_paid_date = datetime.strptime(fee_paid_date_str, '%d/%m/%Y').date()
+                                    except ValueError:
+                                        try:
+                                            # Try mm/dd/yyyy format
+                                            fee_paid_date = datetime.strptime(fee_paid_date_str, '%m/%d/%Y').date()
+                                        except ValueError:
+                                            raise ValueError(f"Invalid date format for fee_paid_date: {fee_paid_date_str}")
+                    else:
+                        # Use current date if none provided
+                        fee_paid_date = datetime.now().date()
 
-                    receipt_no = int(receipt_no_str) if receipt_no_str else None
-                    fee_paid_date = datetime.strptime(fee_paid_date_str, '%Y-%m-%d').date() if fee_paid_date_str else None
+                    # Basic validation
+                    if not pen_num or not year or not fee_type or not term:
+                        raise ValueError("Missing required fee breakdown details")
+
+                    # Check if student and fee record exist
+                    student = Student.query.get(pen_num)
+                    if not student:
+                        raise ValueError(f"Student with PEN {pen_num} does not exist")
+                        
+                    fee_record = Fee.query.filter_by(pen_num=pen_num, year=year).first()
+                    if not fee_record:
+                        raise ValueError(f"Fee record for PEN {pen_num}, Year {year} does not exist")
 
                     # Check if record exists
                     existing_fee_breakdown = FeeBreakdown.query.filter_by(
-                        pen_num=pen_num, year=year, fee_type=fee_type, term=term
+                        pen_num=pen_num, year=year, fee_type=fee_type, term=term, payment_type=payment_type
                     ).first()
 
                     if existing_fee_breakdown:
                         # Update existing record
-                        existing_fee_breakdown.payment_type = payment_type
                         existing_fee_breakdown.paid = paid
                         existing_fee_breakdown.due = due
                         existing_fee_breakdown.receipt_no = receipt_no
@@ -1129,12 +1321,16 @@ def import_fee_breakdown_csv():
                     flash(f"Error in row {stats['imported'] + stats['updated'] + stats['failed'] + 1}: {str(e)}", "danger")
                     stats['failed'] += 1
                     
-            db.session.commit()
-            
-            log_activity('imported', 'FeeBreakdown', 'BULK', 
-                        f"Imported {stats['imported']} fee payments, updated {stats['updated']} via CSV")
-            
-            flash(f"{stats['imported']} records imported, {stats['updated']} records updated, {stats['failed']} records failed.", 'success')
+            # Final commit
+            try:
+                db.session.commit()
+                log_activity('imported', 'FeeBreakdown', 'BULK', 
+                            f"Imported {stats['imported']} fee payments, updated {stats['updated']} via CSV")
+                flash(f"{stats['imported']} records imported, {stats['updated']} records updated, {stats['failed']} records failed.", 'success')
+            except Exception as e:
+                db.session.rollback()
+                flash(f"Database error during commit: {str(e)}", "danger")
+                
             return redirect(url_for('home'))
             
         return process_csv_import(request.files, 'fee_breakdown_csv', process_fee_breakdown_rows, 'home')

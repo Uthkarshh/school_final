@@ -27,7 +27,7 @@
         <nav class="navbar navbar-expand-lg shadow-sm">
             <div class="container">
                 <a class="navbar-brand" href="/">
-                    <i class="fas fa-school mr-2 text-accent"></i>School Fee Management
+                    <i class="fas fa-school me-2 text-accent"></i>School Fee Management
                 </a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
                     <i class="fas fa-bars text-slate-600"></i>
@@ -37,40 +37,47 @@
                         {% if current_user.is_authenticated %}
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}" href="{{ url_for('home') }}">
-                                <i class="fas fa-home mr-1"></i> Dashboard
+                                <i class="fas fa-home me-1"></i> Dashboard
                             </a>
                         </li>
+                        {% if current_user.user_role == 'Admin' %}
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'admin_users' %}active{% endif %}" href="{{ url_for('admin_users') }}">
-                                <i class="fas fa-users-cog mr-1"></i> Admin
+                                <i class="fas fa-users-cog me-1"></i> Admin
                             </a>
                         </li>
+                        {% endif %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle {% if 'form' in request.endpoint %}active{% endif %}" href="#" id="formsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-file-alt mr-1"></i> Forms
+                                <i class="fas fa-file-alt me-1"></i> Forms
                             </a>
                             <div class="dropdown-menu shadow-sm border-0" aria-labelledby="formsDropdown">
                                 <a class="dropdown-item" href="{{ url_for('student_form') }}">
-                                    <i class="fas fa-user-graduate text-indigo-500 mr-2"></i> Student Form
+                                    <i class="fas fa-user-graduate text-indigo-500 me-2"></i> Student Form
                                 </a>
                                 <a class="dropdown-item" href="{{ url_for('transport_form') }}">
-                                    <i class="fas fa-bus text-amber-600 mr-2"></i> Transport Form
+                                    <i class="fas fa-bus text-amber-600 me-2"></i> Transport Form
                                 </a>
                                 <a class="dropdown-item" href="{{ url_for('class_details_form') }}">
-                                    <i class="fas fa-chalkboard text-slate-600 mr-2"></i> Class Details
+                                    <i class="fas fa-chalkboard text-slate-600 me-2"></i> Class Details
                                 </a>
                                 <a class="dropdown-item" href="{{ url_for('fee_form') }}">
-                                    <i class="fas fa-receipt text-green-600 mr-2"></i> Fee Form
+                                    <i class="fas fa-receipt text-green-600 me-2"></i> Fee Form
                                 </a>
                                 <a class="dropdown-item" href="{{ url_for('fee_breakdown_form') }}">
-                                    <i class="fas fa-chart-pie text-rose-600 mr-2"></i> Fee Breakdown
+                                    <i class="fas fa-chart-pie text-rose-600 me-2"></i> Fee Breakdown
                                 </a>
                             </div>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'view_table' %}active{% endif %}" href="{{ url_for('view_table') }}">
+                                <i class="fas fa-table me-1"></i> Reports
+                            </a>
                         </li>
                         {% else %}
                             <li class="nav-item">
                                 <a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}" href="{{ url_for('home') }}">
-                                    <i class="fas fa-home mr-1"></i> Home
+                                    <i class="fas fa-home me-1"></i> Home
                                 </a>
                             </li>
                         {% endif %}
@@ -79,19 +86,19 @@
                     {% if current_user.is_authenticated %}
                     <div class="navbar-nav">
                         <a class="nav-link {% if request.endpoint == 'account' %}active{% endif %}" href="{{ url_for('account') }}">
-                            <i class="fas fa-user-circle mr-1"></i> Account
+                            <i class="fas fa-user-circle me-1"></i> Account
                         </a>
                         <a class="nav-link" href="{{ url_for('logout') }}">
-                            <i class="fas fa-sign-out-alt mr-1"></i> Logout
+                            <i class="fas fa-sign-out-alt me-1"></i> Logout
                         </a>
                     </div>
                     {% else %}
                     <div class="navbar-nav">
                         <a class="nav-link {% if request.endpoint == 'login' %}active{% endif %}" href="{{ url_for('login') }}">
-                            <i class="fas fa-sign-in-alt mr-1"></i> Login
+                            <i class="fas fa-sign-in-alt me-1"></i> Login
                         </a>
                         <a class="nav-link {% if request.endpoint == 'register' %}active{% endif %}" href="{{ url_for('register') }}">
-                            <i class="fas fa-user-plus mr-1"></i> Register
+                            <i class="fas fa-user-plus me-1"></i> Register
                         </a>
                     </div>
                     {% endif %}
@@ -127,7 +134,7 @@
                     
                     <div class="alert alert-{{ alert_class }} alert-dismissible fade show {{ bg_class }} shadow-sm border-0 mb-4" role="alert">
                         <div class="d-flex align-items-center">
-                            <i class="{{ icon_class }} {{ text_class }} mr-3"></i>
+                            <i class="{{ icon_class }} {{ text_class }} me-3"></i>
                             <div>{{ message }}</div>
                         </div>
                         <button type="button" class="close {{ text_class }}" data-dismiss="alert" aria-label="Close">

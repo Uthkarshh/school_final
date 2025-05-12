@@ -55,7 +55,7 @@
                         <h6 class="card-title mb-0">Students</h6>
                     </div>
                     <h3 class="fw-bold mb-1">{{ stats.student_count }}</h3>
-                    <p class="text-slate-500 mb-0"><span class="text-green-600"><i class="fas fa-arrow-up me-1"></i>3.2%</span> from last year</p>
+                    <p class="text-slate-500 mb-0">Total enrolled</p>
                 </div>
             </div>
         </div>
@@ -69,7 +69,7 @@
                         <h6 class="card-title mb-0">Fee Collection</h6>
                     </div>
                     <h3 class="fw-bold mb-1">₹{{ '{:.1f}'.format(stats.fee_collection/100000) }}L</h3>
-                    <p class="text-slate-500 mb-0"><span class="text-green-600"><i class="fas fa-arrow-up me-1"></i>8.1%</span> from last semester</p>
+                    <p class="text-slate-500 mb-0">Total collected</p>
                 </div>
             </div>
         </div>
@@ -97,7 +97,7 @@
                         <h6 class="card-title mb-0">Pending Fees</h6>
                     </div>
                     <h3 class="fw-bold mb-1">{{ stats.pending_fees }}</h3>
-                    <p class="text-slate-500 mb-0"><span class="text-rose-600"><i class="fas fa-arrow-down me-1"></i>2.5%</span> from last semester</p>
+                    <p class="text-slate-500 mb-0">Pending payments</p>
                 </div>
             </div>
         </div>
@@ -125,7 +125,7 @@
                     </a>
                 </div>
                 <div class="col">
-                    <a href="{{ url_for('fee_form') }}" class="card h-100 border-0 bg-green-50 text-decoration-none hover-lift">
+                    <a href="{{ url_for('fee_breakdown_form') }}" class="card h-100 border-0 bg-green-50 text-decoration-none hover-lift">
                         <div class="card-body text-center p-4">
                             <div class="icon-circle bg-green-100 text-green-600 mx-auto mb-3">
                                 <i class="fas fa-rupee-sign"></i>
@@ -147,13 +147,13 @@
                     </a>
                 </div>
                 <div class="col">
-                    <a href="{{ url_for('import_student_csv') }}" class="card h-100 border-0 bg-rose-50 text-decoration-none hover-lift">
+                    <a href="{{ url_for('class_details_form') }}" class="card h-100 border-0 bg-rose-50 text-decoration-none hover-lift">
                         <div class="card-body text-center p-4">
                             <div class="icon-circle bg-rose-100 text-rose-600 mx-auto mb-3">
-                                <i class="fas fa-file-import"></i>
+                                <i class="fas fa-chalkboard-teacher"></i>
                             </div>
-                            <h5 class="card-title text-slate-800">Import Data</h5>
-                            <p class="card-text text-slate-600 small">Bulk import from CSV</p>
+                            <h5 class="card-title text-slate-800">Add Class</h5>
+                            <p class="card-text text-slate-600 small">Add class details for student</p>
                         </div>
                     </a>
                 </div>
@@ -161,7 +161,7 @@
         </div>
     </div>
     
-    <!-- System Pages (Only shown to logged-in users) -->
+    <!-- System Pages -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white py-3">
             <div class="d-flex align-items-center justify-content-between">
@@ -182,7 +182,7 @@
         <div class="card-body p-4">
             <div class="row g-3" id="pagesContainer">
                 {% for page in pages %}
-                    {% if page.name not in ['Login', 'Register'] %} {# This condition is fine, though Login/Register are not in `pages` from home() #}
+                    {% if page.name not in ['Login', 'Register', 'Settings'] and (page.name != 'Users' or current_user.user_role == 'Admin') %}
                     <div class="col-md-6 col-lg-4 page-card">
                         <div class="card h-100 border-0 shadow-sm hover-lift">
                             <div class="card-body p-4">
@@ -193,7 +193,6 @@
                                         'Classes': 'fas fa-chalkboard-teacher text-green-600',
                                         'Fees': 'fas fa-money-check-alt text-rose-600',
                                         'Reports': 'fas fa-chart-bar text-slate-700',
-                                        'Settings': 'fas fa-cog text-slate-600',
                                         'Dashboard': 'fas fa-tachometer-alt text-indigo-500',
                                         'Users': 'fas fa-users text-indigo-600',
                                         'Profile': 'fas fa-user-circle text-slate-600'
@@ -212,7 +211,6 @@
                                         'Classes': 'Organize classes, sections, subjects, and teacher assignments.',
                                         'Fees': 'Handle fee collection, generate invoices, and track payments.',
                                         'Reports': 'Generate and view analytical reports on various school activities.',
-                                        'Settings': 'Configure system preferences and administrative options.',
                                         'Dashboard': 'View key metrics and performance indicators at a glance.',
                                         'Users': 'Manage user accounts, roles, and permissions.',
                                         'Profile': 'Update your personal information and account settings.'
@@ -228,6 +226,28 @@
                     </div>
                     {% endif %}
                 {% endfor %}
+                
+                <!-- Add Fee Breakdown Form card -->
+                <div class="col-md-6 col-lg-4 page-card">
+                    <div class="card h-100 border-0 shadow-sm hover-lift">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="icon-circle bg-gray-50 me-3">
+                                    <i class="fas fa-receipt text-green-600"></i>
+                                </div>
+                                <h5 class="card-title mb-0">Fee Payments</h5>
+                            </div>
+                            
+                            <p class="card-text text-slate-600 mb-4">
+                                Record fee payments, track dues, and manage payment receipts for students.
+                            </p>
+                            
+                            <a href="{{ url_for('fee_breakdown_form') }}" class="btn btn-outline-accent">
+                                <i class="fas fa-arrow-right me-2"></i>Go to Fee Payments
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -236,12 +256,9 @@
     <!-- Recent Activities -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white py-3">
-            <div class="d-flex align-items-center justify-content-between">
-                <div class="d-flex align-items-center">
-                    <i class="fas fa-history text-slate-600 me-2"></i>
-                    <h5 class="mb-0">Recent Activities</h5>
-                </div>
-                <a href="#" class="btn btn-sm btn-outline-indigo">View All</a> {# Placeholder link #}
+            <div class="d-flex align-items-center">
+                <i class="fas fa-history text-slate-600 me-2"></i>
+                <h5 class="mb-0">Recent Activities</h5>
             </div>
         </div>
         <div class="card-body p-0">
@@ -275,12 +292,12 @@
                                     By 
                                     {% if activity.user and activity.user.username %}
                                         {{ activity.user.username }}
-                                    {% elif activity.user_id %} {# Fallback if user object (from relationship) isn't fully populated but ID exists #}
+                                    {% elif activity.user_id %}
                                         User #{{ activity.user_id }}
                                     {% else %} 
                                         System/Unknown
                                     {% endif %}
-                                     • {{ activity.created_at.strftime('%b %d, %Y at %I:%M %p') }}
+                                     • {{ activity.created_at|datetime if activity.created_at is not string else activity.created_at }}
                                 </p>
                             </div>
                         </div>
@@ -296,10 +313,8 @@
     </div>
     {% endif %}
     
-    <!-- REMOVED Fee Collection Dashboard Section -->
-    
     {% else %}
-    <!-- Enhanced Not logged in message -->
+    <!-- Not logged in message -->
     <div class="card border-0 shadow-sm mb-4 overflow-hidden">
         <div class="row g-0">
             <div class="col-md-6">
@@ -395,7 +410,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Page search functionality (only when logged in)
+    // Page search functionality
     const searchInput = document.getElementById('pageSearch');
     if (searchInput) {
         const pagesContainer = document.getElementById('pagesContainer');
@@ -441,7 +456,6 @@ document.addEventListener('DOMContentLoaded', function() {
             day: 'numeric',
             hour: '2-digit',
             minute: '2-digit',
-            // second: '2-digit', // Removed seconds for cleaner display in welcome
             hour12: true
         };
         return new Date().toLocaleString('en-IN', options);
@@ -467,8 +481,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial update
     updateTimeElements();
     
-    // Update time every minute (more efficient than every second if seconds are not displayed)
-    setInterval(updateTimeElements, 60000); // Update every minute
+    // Update time every minute
+    setInterval(updateTimeElements, 60000);
 });
 </script>
 {% endblock content %}
