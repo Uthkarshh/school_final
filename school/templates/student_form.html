@@ -5,47 +5,47 @@
     <div class="card border-0 shadow-sm">
         <div class="card-body p-4">
             {% if student %}
-            <div class="alert bg-indigo-100 text-indigo-700 d-flex align-items-center mb-4 border-0 rounded">
-                <i class="fas fa-info-circle me-3 text-indigo-600 fa-lg"></i>
+            <div class="alert bg-indigo-100 text-indigo-700 d-flex align-items-center mb-4 border-0 rounded" role="alert">
+                <i class="fas fa-info-circle me-3 text-indigo-600 fa-lg" aria-hidden="true"></i>
                 <div>
-                    <h5 class="alert-heading mb-1">Edit Mode</h5>
+                    <h2 class="h5 alert-heading mb-1">Edit Mode</h2>
                     <p class="mb-0">You are editing student record for PEN: {{ student.pen_num }} - {{ student.student_name }}</p>
                 </div>
             </div>
             {% endif %}
             
-            <form method="POST" action="">
+            <form method="POST" action="{{ url_for('student_bp.student_form') }}">
                 {{ form.hidden_tag() }}
                 <fieldset class="form-group">
                     <div class="d-flex align-items-center mb-3">
-                        <i class="fas fa-user-graduate text-indigo-600 me-2 fa-lg"></i>
-                        <h4 class="mb-0">Student Form</h4>
+                        <i class="fas fa-user-graduate text-indigo-600 me-2 fa-lg" aria-hidden="true"></i>
+                        <h1 class="h4 mb-0">Student Form</h1>
                     </div>
                     <hr class="mb-4">
                     
                     <div class="row g-3">
                         <!-- Student Information Section -->
                         <div class="col-12 mb-2">
-                            <h5 class="text-slate-700 mb-3">Student Information</h5>
+                            <h2 class="h5 text-slate-700 mb-3">Student Information</h2>
                         </div>
                         
                         <!-- PEN Number Field - Make readonly when editing -->
                         <div class="col-md-4">
                             <div class="form-group mb-3">
-                                {{ form.pen_num.label(class="form-label") }}
+                                {{ form.pen_num.label(class="form-label", for="pen_num") }}
                                 {% if form.pen_num.errors %}
-                                    {{ form.pen_num(class="form-control is-invalid") }}
-                                    <div class="invalid-feedback">
+                                    {{ form.pen_num(class="form-control is-invalid", id="pen_num", aria_describedby="pen_num_error") }}
+                                    <div class="invalid-feedback" id="pen_num_error" role="alert">
                                         {% for error in form.pen_num.errors %}
                                             <span>{{ error }}</span>
                                         {% endfor %}
                                     </div>
                                 {% elif student %}
-                                    {{ form.pen_num(class="form-control", readonly=true) }}
-                                    <small class="form-text text-muted">Primary key field cannot be modified during edit</small>
+                                    {{ form.pen_num(class="form-control", readonly=true, id="pen_num", aria_describedby="pen_num_help") }}
+                                    <small id="pen_num_help" class="form-text text-muted">Primary key field cannot be modified during edit</small>
                                 {% else %}
-                                    {{ form.pen_num(class="form-control") }}
-                                    <small class="form-text text-muted">Student's Personal Education Number</small>
+                                    {{ form.pen_num(class="form-control", id="pen_num", aria_describedby="pen_num_help") }}
+                                    <small id="pen_num_help" class="form-text text-muted">Student's Personal Education Number</small>
                                 {% endif %}
                             </div>
                         </div>
@@ -53,17 +53,17 @@
                         <!-- Admission Number Field -->
                         <div class="col-md-4">
                             <div class="form-group mb-3">
-                                {{ form.admission_number.label(class="form-label") }}
+                                {{ form.admission_number.label(class="form-label", for="admission_number") }}
                                 {% if form.admission_number.errors %}
-                                    {{ form.admission_number(class="form-control is-invalid") }}
-                                    <div class="invalid-feedback">
+                                    {{ form.admission_number(class="form-control is-invalid", id="admission_number", aria_describedby="admission_number_error") }}
+                                    <div class="invalid-feedback" id="admission_number_error" role="alert">
                                         {% for error in form.admission_number.errors %}
                                             <span>{{ error }}</span>
                                         {% endfor %}
                                     </div>
                                 {% else %}
-                                    {{ form.admission_number(class="form-control") }}
-                                    <small class="form-text text-muted">School admission/registration number</small>
+                                    {{ form.admission_number(class="form-control", id="admission_number", aria_describedby="admission_number_help") }}
+                                    <small id="admission_number_help" class="form-text text-muted">School admission/registration number</small>
                                 {% endif %}
                             </div>
                         </div>
@@ -71,17 +71,17 @@
                         <!-- Aadhar Number Field -->
                         <div class="col-md-4">
                             <div class="form-group mb-3">
-                                {{ form.aadhar_number.label(class="form-label") }}
+                                {{ form.aadhar_number.label(class="form-label", for="aadhar_number") }}
                                 {% if form.aadhar_number.errors %}
-                                    {{ form.aadhar_number(class="form-control is-invalid") }}
-                                    <div class="invalid-feedback">
+                                    {{ form.aadhar_number(class="form-control is-invalid", id="aadhar_number", aria_describedby="aadhar_number_error") }}
+                                    <div class="invalid-feedback" id="aadhar_number_error" role="alert">
                                         {% for error in form.aadhar_number.errors %}
                                             <span>{{ error }}</span>
                                         {% endfor %}
                                     </div>
                                 {% else %}
-                                    {{ form.aadhar_number(class="form-control") }}
-                                    <small class="form-text text-muted">Government issued Aadhar card number</small>
+                                    {{ form.aadhar_number(class="form-control", id="aadhar_number", aria_describedby="aadhar_number_help") }}
+                                    <small id="aadhar_number_help" class="form-text text-muted">Government issued Aadhar card number (12 digits)</small>
                                 {% endif %}
                             </div>
                         </div>
@@ -89,82 +89,154 @@
                         <!-- Student Name Field -->
                         <div class="col-md-6">
                             <div class="form-group mb-3">
-                                {{ form.student_name.label(class="form-label") }}
-                                {{ form.student_name(class="form-control") }}
-                                <small class="form-text text-muted">Full name of the student</small>
+                                {{ form.student_name.label(class="form-label", for="student_name") }}
+                                {% if form.student_name.errors %}
+                                    {{ form.student_name(class="form-control is-invalid", id="student_name", aria_describedby="student_name_error") }}
+                                    <div class="invalid-feedback" id="student_name_error" role="alert">
+                                        {% for error in form.student_name.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.student_name(class="form-control", id="student_name", aria_describedby="student_name_help") }}
+                                    <small id="student_name_help" class="form-text text-muted">Full name of the student</small>
+                                {% endif %}
                             </div>
                         </div>
                         
                         <!-- Gender Field -->
                         <div class="col-md-6">
                             <div class="form-group mb-3">
-                                {{ form.gender.label(class="form-label") }}
-                                {{ form.gender(class="form-control") }}
-                                <small class="form-text text-muted">Student's gender</small>
+                                {{ form.gender.label(class="form-label", for="gender") }}
+                                {% if form.gender.errors %}
+                                    {{ form.gender(class="form-control is-invalid", id="gender", aria_describedby="gender_error") }}
+                                    <div class="invalid-feedback" id="gender_error" role="alert">
+                                        {% for error in form.gender.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.gender(class="form-control", id="gender", aria_describedby="gender_help") }}
+                                    <small id="gender_help" class="form-text text-muted">Student's gender</small>
+                                {% endif %}
                             </div>
                         </div>
                         
                         <!-- Date of Birth Field -->
                         <div class="col-md-6">
                             <div class="form-group mb-3">
-                                {{ form.date_of_birth.label(class="form-label") }}
-                                {{ form.date_of_birth(class="form-control") }}
-                                <small class="form-text text-muted">Student's date of birth (YYYY-MM-DD)</small>
+                                {{ form.date_of_birth.label(class="form-label", for="date_of_birth") }}
+                                {% if form.date_of_birth.errors %}
+                                    {{ form.date_of_birth(class="form-control is-invalid", id="date_of_birth", aria_describedby="date_of_birth_error") }}
+                                    <div class="invalid-feedback" id="date_of_birth_error" role="alert">
+                                        {% for error in form.date_of_birth.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.date_of_birth(class="form-control", id="date_of_birth", aria_describedby="date_of_birth_help") }}
+                                    <small id="date_of_birth_help" class="form-text text-muted">Student's date of birth (YYYY-MM-DD)</small>
+                                {% endif %}
                             </div>
                         </div>
                         
                         <!-- Date of Joining Field -->
                         <div class="col-md-6">
                             <div class="form-group mb-3">
-                                {{ form.date_of_joining.label(class="form-label") }}
-                                {{ form.date_of_joining(class="form-control") }}
-                                <small class="form-text text-muted">Date when student joined the school (YYYY-MM-DD)</small>
+                                {{ form.date_of_joining.label(class="form-label", for="date_of_joining") }}
+                                {% if form.date_of_joining.errors %}
+                                    {{ form.date_of_joining(class="form-control is-invalid", id="date_of_joining", aria_describedby="date_of_joining_error") }}
+                                    <div class="invalid-feedback" id="date_of_joining_error" role="alert">
+                                        {% for error in form.date_of_joining.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.date_of_joining(class="form-control", id="date_of_joining", aria_describedby="date_of_joining_help") }}
+                                    <small id="date_of_joining_help" class="form-text text-muted">Date when student joined the school (YYYY-MM-DD)</small>
+                                {% endif %}
                             </div>
                         </div>
                         
                         <!-- Family Information Section -->
                         <div class="col-12 mt-2 mb-2">
-                            <h5 class="text-slate-700 mb-3">Family Information</h5>
+                            <h2 class="h5 text-slate-700 mb-3">Family Information</h2>
                         </div>
                         
                         <!-- Father Name Field -->
                         <div class="col-md-6">
                             <div class="form-group mb-3">
-                                {{ form.father_name.label(class="form-label") }}
-                                {{ form.father_name(class="form-control") }}
-                                <small class="form-text text-muted">Full name of student's father</small>
+                                {{ form.father_name.label(class="form-label", for="father_name") }}
+                                {% if form.father_name.errors %}
+                                    {{ form.father_name(class="form-control is-invalid", id="father_name", aria_describedby="father_name_error") }}
+                                    <div class="invalid-feedback" id="father_name_error" role="alert">
+                                        {% for error in form.father_name.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.father_name(class="form-control", id="father_name", aria_describedby="father_name_help") }}
+                                    <small id="father_name_help" class="form-text text-muted">Full name of student's father</small>
+                                {% endif %}
                             </div>
                         </div>
                         
                         <!-- Mother Name Field -->
                         <div class="col-md-6">
                             <div class="form-group mb-3">
-                                {{ form.mother_name.label(class="form-label") }}
-                                {{ form.mother_name(class="form-control") }}
-                                <small class="form-text text-muted">Full name of student's mother</small>
+                                {{ form.mother_name.label(class="form-label", for="mother_name") }}
+                                {% if form.mother_name.errors %}
+                                    {{ form.mother_name(class="form-control is-invalid", id="mother_name", aria_describedby="mother_name_error") }}
+                                    <div class="invalid-feedback" id="mother_name_error" role="alert">
+                                        {% for error in form.mother_name.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.mother_name(class="form-control", id="mother_name", aria_describedby="mother_name_help") }}
+                                    <small id="mother_name_help" class="form-text text-muted">Full name of student's mother</small>
+                                {% endif %}
                             </div>
                         </div>
                         
                         <!-- Contact Information Section -->
                         <div class="col-12 mt-2 mb-2">
-                            <h5 class="text-slate-700 mb-3">Contact Information</h5>
+                            <h2 class="h5 text-slate-700 mb-3">Contact Information</h2>
                         </div>
                         
                         <!-- Contact Number Field -->
                         <div class="col-md-6">
                             <div class="form-group mb-3">
-                                {{ form.contact_number.label(class="form-label") }}
-                                {{ form.contact_number(class="form-control") }}
-                                <small class="form-text text-muted">Primary contact phone number</small>
+                                {{ form.contact_number.label(class="form-label", for="contact_number") }}
+                                {% if form.contact_number.errors %}
+                                    {{ form.contact_number(class="form-control is-invalid", id="contact_number", aria_describedby="contact_number_error") }}
+                                    <div class="invalid-feedback" id="contact_number_error" role="alert">
+                                        {% for error in form.contact_number.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.contact_number(class="form-control", id="contact_number", aria_describedby="contact_number_help") }}
+                                    <small id="contact_number_help" class="form-text text-muted">Primary contact phone number</small>
+                                {% endif %}
                             </div>
                         </div>
                         
                         <!-- Village Field -->
                         <div class="col-md-6">
                             <div class="form-group mb-3">
-                                {{ form.village.label(class="form-label") }}
-                                {{ form.village(class="form-control") }}
-                                <small class="form-text text-muted">Student's village or residential area</small>
+                                {{ form.village.label(class="form-label", for="village") }}
+                                {% if form.village.errors %}
+                                    {{ form.village(class="form-control is-invalid", id="village", aria_describedby="village_error") }}
+                                    <div class="invalid-feedback" id="village_error" role="alert">
+                                        {% for error in form.village.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.village(class="form-control", id="village", aria_describedby="village_help") }}
+                                    <small id="village_help" class="form-text text-muted">Student's village or residential area</small>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -173,14 +245,14 @@
                 <div class="d-flex mt-4">
                     {% if student %}
                         <button type="submit" class="btn btn-green">
-                            <i class="fas fa-save me-2"></i>Update Record
+                            <i class="fas fa-save me-2" aria-hidden="true"></i>Update Record
                         </button>
-                        <a href="{{ url_for('student_form') }}" class="btn btn-outline-slate ms-2">
-                            <i class="fas fa-times me-2"></i>Cancel Edit
+                        <a href="{{ url_for('student_bp.student_form') }}" class="btn btn-outline-slate ms-2">
+                            <i class="fas fa-times me-2" aria-hidden="true"></i>Cancel Edit
                         </a>
                     {% else %}
                         <button type="submit" class="btn btn-accent">
-                            <i class="fas fa-plus-circle me-2"></i>Add Student
+                            <i class="fas fa-plus-circle me-2" aria-hidden="true"></i>Add Student
                         </button>
                     {% endif %}
                 </div>
@@ -190,26 +262,27 @@
 
     <div class="card border-0 shadow-sm mt-4">
         <div class="card-body p-4">
-            <form method="POST" action="{{ url_for('import_student_csv') }}" enctype="multipart/form-data">
-                {{ form.hidden_tag() }}
+            <form method="POST" action="{{ url_for('student_bp.import_student_csv') }}" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <fieldset class="form-group">
                     <div class="d-flex align-items-center mb-3">
-                        <i class="fas fa-file-upload text-indigo-600 me-2 fa-lg"></i>
-                        <h4 class="mb-0">Import Students</h4>
+                        <i class="fas fa-file-upload text-indigo-600 me-2 fa-lg" aria-hidden="true"></i>
+                        <h2 class="h4 mb-0">Import Students</h2>
                     </div>
                     <hr class="mb-4">
                     
                     <div class="row">
                         <div class="col-md-8">
                             <div class="form-group mb-3">
-                                <label class="form-label">CSV File</label>
+                                <label class="form-label" for="student_csv">CSV File</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-white border-end-0">
+                                    <span class="input-group-text bg-white border-end-0" aria-hidden="true">
                                         <i class="fas fa-file-csv text-slate-500"></i>
                                     </span>
-                                    <input type="file" name="student_csv" class="form-control border-start-0 ps-0" accept=".csv" required>
+                                    <input type="file" name="student_csv" id="student_csv" class="form-control border-start-0 ps-0" 
+                                           accept=".csv" required aria-describedby="csv_help">
                                 </div>
-                                <small class="form-text text-muted">
+                                <small id="csv_help" class="form-text text-muted">
                                     Upload a CSV file with student information for bulk import
                                 </small>
                             </div>
@@ -218,7 +291,7 @@
                 </fieldset>
                 <div class="mt-3">
                     <button type="submit" class="btn btn-indigo">
-                        <i class="fas fa-file-import me-2"></i>Import Students
+                        <i class="fas fa-file-import me-2" aria-hidden="true"></i>Import Students
                     </button>
                 </div>
             </form>
@@ -229,11 +302,11 @@
     <div class="card bg-gray-50 border-0 shadow-sm mt-4">
         <div class="card-body p-3">
             <div class="d-flex">
-                <div class="icon-circle bg-indigo-100 text-indigo-600 me-3">
+                <div class="icon-circle bg-indigo-100 text-indigo-600 me-3" aria-hidden="true">
                     <i class="fas fa-lightbulb"></i>
                 </div>
                 <div>
-                    <h5 class="card-title mb-2">Student Management</h5>
+                    <h2 class="h5 card-title mb-2">Student Management</h2>
                     <p class="card-text mb-0 text-slate-600">
                         This form is used to add or update student personal and contact information. Each student needs a unique PEN (Personal Education Number) which will be used to link their fee records, class details, and transport information.
                     </p>
@@ -246,8 +319,8 @@
     <div class="card bg-indigo-50 border-0 shadow-sm mt-3">
         <div class="card-body p-3">
             <div class="d-flex align-items-center mb-2">
-                <i class="fas fa-info-circle text-indigo-600 me-2"></i>
-                <h6 class="mb-0">CSV Import Format</h6>
+                <i class="fas fa-info-circle text-indigo-600 me-2" aria-hidden="true"></i>
+                <h3 class="h6 mb-0">CSV Import Format</h3>
             </div>
             <p class="text-slate-600 small mb-2">Your CSV file should have the following columns:</p>
             <code class="bg-white p-2 d-block mb-0 border rounded text-slate-800" style="font-size: 0.8rem">
@@ -260,9 +333,9 @@
     <div class="card bg-amber-50 border-0 shadow-sm mt-3 mb-3">
         <div class="card-body p-3">
             <div class="d-flex align-items-center">
-                <i class="fas fa-star text-amber-600 me-2"></i>
+                <i class="fas fa-star text-amber-600 me-2" aria-hidden="true"></i>
                 <div>
-                    <h6 class="mb-1">Student Record Tips</h6>
+                    <h3 class="h6 mb-1">Student Record Tips</h3>
                     <ul class="text-slate-600 small mb-0 ps-3">
                         <li>Ensure that the PEN number is unique for each student</li>
                         <li>The Aadhar number should be exactly 12 digits</li>
@@ -275,4 +348,45 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    
+    // When the form already has validation errors, convert them to CSV and download
+    const errorElements = document.querySelectorAll('.invalid-feedback');
+    if (errorElements.length > 0) {
+        const errors = [];
+        errorElements.forEach(el => {
+            const fieldName = el.id.replace('_error', '');
+            const errorMsg = el.textContent.trim();
+            errors.push([fieldName, errorMsg]);
+        });
+        
+        if (errors.length > 0) {
+            // Create downloadable CSV
+            let csvContent = 'Field,Error\n';
+            errors.forEach(error => {
+                csvContent += `"${error[0]}","${error[1]}"\n`;
+            });
+            
+            // Create download link
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `form_errors_${timestamp}.csv`);
+            link.style.display = 'none';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+});
+</script>
+
+
 {% endblock content %}

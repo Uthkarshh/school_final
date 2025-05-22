@@ -4,7 +4,7 @@
     <!-- Page Header with Statistics -->
     <div class="row mb-4">
         <div class="col-md-12">
-            <h2 class="mb-2 text-slate-800"><i class="fas fa-users-cog mr-2 text-indigo-600"></i>User Management</h2>
+            <h1 class="h2 mb-2 text-slate-800"><i class="fas fa-users-cog me-2 text-indigo-600" aria-hidden="true"></i>User Management</h1>
             <p class="text-muted">Manage user accounts, roles, and access permissions</p>
         </div>
     </div>
@@ -16,10 +16,10 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-muted font-weight-normal mb-0">Total Users</h6>
-                            <h3 class="font-weight-bold mt-2 mb-0 text-dark">{{ users|length }}</h3>
+                            <h2 class="h6 text-muted fw-normal mb-0">Total Users</h2>
+                            <p class="h3 fw-bold mt-2 mb-0 text-dark">{{ users|length }}</p>
                         </div>
-                        <div class="rounded-circle bg-indigo-100 p-3">
+                        <div class="rounded-circle bg-indigo-100 p-3" aria-hidden="true">
                             <i class="fas fa-users text-indigo-600 fa-lg"></i>
                         </div>
                     </div>
@@ -31,10 +31,10 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-muted font-weight-normal mb-0">Approved Users</h6>
-                            <h3 class="font-weight-bold mt-2 mb-0 text-dark">{{ users|selectattr('is_approved', 'equalto', true)|list|length }}</h3>
+                            <h2 class="h6 text-muted fw-normal mb-0">Approved Users</h2>
+                            <p class="h3 fw-bold mt-2 mb-0 text-dark">{{ users|selectattr('is_approved', 'equalto', true)|list|length }}</p>
                         </div>
-                        <div class="rounded-circle bg-green-100 p-3">
+                        <div class="rounded-circle bg-green-100 p-3" aria-hidden="true">
                             <i class="fas fa-user-check text-green-600 fa-lg"></i>
                         </div>
                     </div>
@@ -46,10 +46,10 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-muted font-weight-normal mb-0">Pending Approval</h6>
-                            <h3 class="font-weight-bold mt-2 mb-0 text-dark">{{ users|selectattr('is_approved', 'equalto', false)|list|length }}</h3>
+                            <h2 class="h6 text-muted fw-normal mb-0">Pending Approval</h2>
+                            <p class="h3 fw-bold mt-2 mb-0 text-dark">{{ users|selectattr('is_approved', 'equalto', false)|list|length }}</p>
                         </div>
-                        <div class="rounded-circle bg-amber-100 p-3">
+                        <div class="rounded-circle bg-amber-100 p-3" aria-hidden="true">
                             <i class="fas fa-user-clock text-amber-600 fa-lg"></i>
                         </div>
                     </div>
@@ -61,10 +61,10 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-muted font-weight-normal mb-0">Admins</h6>
-                            <h3 class="font-weight-bold mt-2 mb-0 text-dark">{{ users|selectattr('user_role', 'equalto', 'Admin')|list|length }}</h3>
+                            <h2 class="h6 text-muted fw-normal mb-0">Admins</h2>
+                            <p class="h3 fw-bold mt-2 mb-0 text-dark">{{ users|selectattr('user_role', 'equalto', 'Admin')|list|length }}</p>
                         </div>
-                        <div class="rounded-circle bg-rose-100 p-3">
+                        <div class="rounded-circle bg-rose-100 p-3" aria-hidden="true">
                             <i class="fas fa-user-shield text-rose-600 fa-lg"></i>
                         </div>
                     </div>
@@ -79,19 +79,19 @@
             <form id="filterForm" class="mb-0">
                 <div class="row align-items-end">
                     <div class="col-md-4 mb-3 mb-md-0">
-                        <label for="searchInput" class="form-label text-slate-600 small font-weight-bold">Search Users</label>
+                        <label for="searchInput" class="form-label text-slate-600 small fw-bold">Search Users</label>
                         <div class="input-group">
                             <div class="input-group-prepend">
-                                <span class="input-group-text bg-white border-right-0 text-muted">
+                                <span class="input-group-text bg-white border-end-0 text-muted" aria-hidden="true">
                                     <i class="fas fa-search"></i>
                                 </span>
                             </div>
-                            <input type="text" class="form-control border-left-0" id="searchInput" placeholder="Search by name or email">
+                            <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Search by name or email" aria-label="Search users">
                         </div>
                     </div>
                     <div class="col-md-3 mb-3 mb-md-0">
-                        <label for="roleFilter" class="form-label text-slate-600 small font-weight-bold">Filter by Role</label>
-                        <select class="form-control custom-select" id="roleFilter">
+                        <label for="roleFilter" class="form-label text-slate-600 small fw-bold">Filter by Role</label>
+                        <select class="form-control custom-select" id="roleFilter" aria-label="Filter by role">
                             <option value="">All Roles</option>
                             <option value="Admin">Admin</option>
                             <option value="HR">HR</option>
@@ -99,15 +99,15 @@
                         </select>
                     </div>
                     <div class="col-md-3 mb-3 mb-md-0">
-                        <label for="statusFilter" class="form-label text-slate-600 small font-weight-bold">Filter by Status</label>
-                        <select class="form-control custom-select" id="statusFilter">
+                        <label for="statusFilter" class="form-label text-slate-600 small fw-bold">Filter by Status</label>
+                        <select class="form-control custom-select" id="statusFilter" aria-label="Filter by status">
                             <option value="">All Statuses</option>
                             <option value="approved">Approved</option>
                             <option value="pending">Pending Approval</option>
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <button type="button" class="btn btn-outline-secondary btn-block" id="resetFilters">
+                        <button type="button" class="btn btn-outline-secondary btn-block" id="resetFilters" aria-label="Reset all filters">
                             Reset Filters
                         </button>
                     </div>
@@ -120,33 +120,33 @@
     <div class="card border-0 shadow-sm">
         <div class="card-header bg-white py-3 border-0">
             <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 font-weight-bold text-slate-800">User Accounts</h5>
+                <h2 class="h5 mb-0 fw-bold text-slate-800">User Accounts</h2>
                 <div class="btn-group">
-                    <button type="button" class="btn btn-outline-primary" id="approveSelectedBtn" disabled>
-                        <i class="fas fa-check-circle mr-1"></i> Approve Selected
+                    <button type="button" class="btn btn-outline-primary" id="approveSelectedBtn" disabled aria-label="Approve selected users">
+                        <i class="fas fa-check-circle me-1" aria-hidden="true"></i> Approve Selected
                     </button>
-                    <button type="button" class="btn btn-outline-danger" id="rejectSelectedBtn" disabled>
-                        <i class="fas fa-trash-alt mr-1"></i> Reject Selected
+                    <button type="button" class="btn btn-outline-danger" id="rejectSelectedBtn" disabled aria-label="Delete selected users">
+                        <i class="fas fa-trash-alt me-1" aria-hidden="true"></i> Delete Selected
                     </button>
                 </div>
             </div>
         </div>
         <div class="table-responsive">
-            <table class="table mb-0">
+            <table class="table mb-0" aria-label="User accounts">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="border-0">
+                        <th class="border-0" scope="col">
                             <div class="custom-control custom-checkbox">
-                                <input type="checkbox" class="custom-control-input" id="selectAll">
+                                <input type="checkbox" class="custom-control-input" id="selectAll" aria-label="Select all users">
                                 <label class="custom-control-label" for="selectAll"></label>
                             </div>
                         </th>
-                        <th class="border-0"><a href="#" class="text-slate-800 font-weight-bold" data-sort="id">ID <i class="fas fa-sort text-muted"></i></a></th>
-                        <th class="border-0"><a href="#" class="text-slate-800 font-weight-bold" data-sort="username">Username <i class="fas fa-sort text-muted"></i></a></th>
-                        <th class="border-0"><a href="#" class="text-slate-800 font-weight-bold" data-sort="email">Email <i class="fas fa-sort text-muted"></i></a></th>
-                        <th class="border-0"><a href="#" class="text-slate-800 font-weight-bold" data-sort="role">Role <i class="fas fa-sort text-muted"></i></a></th>
-                        <th class="border-0"><a href="#" class="text-slate-800 font-weight-bold" data-sort="status">Status <i class="fas fa-sort text-muted"></i></a></th>
-                        <th class="border-0 text-slate-800 font-weight-bold">Actions</th>
+                        <th class="border-0" scope="col"><a href="#" class="text-slate-800 fw-bold" data-sort="id">ID <i class="fas fa-sort text-muted" aria-hidden="true"></i></a></th>
+                        <th class="border-0" scope="col"><a href="#" class="text-slate-800 fw-bold" data-sort="username">Username <i class="fas fa-sort text-muted" aria-hidden="true"></i></a></th>
+                        <th class="border-0" scope="col"><a href="#" class="text-slate-800 fw-bold" data-sort="email">Email <i class="fas fa-sort text-muted" aria-hidden="true"></i></a></th>
+                        <th class="border-0" scope="col"><a href="#" class="text-slate-800 fw-bold" data-sort="role">Role <i class="fas fa-sort text-muted" aria-hidden="true"></i></a></th>
+                        <th class="border-0" scope="col"><a href="#" class="text-slate-800 fw-bold" data-sort="status">Status <i class="fas fa-sort text-muted" aria-hidden="true"></i></a></th>
+                        <th class="border-0 text-slate-800 fw-bold" scope="col">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -154,52 +154,52 @@
                     <tr data-user-id="{{ user.id }}" data-username="{{ user.username }}" data-role="{{ user.user_role }}" data-status="{{ 'approved' if user.is_approved else 'pending' }}">
                         <td>
                             <div class="custom-control custom-checkbox">
-                                <input type="checkbox" class="custom-control-input user-checkbox" id="user{{ user.id }}" data-id="{{ user.id }}">
+                                <input type="checkbox" class="custom-control-input user-checkbox" id="user{{ user.id }}" data-id="{{ user.id }}" aria-label="Select user {{ user.username }}">
                                 <label class="custom-control-label" for="user{{ user.id }}"></label>
                             </div>
                         </td>
-                        <td class="font-weight-medium">{{ user.id }}</td>
+                        <td class="fw-medium">{{ user.id }}</td>
                         <td>
                             <div class="d-flex align-items-center">
-                                <div class="avatar-circle mr-2 text-white font-weight-bold">{{ user.username[0]|upper }}</div>
-                                <span class="font-weight-medium">{{ user.username }}</span>
+                                <div class="avatar-circle me-2 text-white fw-bold" aria-hidden="true">{{ user.username[0]|upper }}</div>
+                                <span class="fw-medium">{{ user.username }}</span>
                             </div>
                         </td>
                         <td>{{ user.email }}</td>
                         <td>
                             {% if user.user_role == 'Admin' %}
-                                <span class="badge badge-soft-rose text-rose-700 font-weight-medium">{{ user.user_role }}</span>
+                                <span class="badge badge-soft-rose text-rose-700 fw-medium">{{ user.user_role }}</span>
                             {% elif user.user_role == 'HR' %}
-                                <span class="badge badge-soft-indigo text-indigo-700 font-weight-medium">{{ user.user_role }}</span>
+                                <span class="badge badge-soft-indigo text-indigo-700 fw-medium">{{ user.user_role }}</span>
                             {% else %}
-                                <span class="badge badge-soft-slate text-slate-700 font-weight-medium">{{ user.user_role }}</span>
+                                <span class="badge badge-soft-slate text-slate-700 fw-medium">{{ user.user_role }}</span>
                             {% endif %}
                         </td>
                         <td>
                             {% if user.is_approved %}
-                                <span class="badge badge-soft-green text-green-700 font-weight-medium">Approved</span>
+                                <span class="badge badge-soft-green text-green-700 fw-medium">Approved</span>
                             {% else %}
-                                <span class="badge badge-soft-amber text-amber-700 font-weight-medium">Pending</span>
+                                <span class="badge badge-soft-amber text-amber-700 fw-medium">Pending</span>
                             {% endif %}
                         </td>
                         <td>
                             <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-slate-400 dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="false">
+                                <button class="btn btn-sm btn-outline-slate-400 dropdown-toggle" type="button" id="dropdownMenu{{ user.id }}" data-toggle="dropdown" aria-expanded="false" aria-haspopup="true">
                                     Actions
                                 </button>
-                                <div class="dropdown-menu dropdown-menu-right shadow-sm border-0">
+                                <div class="dropdown-menu dropdown-menu-right shadow-sm border-0" aria-labelledby="dropdownMenu{{ user.id }}">
                                     {% if user.is_approved %}
-                                        <a href="{{ url_for('toggle_user_approval', user_id=user.id) }}" class="dropdown-item">
-                                            <i class="fas fa-ban text-amber-600 mr-2"></i> Revoke Access
+                                        <a href="{{ url_for('admin_bp.toggle_user_approval', user_id=user.id) }}" class="dropdown-item">
+                                            <i class="fas fa-ban text-amber-600 me-2" aria-hidden="true"></i> Revoke Access
                                         </a>
                                     {% else %}
-                                        <a href="{{ url_for('toggle_user_approval', user_id=user.id) }}" class="dropdown-item">
-                                            <i class="fas fa-check text-green-600 mr-2"></i> Approve
+                                        <a href="{{ url_for('admin_bp.toggle_user_approval', user_id=user.id) }}" class="dropdown-item">
+                                            <i class="fas fa-check text-green-600 me-2" aria-hidden="true"></i> Approve
                                         </a>
                                     {% endif %}
                                     <div class="dropdown-divider"></div>
                                     <button class="dropdown-item reject-user" data-toggle="modal" data-target="#confirmRejectModal" data-id="{{ user.id }}" data-username="{{ user.username }}">
-                                        <i class="fas fa-trash-alt text-rose-600 mr-2"></i> Delete User
+                                        <i class="fas fa-trash-alt text-rose-600 me-2" aria-hidden="true"></i> Delete User
                                     </button>
                                 </div>
                             </div>
@@ -209,22 +209,70 @@
                 </tbody>
             </table>
         </div>
+        
         <div class="card-footer bg-white border-top-0 py-3">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <span class="text-muted small">Showing <span id="visibleUsers" class="font-weight-medium">{{ users|length }}</span> of {{ users|length }} users</span>
+                    <span class="text-muted small">Showing <span id="visibleUsers" class="fw-medium">{{ users|length }}</span> of {{ users|length }} users</span>
                 </div>
+                
+                {% if pagination %}
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0">
+                        {% if pagination.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin_bp.admin_users', page=pagination.prev_num) }}" aria-label="Previous page">Previous</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link" aria-hidden="true">Previous</span>
+                            </li>
+                        {% endif %}
+                        
+                        {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                            {% if page_num %}
+                                {% if page_num == pagination.page %}
+                                <li class="page-item active" aria-current="page">
+                                    <span class="page-link">{{ page_num }}</span>
+                                </li>
+                                {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('admin_bp.admin_users', page=page_num) }}">{{ page_num }}</a>
+                                </li>
+                                {% endif %}
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">…</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if pagination.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin_bp.admin_users', page=pagination.next_num) }}" aria-label="Next page">Next</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link" aria-hidden="true">Next</span>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% else %}
                 <nav aria-label="Page navigation">
                     <ul class="pagination pagination-sm mb-0">
                         <li class="page-item disabled">
-                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                            <span class="page-link" aria-hidden="true">Previous</span>
                         </li>
-                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item active" aria-current="page">
+                            <span class="page-link">1</span>
+                        </li>
                         <li class="page-item disabled">
-                            <a class="page-link" href="#">Next</a>
+                            <span class="page-link" aria-hidden="true">Next</span>
                         </li>
                     </ul>
                 </nav>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -235,14 +283,14 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-rose-600 text-white">
-                <h5 class="modal-title" id="confirmRejectModalLabel">Confirm User Deletion</h5>
+                <h2 class="modal-title h5" id="confirmRejectModalLabel">Confirm User Deletion</h2>
                 <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body py-4">
                 <div class="text-center mb-3">
-                    <div class="rounded-circle bg-rose-100 mx-auto mb-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                    <div class="rounded-circle bg-rose-100 mx-auto mb-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;" aria-hidden="true">
                         <i class="fas fa-exclamation-triangle text-rose-600 fa-2x"></i>
                     </div>
                 </div>
@@ -262,14 +310,14 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-indigo-600 text-white">
-                <h5 class="modal-title" id="confirmBulkActionModalLabel">Confirm Bulk Action</h5>
+                <h2 class="modal-title h5" id="confirmBulkActionModalLabel">Confirm Bulk Action</h2>
                 <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body py-4">
                 <div class="text-center mb-3">
-                    <div class="rounded-circle bg-indigo-100 mx-auto mb-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                    <div class="rounded-circle bg-indigo-100 mx-auto mb-3" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;" aria-hidden="true">
                         <i class="fas fa-users-cog text-indigo-600 fa-2x"></i>
                     </div>
                 </div>
@@ -373,7 +421,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const username = button.getAttribute('data-username');
             
             document.getElementById('deleteUsername').textContent = username;
-            document.getElementById('confirmRejectBtn').href = "{{ url_for('reject_user', user_id=0) }}".replace('0', userId);
+            document.getElementById('confirmRejectBtn').href = "{{ url_for('admin_bp.reject_user', user_id=0) }}".replace('0', userId);
         });
     }
     
@@ -393,10 +441,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         rows.forEach(row => {
             const username = row.getAttribute('data-username').toLowerCase();
+            const email = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
             const userRole = row.getAttribute('data-role');
             const userStatus = row.getAttribute('data-status');
             
-            const matchesSearch = username.includes(searchTerm);
+            const matchesSearch = username.includes(searchTerm) || email.includes(searchTerm);
             const matchesRole = role === '' || userRole === role;
             const matchesStatus = status === '' || userStatus === status;
             
@@ -479,7 +528,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Set the action URL with user IDs as query params
                 confirmBulkActionBtn.onclick = function() {
-                    window.location.href = "{{ url_for('admin_users') }}/bulk_approve?ids=" + userIds.join(',');
+                    window.location.href = "{{ url_for('admin_bp.bulk_approve_users') }}?ids=" + userIds.join(',');
                 };
                 
                 // Show the modal using Bootstrap's modal API
@@ -505,7 +554,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 confirmBulkActionBtn.textContent = 'Delete Selected';
                 // Set the action URL with user IDs as query params
                 confirmBulkActionBtn.onclick = function() {
-                    window.location.href = "{{ url_for('admin_users') }}/bulk_reject?ids=" + userIds.join(',');
+                    window.location.href = "{{ url_for('admin_bp.bulk_reject_users') }}?ids=" + userIds.join(',');
                 };
                 
                 // Show the modal using Bootstrap's modal API

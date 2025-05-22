@@ -10,17 +10,17 @@
                     <p class="lead fs-5 mb-4">Comprehensive fee management system for streamlined school operations, student records, and financial tracking.</p>
                     {% if not current_user.is_authenticated %}
                     <div class="d-flex gap-3">
-                        <a href="{{ url_for('login') }}" class="btn btn-light btn-lg px-4 py-2 fw-medium">
-                            <i class="fas fa-sign-in-alt me-2"></i>Login
+                        <a href="{{ url_for('auth_bp.login') }}" class="btn btn-light btn-lg px-4 py-2 fw-medium">
+                            <i class="fas fa-sign-in-alt me-2" aria-hidden="true"></i>Login
                         </a>
-                        <a href="{{ url_for('register') }}" class="btn btn-outline-light btn-lg px-4 py-2 fw-medium">
-                            <i class="fas fa-user-plus me-2"></i>Register
+                        <a href="{{ url_for('auth_bp.register') }}" class="btn btn-outline-light btn-lg px-4 py-2 fw-medium">
+                            <i class="fas fa-user-plus me-2" aria-hidden="true"></i>Register
                         </a>
                     </div>
                     {% endif %}
                 </div>
                 <div class="col-lg-4 d-none d-lg-block text-center">
-                    <img src="{{ url_for('static', filename='logo.jpg') }}" alt="School Logo" class="img-fluid" style="max-height: 180px;">
+                    <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Oasis School Of Excellence Logo" class="img-fluid" style="max-height: 180px;">
                 </div>
             </div>
         </div>
@@ -30,12 +30,12 @@
     <!-- Welcome Alert -->
     <div class="alert alert-soft-indigo border-0 d-flex align-items-center mb-4 shadow-sm" role="alert">
         <div class="d-flex align-items-center">
-            <div class="avatar-circle avatar-sm bg-indigo-600 me-3">
+            <div class="avatar-circle avatar-sm bg-indigo-600 me-3" aria-hidden="true">
                 {{ current_user.username[0].upper() }}
             </div>
             <div>
                 <h5 class="mb-0">Welcome back, {{ current_user.username }}!</h5>
-                <p class="text-slate-600 mb-0">Current time: <span id="currentTime"></span></p>
+                <p class="text-slate-600 mb-0">Current time: <span id="currentTime" aria-live="polite">Loading...</span></p>
             </div>
         </div>
         <div class="ms-auto">
@@ -49,7 +49,7 @@
             <div class="card h-100 border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
-                        <div class="icon-circle bg-indigo-100 text-indigo-600 me-3">
+                        <div class="icon-circle bg-indigo-100 text-indigo-600 me-3" aria-hidden="true">
                             <i class="fas fa-user-graduate"></i>
                         </div>
                         <h6 class="card-title mb-0">Students</h6>
@@ -63,7 +63,7 @@
             <div class="card h-100 border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
-                        <div class="icon-circle bg-green-100 text-green-600 me-3">
+                        <div class="icon-circle bg-green-100 text-green-600 me-3" aria-hidden="true">
                             <i class="fas fa-money-bill-wave"></i>
                         </div>
                         <h6 class="card-title mb-0">Fee Collection</h6>
@@ -77,7 +77,7 @@
             <div class="card h-100 border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
-                        <div class="icon-circle bg-amber-100 text-amber-600 me-3">
+                        <div class="icon-circle bg-amber-100 text-amber-600 me-3" aria-hidden="true">
                             <i class="fas fa-bus-alt"></i>
                         </div>
                         <h6 class="card-title mb-0">Transport</h6>
@@ -91,7 +91,7 @@
             <div class="card h-100 border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-3">
-                        <div class="icon-circle bg-rose-100 text-rose-600 me-3">
+                        <div class="icon-circle bg-rose-100 text-rose-600 me-3" aria-hidden="true">
                             <i class="fas fa-exclamation-circle"></i>
                         </div>
                         <h6 class="card-title mb-0">Pending Fees</h6>
@@ -107,52 +107,52 @@
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white py-3">
             <div class="d-flex align-items-center">
-                <i class="fas fa-bolt text-warning me-2"></i>
+                <i class="fas fa-bolt text-warning me-2" aria-hidden="true"></i>
                 <h5 class="mb-0">Quick Actions</h5>
             </div>
         </div>
         <div class="card-body p-4">
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-3">
                 <div class="col">
-                    <a href="{{ url_for('student_form') }}" class="card h-100 border-0 bg-indigo-50 text-decoration-none hover-lift">
+                    <a href="{{ url_for('student_bp.student_form') }}" class="card h-100 border-0 bg-indigo-50 text-decoration-none hover-lift" aria-labelledby="action-add-student">
                         <div class="card-body text-center p-4">
-                            <div class="icon-circle bg-indigo-100 text-indigo-600 mx-auto mb-3">
+                            <div class="icon-circle bg-indigo-100 text-indigo-600 mx-auto mb-3" aria-hidden="true">
                                 <i class="fas fa-user-plus"></i>
                             </div>
-                            <h5 class="card-title text-slate-800">Add Student</h5>
+                            <h5 class="card-title text-slate-800" id="action-add-student">Add Student</h5>
                             <p class="card-text text-slate-600 small">Create a new student record</p>
                         </div>
                     </a>
                 </div>
                 <div class="col">
-                    <a href="{{ url_for('fee_breakdown_form') }}" class="card h-100 border-0 bg-green-50 text-decoration-none hover-lift">
+                    <a href="{{ url_for('fee_bp.fee_breakdown_form') }}" class="card h-100 border-0 bg-green-50 text-decoration-none hover-lift" aria-labelledby="action-record-payment">
                         <div class="card-body text-center p-4">
-                            <div class="icon-circle bg-green-100 text-green-600 mx-auto mb-3">
+                            <div class="icon-circle bg-green-100 text-green-600 mx-auto mb-3" aria-hidden="true">
                                 <i class="fas fa-rupee-sign"></i>
                             </div>
-                            <h5 class="card-title text-slate-800">Record Payment</h5>
+                            <h5 class="card-title text-slate-800" id="action-record-payment">Record Payment</h5>
                             <p class="card-text text-slate-600 small">Add a new fee payment</p>
                         </div>
                     </a>
                 </div>
                 <div class="col">
-                    <a href="{{ url_for('view_table') }}" class="card h-100 border-0 bg-amber-50 text-decoration-none hover-lift">
+                    <a href="{{ url_for('report_bp.view_table') }}" class="card h-100 border-0 bg-amber-50 text-decoration-none hover-lift" aria-labelledby="action-view-records">
                         <div class="card-body text-center p-4">
-                            <div class="icon-circle bg-amber-100 text-amber-600 mx-auto mb-3">
+                            <div class="icon-circle bg-amber-100 text-amber-600 mx-auto mb-3" aria-hidden="true">
                                 <i class="fas fa-search"></i>
                             </div>
-                            <h5 class="card-title text-slate-800">View Records</h5>
+                            <h5 class="card-title text-slate-800" id="action-view-records">View Records</h5>
                             <p class="card-text text-slate-600 small">Search and export data</p>
                         </div>
                     </a>
                 </div>
                 <div class="col">
-                    <a href="{{ url_for('class_details_form') }}" class="card h-100 border-0 bg-rose-50 text-decoration-none hover-lift">
+                    <a href="{{ url_for('student_bp.class_details_form') }}" class="card h-100 border-0 bg-rose-50 text-decoration-none hover-lift" aria-labelledby="action-add-class">
                         <div class="card-body text-center p-4">
-                            <div class="icon-circle bg-rose-100 text-rose-600 mx-auto mb-3">
+                            <div class="icon-circle bg-rose-100 text-rose-600 mx-auto mb-3" aria-hidden="true">
                                 <i class="fas fa-chalkboard-teacher"></i>
                             </div>
-                            <h5 class="card-title text-slate-800">Add Class</h5>
+                            <h5 class="card-title text-slate-800" id="action-add-class">Add Class</h5>
                             <p class="card-text text-slate-600 small">Add class details for student</p>
                         </div>
                     </a>
@@ -166,15 +166,15 @@
         <div class="card-header bg-white py-3">
             <div class="d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center">
-                    <i class="fas fa-th-large text-accent me-2"></i>
+                    <i class="fas fa-th-large text-accent me-2" aria-hidden="true"></i>
                     <h5 class="mb-0">System Pages</h5>
                 </div>
                 <div>
                     <div class="input-group">
                         <span class="input-group-text bg-white border-end-0">
-                            <i class="fas fa-search text-slate-400"></i>
+                            <i class="fas fa-search text-slate-400" aria-hidden="true"></i>
                         </span>
-                        <input type="text" class="form-control border-start-0 ps-0" placeholder="Search pages..." id="pageSearch">
+                        <input type="text" class="form-control border-start-0 ps-0" placeholder="Search pages..." id="pageSearch" aria-label="Search pages">
                     </div>
                 </div>
             </div>
@@ -198,7 +198,7 @@
                                         'Profile': 'fas fa-user-circle text-slate-600'
                                     }.get(page.name, 'fas fa-file-alt text-slate-600') %}
                                     
-                                    <div class="icon-circle bg-gray-50 me-3">
+                                    <div class="icon-circle bg-gray-50 me-3" aria-hidden="true">
                                         <i class="{{ icon_class }}"></i>
                                     </div>
                                     <h5 class="card-title mb-0">{{ page.name }}</h5>
@@ -218,8 +218,8 @@
                                     {{ descriptions }}
                                 </p>
                                 
-                                <a href="{{ page.relative_path }}" class="btn btn-outline-accent {% if page.relative_path == '#' %}disabled{% endif %}">
-                                    <i class="fas fa-arrow-right me-2"></i>Go to {{ page.name }}
+                                <a href="{{ page.relative_path }}" class="btn btn-outline-accent {% if page.relative_path == '#' %}disabled{% endif %}" aria-labelledby="go-to-{{ page.name|lower|replace(' ', '-') }}">
+                                    <i class="fas fa-arrow-right me-2" aria-hidden="true"></i><span id="go-to-{{ page.name|lower|replace(' ', '-') }}">Go to {{ page.name }}</span>
                                 </a>
                             </div>
                         </div>
@@ -232,7 +232,7 @@
                     <div class="card h-100 border-0 shadow-sm hover-lift">
                         <div class="card-body p-4">
                             <div class="d-flex align-items-center mb-3">
-                                <div class="icon-circle bg-gray-50 me-3">
+                                <div class="icon-circle bg-gray-50 me-3" aria-hidden="true">
                                     <i class="fas fa-receipt text-green-600"></i>
                                 </div>
                                 <h5 class="card-title mb-0">Fee Payments</h5>
@@ -242,8 +242,8 @@
                                 Record fee payments, track dues, and manage payment receipts for students.
                             </p>
                             
-                            <a href="{{ url_for('fee_breakdown_form') }}" class="btn btn-outline-accent">
-                                <i class="fas fa-arrow-right me-2"></i>Go to Fee Payments
+                            <a href="{{ url_for('fee_bp.fee_breakdown_form') }}" class="btn btn-outline-accent" aria-labelledby="go-to-fee-payments">
+                                <i class="fas fa-arrow-right me-2" aria-hidden="true"></i><span id="go-to-fee-payments">Go to Fee Payments</span>
                             </a>
                         </div>
                     </div>
@@ -257,7 +257,7 @@
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white py-3">
             <div class="d-flex align-items-center">
-                <i class="fas fa-history text-slate-600 me-2"></i>
+                <i class="fas fa-history text-slate-600 me-2" aria-hidden="true"></i>
                 <h5 class="mb-0">Recent Activities</h5>
             </div>
         </div>
@@ -273,7 +273,7 @@
                                 {% elif activity.action_type == 'deleted' %}bg-rose-100 text-rose-600
                                 {% elif activity.action_type == 'login' %}bg-indigo-100 text-indigo-600
                                 {% elif activity.action_type == 'logout' %}bg-slate-100 text-slate-600
-                                {% else %}bg-gray-100 text-gray-600{% endif %} me-3">
+                                {% else %}bg-gray-100 text-gray-600{% endif %} me-3" aria-hidden="true">
                                 <i class="fas 
                                 {% if activity.action_type in ['added', 'imported'] %}fa-plus-circle
                                 {% elif activity.action_type == 'updated' %}fa-edit
@@ -290,9 +290,11 @@
                                 <p class="mb-0 fw-medium">{{ activity.description }}</p>
                                 <p class="mb-0 small text-slate-500">
                                     By 
-                                    {% if activity.user and activity.user.username %}
+                                    {% if hasattr(activity, 'user') and activity.user and activity.user.username %}
                                         {{ activity.user.username }}
-                                    {% elif activity.user_id %}
+                                    {% elif hasattr(activity, 'created_by') and activity.created_by %}
+                                        {{ activity.created_by }}
+                                    {% elif hasattr(activity, 'user_id') and activity.user_id %}
                                         User #{{ activity.user_id }}
                                     {% else %} 
                                         System/Unknown
@@ -322,7 +324,7 @@
                     <h3 class="card-title mb-4 text-slate-800">Streamline Your School Management</h3>
                     <div class="mb-4">
                         <div class="d-flex align-items-center mb-3">
-                            <div class="icon-circle bg-indigo-100 text-indigo-600 me-3">
+                            <div class="icon-circle bg-indigo-100 text-indigo-600 me-3" aria-hidden="true">
                                 <i class="fas fa-graduation-cap"></i>
                             </div>
                             <div>
@@ -331,7 +333,7 @@
                             </div>
                         </div>
                         <div class="d-flex align-items-center mb-3">
-                            <div class="icon-circle bg-green-100 text-green-600 me-3">
+                            <div class="icon-circle bg-green-100 text-green-600 me-3" aria-hidden="true">
                                 <i class="fas fa-receipt"></i>
                             </div>
                             <div>
@@ -340,7 +342,7 @@
                             </div>
                         </div>
                         <div class="d-flex align-items-center">
-                            <div class="icon-circle bg-amber-100 text-amber-600 me-3">
+                            <div class="icon-circle bg-amber-100 text-amber-600 me-3" aria-hidden="true">
                                 <i class="fas fa-chart-line"></i>
                             </div>
                             <div>
@@ -350,11 +352,11 @@
                         </div>
                     </div>
                     <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-                        <a href="{{ url_for('login') }}" class="btn btn-indigo me-md-2">
-                            <i class="fas fa-sign-in-alt me-2"></i>Login to Your Account
+                        <a href="{{ url_for('auth_bp.login') }}" class="btn btn-indigo me-md-2">
+                            <i class="fas fa-sign-in-alt me-2" aria-hidden="true"></i>Login to Your Account
                         </a>
-                        <a href="{{ url_for('register') }}" class="btn btn-outline-indigo">
-                            <i class="fas fa-user-plus me-2"></i>Create New Account
+                        <a href="{{ url_for('auth_bp.register') }}" class="btn btn-outline-indigo">
+                            <i class="fas fa-user-plus me-2" aria-hidden="true"></i>Create New Account
                         </a>
                     </div>
                 </div>
@@ -362,13 +364,13 @@
             <div class="col-md-6 d-none d-md-block bg-indigo-50">
                 <div class="p-5 h-100 d-flex flex-column justify-content-center align-items-center">
                     <div class="text-center mb-4">
-                        <i class="fas fa-school text-indigo-600 mb-3" style="font-size: 4rem;"></i>
+                        <i class="fas fa-school text-indigo-600 mb-3" style="font-size: 4rem;" aria-hidden="true"></i>
                         <h3 class="text-slate-800">Oasis School Management</h3>
                         <p class="text-slate-600">Empowering education through technology</p>
                     </div>
                     <div class="bg-white p-4 rounded shadow-sm w-100 text-center">
                         <span class="text-slate-600">Current Academic Year:</span>
-                        <h4 class="mb-0 text-indigo-600" id="academicYear">Loading...</h4>
+                        <h4 class="mb-0 text-indigo-600" id="academicYear" aria-live="polite">Loading...</h4>
                     </div>
                 </div>
             </div>
@@ -382,10 +384,10 @@
             <div class="card border-0 bg-gray-50 h-100">
                 <div class="card-body p-3">
                     <div class="d-flex align-items-center">
-                        <i class="fas fa-calendar-check text-indigo-600 me-3 fa-2x"></i>
+                        <i class="fas fa-calendar-check text-indigo-600 me-3 fa-2x" aria-hidden="true"></i>
                         <div>
                             <h6 class="mb-1">Academic Year</h6>
-                            <p class="mb-0 text-slate-700" id="footerAcademicYear">Loading...</p>
+                            <p class="mb-0 text-slate-700" id="footerAcademicYear" aria-live="polite">Loading...</p>
                         </div>
                     </div>
                 </div>
@@ -395,10 +397,10 @@
             <div class="card border-0 bg-gray-50 h-100">
                 <div class="card-body p-3">
                     <div class="d-flex align-items-center">
-                        <i class="fas fa-clock text-indigo-600 me-3 fa-2x"></i>
+                        <i class="fas fa-clock text-indigo-600 me-3 fa-2x" aria-hidden="true"></i>
                         <div>
                             <h6 class="mb-1">Current Time (IST)</h6>
-                            <p class="mb-0 text-slate-700" id="footerCurrentTime">Loading...</p>
+                            <p class="mb-0 text-slate-700" id="footerCurrentTime" aria-live="polite">Loading...</p>
                         </div>
                     </div>
                 </div>
@@ -434,31 +436,41 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Dynamic Academic Year calculation
     function getAcademicYear() {
-        const now = new Date();
-        const currentMonth = now.getMonth(); // 0-11 (January is 0)
-        const currentYear = now.getFullYear();
-        
-        // Academic year starts in April (month 3)
-        if (currentMonth < 3) { // Jan, Feb, Mar
-            return `${currentYear-1}-${currentYear}`;
-        } else { // Apr - Dec
-            return `${currentYear}-${currentYear+1}`;
+        try {
+            const now = new Date();
+            const currentMonth = now.getMonth(); // 0-11 (January is 0)
+            const currentYear = now.getFullYear();
+            
+            // Academic year starts in April (month 3)
+            if (currentMonth < 3) { // Jan, Feb, Mar
+                return `${currentYear-1}-${currentYear}`;
+            } else { // Apr - Dec
+                return `${currentYear}-${currentYear+1}`;
+            }
+        } catch (error) {
+            console.error("Error calculating academic year:", error);
+            return "Error loading";
         }
     }
     
     // Format for Indian Standard Time
     function getCurrentTimeIST() {
-        const options = { 
-            timeZone: 'Asia/Kolkata',
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-        };
-        return new Date().toLocaleString('en-IN', options);
+        try {
+            const options = { 
+                timeZone: 'Asia/Kolkata',
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            };
+            return new Date().toLocaleString('en-IN', options);
+        } catch (error) {
+            console.error("Error getting current time:", error);
+            return "Error loading time";
+        }
     }
     
     // Update time elements

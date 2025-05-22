@@ -7,49 +7,50 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-5">
                     <div class="text-center mb-4">
-                        <i class="fas fa-sign-in-alt fa-3x text-indigo-600 mb-3"></i>
-                        <h4 class="card-title">Log In</h4>
+                        <i class="fas fa-sign-in-alt fa-3x text-indigo-600 mb-3" aria-hidden="true"></i>
+                        <h1 class="h4 card-title">Log In</h1>
                         <p class="text-muted">Sign in to access your account</p>
                     </div>
 
-                    <form method="POST" action="">
+                    <form method="POST" action="{{ url_for('auth_bp.login') }}">
                         {{ form.hidden_tag() }}
                         <fieldset class="form-group">
 
                             <!-- Email Field -->
                             <div class="mb-3">
-                                {{ form.email.label(class="form-label") }}
+                                {{ form.email.label(class="form-label", for="email-input") }}
                                 {% if form.email.errors %}
-                                    {{ form.email(class="form-control is-invalid form-control-lg") }}
-                                    <div class="invalid-feedback">
+                                    {{ form.email(class="form-control is-invalid form-control-lg", id="email-input", aria_describedby="email-error") }}
+                                    <div class="invalid-feedback" id="email-error" role="alert">
                                         {% for error in form.email.errors %}
                                             <span>{{ error }}</span>
                                         {% endfor %}
                                     </div>
                                 {% else %}
-                                    {{ form.email(class="form-control form-control-lg") }}
+                                    {{ form.email(class="form-control form-control-lg", id="email-input") }}
                                 {% endif %}
                             </div>
 
                             <!-- Password Field -->
                             <div class="mb-3">
-                                {{ form.password.label(class="form-label") }}
+                                {{ form.password.label(class="form-label", for="password-input") }}
                                 {% if form.password.errors %}
-                                    {{ form.password(class="form-control is-invalid form-control-lg") }}
-                                    <div class="invalid-feedback">
+                                    {{ form.password(class="form-control is-invalid form-control-lg", id="password-input", aria_describedby="password-error") }}
+                                    <div class="invalid-feedback" id="password-error" role="alert">
                                         {% for error in form.password.errors %}
                                             <span>{{ error }}</span>
                                         {% endfor %}
                                     </div>
                                 {% else %}
-                                    {{ form.password(class="form-control form-control-lg") }}
+                                    {{ form.password(class="form-control form-control-lg", id="password-input") }}
                                 {% endif %}
+                                <div id="password-help" class="form-text small mt-1">Enter your password to access your account</div>
                             </div>
 
                             <!-- Remember Me Checkbox -->
                             <div class="form-check mb-3">
-                                {{ form.remember(class="form-check-input") }}
-                                {{ form.remember.label(class="form-check-label") }}
+                                {{ form.remember(class="form-check-input", id="remember-check") }}
+                                {{ form.remember.label(class="form-check-label", for="remember-check") }}
                             </div>
                         </fieldset>
 
@@ -66,7 +67,7 @@
 
             <div class="text-center mt-4">
                 <small class="text-muted">
-                    Need an account? <a class="ms-2" href="{{ url_for('register') }}">Sign Up</a>
+                    Need an account? <a class="ms-2" href="{{ url_for('auth_bp.register') }}">Sign Up</a>
                 </small>
             </div>
         </div>

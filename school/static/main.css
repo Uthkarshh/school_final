@@ -5,15 +5,15 @@
   --text-color: #334155;
   --heading-color: #1e293b;
   --steel-color: #475569;
-  --nav-link-color: #e2e8f0;
-  --nav-link-hover: #ffffff;
+  --nav-link-color: #3730a3; /* Darkened text color */
+  --nav-link-hover: #312e81; /* Darkened text color */
   --border-color: #e2e8f0;
   --accent-color: #3b82f6;
   --transition-speed: 0.25s;
   --border-radius: 6px;
   --shadow-color: rgba(0, 0, 0, 0.04);
-  
-  /* Extended color palette - refined for better harmony */
+
+  /* Extended color palette - light shades restored for backgrounds */
   --indigo-50: #eef2ff;
   --indigo-100: #e0e7ff;
   --indigo-200: #c7d2fe;
@@ -24,7 +24,7 @@
   --indigo-700: #4338ca;
   --indigo-800: #3730a3;
   --indigo-900: #312e81;
-  
+
   --rose-50: #fff1f2;
   --rose-100: #ffe4e6;
   --rose-200: #fecdd3;
@@ -35,7 +35,7 @@
   --rose-700: #be123c;
   --rose-800: #9f1239;
   --rose-900: #881337;
-  
+
   --amber-50: #fffbeb;
   --amber-100: #fef3c7;
   --amber-200: #fde68a;
@@ -46,7 +46,7 @@
   --amber-700: #b45309;
   --amber-800: #92400e;
   --amber-900: #78350f;
-  
+
   --green-50: #f0fdf4;
   --green-100: #dcfce7;
   --green-200: #bbf7d0;
@@ -57,7 +57,7 @@
   --green-700: #15803d;
   --green-800: #166534;
   --green-900: #14532d;
-  
+
   --slate-50: #f8fafc;
   --slate-100: #f1f5f9;
   --slate-200: #e2e8f0;
@@ -68,7 +68,7 @@
   --slate-700: #334155;
   --slate-800: #1e293b;
   --slate-900: #0f172a;
-  
+
   /* Subtle neutrals for background variation */
   --neutral-50: #f9fafb;
   --neutral-100: #f3f4f6;
@@ -80,7 +80,7 @@
   --neutral-700: #374151;
   --neutral-800: #1f2937;
   --neutral-900: #111827;
-  
+
   /* Blue accent extended */
   --blue-50: #eff6ff;
   --blue-100: #dbeafe;
@@ -92,10 +92,10 @@
   --blue-700: #1d4ed8;
   --blue-800: #1e40af;
   --blue-900: #1e3a8a;
-  
+
   /* Spacing system */
   --space-1: 0.25rem;
-  --space-2: 0.5rem; 
+  --space-2: 0.5rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
   --space-5: 1.25rem;
@@ -104,14 +104,14 @@
   --space-10: 2.5rem;
   --space-12: 3rem;
   --space-16: 4rem;
-  
+
   /* Box shadows */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  
+
   /* Typography */
   --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-weight-normal: 400;
@@ -119,7 +119,7 @@
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
   --font-weight-extrabold: 800;
-  
+
   /* Z-index layers */
   --z-0: 0;
   --z-10: 10;
@@ -133,9 +133,9 @@
 /* Define dark mode color scheme */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-color: #0f172a;
-    --text-color: #e2e8f0;
-    --heading-color: #f8fafc;
+    --bg-color: #0f172a; /* Dark background for dark mode */
+    --text-color: #334155; /* Darkened from #e2e8f0 - POTENTIAL READABILITY ISSUE ON DARK BG */
+    --heading-color: #1e293b; /* Darkened from #f8fafc - POTENTIAL READABILITY ISSUE ON DARK BG */
     --steel-color: #94a3b8;
     --nav-link-color: #1e293b;
     --nav-link-hover: #0f172a;
@@ -198,7 +198,7 @@ a:hover {
 /* Selection highlight */
 ::selection {
   background-color: var(--accent-color);
-  color: white;
+  color: #333333; /* Darkened from white */
 }
 
 /* ======================== HEADER & NAV ======================== */
@@ -240,7 +240,7 @@ a:hover {
 }
 
 .nav-link {
-  color: var(--slate-600) !important;
+  color: var(--nav-link-color) !important; /* Uses updated (darkened) --nav-link-color */
   transition: all var(--transition-speed) ease;
   font-weight: var(--font-weight-medium);
   padding: 0.625rem 1rem !important;
@@ -250,7 +250,7 @@ a:hover {
 
 .nav-link:hover {
   color: var(--accent-color) !important;
-  background-color: var(--neutral-50);
+  background-color: var(--neutral-50); /* --neutral-50 is light again */
 }
 
 .nav-link.active {
@@ -303,15 +303,16 @@ a:hover {
   padding: 0.5rem 1rem;
   font-weight: var(--font-weight-medium);
   transition: all 0.2s ease;
+  color: var(--text-color);
 }
 
 .dropdown-item:hover {
-  background-color: var(--neutral-50);
+  background-color: var(--neutral-50); /* --neutral-50 is light again */
   color: var(--accent-color);
 }
 
 .dropdown-item:active {
-  background-color: var(--blue-50);
+  background-color: var(--blue-50); /* --blue-50 is light again */
   color: var(--blue-700);
 }
 
@@ -323,7 +324,7 @@ a:hover {
   border-radius: var(--border-radius);
   margin-bottom: 1.5rem;
   box-shadow: var(--shadow-sm);
-  transition: transform var(--transition-speed) ease, 
+  transition: transform var(--transition-speed) ease,
               box-shadow var(--transition-speed) ease;
 }
 
@@ -430,7 +431,7 @@ a:hover {
 /* ======================== UTILITY CLASSES ======================== */
 .bg-steel {
   background-color: var(--steel-color);
-  color: white;
+  color: #333333; /* Darkened from white - POTENTIAL READABILITY ISSUE */
 }
 
 /* Enhanced vertical spacing utilities */
@@ -466,11 +467,14 @@ a:hover {
 .fw-bold { font-weight: var(--font-weight-bold) !important; }
 .fw-extrabold { font-weight: var(--font-weight-extrabold) !important; }
 
-/* Text colors */
-.text-slate-50 { color: var(--slate-50) !important; }
-.text-slate-100 { color: var(--slate-100) !important; }
-.text-slate-200 { color: var(--slate-200) !important; }
-.text-slate-300 { color: var(--slate-300) !important; }
+/* Text colors - using original variables. If a var like --slate-50 was for text and meant to be light, it will be. If it was darkened in a previous stage and that change was kept, it will be dark. */
+/* The specific variables like --indigo-50 are now light again. If text utilities used them, text would be light. */
+/* However, the intent was to darken light TEXT, so --nav-link-color was explicitly darkened. */
+/* Text utilities will reflect the current state of their variables. */
+.text-slate-50 { color: var(--slate-50) !important; } /* now light */
+.text-slate-100 { color: var(--slate-100) !important; } /* now light */
+.text-slate-200 { color: var(--slate-200) !important; } /* now light */
+.text-slate-300 { color: var(--slate-300) !important; } /* now light */
 .text-slate-400 { color: var(--slate-400) !important; }
 .text-slate-500 { color: var(--slate-500) !important; }
 .text-slate-600 { color: var(--slate-600) !important; }
@@ -478,9 +482,9 @@ a:hover {
 .text-slate-800 { color: var(--slate-800) !important; }
 .text-slate-900 { color: var(--slate-900) !important; }
 
-.text-indigo-50 { color: var(--indigo-50) !important; }
-.text-indigo-100 { color: var(--indigo-100) !important; }
-.text-indigo-200 { color: var(--indigo-200) !important; }
+.text-indigo-50 { color: var(--indigo-50) !important; } /* now light */
+.text-indigo-100 { color: var(--indigo-100) !important; } /* now light */
+.text-indigo-200 { color: var(--indigo-200) !important; } /* now light */
 .text-indigo-300 { color: var(--indigo-300) !important; }
 .text-indigo-400 { color: var(--indigo-400) !important; }
 .text-indigo-500 { color: var(--indigo-500) !important; }
@@ -511,11 +515,12 @@ a:hover {
 /* Background colors */
 .bg-white { background-color: #ffffff !important; }
 
+/* These will use the original light variable values */
 .bg-slate-50 { background-color: var(--slate-50) !important; }
 .bg-slate-100 { background-color: var(--slate-100) !important; }
 .bg-slate-200 { background-color: var(--slate-200) !important; }
-.bg-slate-800 { background-color: var(--slate-800) !important; }
-.bg-slate-900 { background-color: var(--slate-900) !important; }
+.bg-slate-800 { background-color: var(--slate-800) !important; } /* This is a dark slate BG */
+.bg-slate-900 { background-color: var(--slate-900) !important; } /* This is a dark slate BG */
 
 .bg-indigo-50 { background-color: var(--indigo-50) !important; }
 .bg-indigo-100 { background-color: var(--indigo-100) !important; }
@@ -580,7 +585,6 @@ a:hover {
   overflow: hidden;
 }
 
-/* Add subtle hover animation for all buttons */
 .btn::after {
   content: '';
   position: absolute;
@@ -624,65 +628,65 @@ a:hover {
 
 .btn-indigo {
   background-color: var(--indigo-600);
-  color: white;
+  color: #333333; /* Darkened from white - POTENTIAL READABILITY ISSUE */
   border: none;
 }
 
 .btn-indigo:hover {
   background-color: var(--indigo-700);
-  color: white;
+  color: #333333; /* Darkened from white - POTENTIAL READABILITY ISSUE */
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(79, 70, 229, 0.25);
 }
 
 .btn-accent {
   background-color: var(--accent-color);
-  color: white;
+  color: #333333; /* Darkened from white - POTENTIAL READABILITY ISSUE */
   border: none;
 }
 
 .btn-accent:hover {
   background-color: var(--blue-600);
-  color: white;
+  color: #333333; /* Darkened from white - POTENTIAL READABILITY ISSUE */
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25);
 }
 
 .btn-rose {
   background-color: var(--rose-600);
-  color: white;
+  color: #333333; /* Darkened from white - POTENTIAL READABILITY ISSUE */
   border: none;
 }
 
 .btn-rose:hover {
   background-color: var(--rose-700);
-  color: white;
+  color: #333333; /* Darkened from white - POTENTIAL READABILITY ISSUE */
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(225, 29, 72, 0.25);
 }
 
 .btn-green {
   background-color: var(--green-600);
-  color: white;
+  color: #333333; /* Darkened from white - POTENTIAL READABILITY ISSUE */
   border: none;
 }
 
 .btn-green:hover {
   background-color: var(--green-700);
-  color: white;
+  color: #333333; /* Darkened from white - POTENTIAL READABILITY ISSUE */
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(22, 163, 74, 0.25);
 }
 
 .btn-amber {
   background-color: var(--amber-500);
-  color: white;
+  color: #333333; /* Darkened from white - POTENTIAL READABILITY ISSUE */
   border: none;
 }
 
 .btn-amber:hover {
   background-color: var(--amber-600);
-  color: white;
+  color: #333333; /* Darkened from white - POTENTIAL READABILITY ISSUE */
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(217, 119, 6, 0.25);
 }
@@ -695,7 +699,7 @@ a:hover {
 
 .btn-outline-indigo:hover {
   background-color: var(--indigo-600);
-  color: white;
+  color: #333333; /* Darkened from white - POTENTIAL READABILITY ISSUE */
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(79, 70, 229, 0.15);
 }
@@ -708,7 +712,7 @@ a:hover {
 
 .btn-outline-accent:hover {
   background-color: var(--accent-color);
-  color: white;
+  color: #333333; /* Darkened from white - POTENTIAL READABILITY ISSUE */
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(59, 130, 246, 0.15);
 }
@@ -720,7 +724,7 @@ a:hover {
 }
 
 .btn-outline-slate:hover {
-  background-color: var(--neutral-50);
+  background-color: var(--neutral-50); /* --neutral-50 is light again */
   color: var(--slate-700);
   border-color: var(--slate-500);
   transform: translateY(-1px);
@@ -735,7 +739,7 @@ a:hover {
 
 .btn-outline-rose:hover {
   background-color: var(--rose-600);
-  color: white;
+  color: #333333; /* Darkened from white - POTENTIAL READABILITY ISSUE */
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(225, 29, 72, 0.15);
 }
@@ -748,7 +752,7 @@ a:hover {
 
 .btn-outline-green:hover {
   background-color: var(--green-600);
-  color: white;
+  color: #333333; /* Darkened from white - POTENTIAL READABILITY ISSUE */
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(22, 163, 74, 0.15);
 }
@@ -794,6 +798,7 @@ a:hover {
   transition: all 0.2s ease;
 }
 
+/* Soft badge backgrounds are now light again */
 .badge-soft-indigo {
   background-color: var(--indigo-100);
   color: var(--indigo-700);
@@ -831,7 +836,7 @@ a:hover {
 }
 
 /* Badge with icon */
-.badge i, 
+.badge i,
 .badge svg {
   margin-right: 0.2em;
 }
@@ -864,7 +869,7 @@ a:hover {
   align-items: center;
   justify-content: center;
   background-color: var(--accent-color);
-  color: white;
+  color: #333333; /* Darkened from white */
   font-size: 2.5rem;
   font-weight: var(--font-weight-bold);
   box-shadow: var(--shadow-md);
@@ -966,7 +971,7 @@ a:hover {
 }
 
 .table th {
-  background-color: var(--neutral-50);
+  background-color: var(--neutral-50); /* --neutral-50 is light again */
   font-weight: var(--font-weight-semibold);
   color: var(--slate-700);
   text-transform: uppercase;
@@ -985,7 +990,7 @@ a:hover {
 }
 
 .table tbody tr:hover {
-  background-color: var(--neutral-50);
+  background-color: var(--neutral-50); /* --neutral-50 is light again */
 }
 
 .table tbody tr:last-child td {
@@ -1001,7 +1006,7 @@ a:hover {
 
 /* Striped tables */
 .table-striped tbody tr:nth-of-type(odd) {
-  background-color: var(--neutral-50);
+  background-color: var(--neutral-50); /* --neutral-50 is light again */
 }
 
 /* Bordered tables */
@@ -1010,7 +1015,7 @@ a:hover {
   border: 1px solid var(--border-color);
 }
 
-/* Contextual classes */
+/* Contextual classes - Backgrounds are now light again */
 .table-primary {
   background-color: var(--blue-50);
   color: var(--blue-800);
@@ -1036,7 +1041,7 @@ a:hover {
   border-radius: var(--border-radius);
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
-  transition: transform var(--transition-speed) ease, 
+  transition: transform var(--transition-speed) ease,
               box-shadow var(--transition-speed) ease;
   overflow: hidden;
   background-color: #fff;
@@ -1050,12 +1055,13 @@ a:hover {
 
 .card-header {
   padding: 1.25rem 1.5rem;
-  background-color: var(--neutral-50);
+  background-color: var(--neutral-50); /* --neutral-50 is light again */
   border-bottom: 1px solid var(--border-color);
   font-weight: var(--font-weight-semibold);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  color: var(--text-color);
 }
 
 .card-body {
@@ -1064,8 +1070,9 @@ a:hover {
 
 .card-footer {
   padding: 1rem 1.5rem;
-  background-color: var(--neutral-50);
+  background-color: var(--neutral-50); /* --neutral-50 is light again */
   border-top: 1px solid var(--border-color);
+  color: var(--text-color);
 }
 
 /* Card variants */
@@ -1121,7 +1128,7 @@ a:hover {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  color: white;
+  color: #333333; /* Darkened from white */
 }
 
 /* ======================== FORM STYLES ======================== */
@@ -1151,7 +1158,7 @@ a:hover {
 
 .form-control:disabled,
 .form-control[readonly] {
-  background-color: var(--neutral-100);
+  background-color: var(--neutral-100); /* --neutral-100 is light again */
   opacity: 1;
 }
 
@@ -1163,13 +1170,13 @@ a:hover {
 }
 
 /* Style for selects - fix dropdown cutoff */
-select.form-control, 
+select.form-control,
 .form-select {
-  padding-right: 2.5rem; /* Increase right padding for dropdown arrow */
-  text-overflow: ellipsis; /* Add ellipsis for long text */
-  white-space: nowrap; /* Prevent text wrapping */
-  overflow: hidden; /* Hide overflow */
-  appearance: none; /* Use custom styling */
+  padding-right: 2.5rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  appearance: none;
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
@@ -1197,7 +1204,7 @@ select.form-control,
   appearance: none;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
-  transition: background-color 0.15s ease-in-out, 
+  transition: background-color 0.15s ease-in-out,
               border-color 0.15s ease-in-out,
               box-shadow 0.15s ease-in-out;
 }
@@ -1216,11 +1223,11 @@ select.form-control,
 }
 
 .form-check-input:checked[type="checkbox"] {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='%23fff' d='M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z'/%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='%23333333' d='M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z'/%3e%3c/svg%3e"); /* Fill darkened */
 }
 
 .form-check-input:checked[type="radio"] {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3ccircle r='3' fill='%23fff' cx='8' cy='8'/%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3ccircle r='3' fill='%23333333' cx='8' cy='8'/%3e%3c/svg%3e"); /* Fill darkened */
 }
 
 .form-check-input:focus {
@@ -1305,7 +1312,7 @@ select.form-control,
   color: var(--slate-600);
   text-align: center;
   white-space: nowrap;
-  background-color: var(--neutral-50);
+  background-color: var(--neutral-50); /* --neutral-50 is light again */
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
 }
@@ -1376,6 +1383,7 @@ select.form-control,
 }
 
 /* ======================== ALERT STYLES ======================== */
+/* Alert backgrounds are now light again */
 .alert {
   position: relative;
   padding: 1rem 1.25rem;
@@ -1444,7 +1452,7 @@ select.form-control,
   height: 0.75rem;
   overflow: hidden;
   font-size: 0.75rem;
-  background-color: var(--neutral-100);
+  background-color: var(--neutral-100); /* --neutral-100 is light again */
   border-radius: 9999px;
 }
 
@@ -1453,7 +1461,7 @@ select.form-control,
   flex-direction: column;
   justify-content: center;
   overflow: hidden;
-  color: #fff;
+  color: #333333; /* Darkened from #fff */
   text-align: center;
   white-space: nowrap;
   transition: width 0.6s ease;
@@ -1515,7 +1523,7 @@ select.form-control,
 
 .page-item.active .page-link {
   z-index: 3;
-  color: #fff;
+  color: #333333; /* Darkened from #fff */
   background-color: var(--accent-color);
   border-color: var(--accent-color);
 }
@@ -1543,7 +1551,7 @@ select.form-control,
   z-index: 2;
   color: var(--blue-700);
   text-decoration: none;
-  background-color: var(--neutral-50);
+  background-color: var(--neutral-50); /* --neutral-50 is light again */
   border-color: var(--border-color);
 }
 
@@ -1558,19 +1566,19 @@ select.form-control,
   body {
     margin-top: 4.5rem;
   }
-  
+
   h1 { font-size: 2rem; }
   h2 { font-size: 1.75rem; }
   h3 { font-size: 1.5rem; }
   h4 { font-size: 1.25rem; }
   h5 { font-size: 1.125rem; }
-  
+
   .avatar-circle {
     width: 80px;
     height: 80px;
     font-size: 2rem;
   }
-  
+
   .avatar-lg {
     width: 110px;
     height: 110px;
@@ -1581,15 +1589,15 @@ select.form-control,
     height: 110px;
     width: 110px;
   }
-  
+
   .account-heading {
     font-size: 1.75rem;
   }
-  
+
   .article-title {
     font-size: 1.25rem;
   }
-  
+
   .content-section {
     padding: 1.25rem;
   }
@@ -1599,45 +1607,45 @@ select.form-control,
   body {
     margin-top: 4.5rem;
   }
-  
+
   .article-img {
     height: 60px;
     width: 60px;
     margin-right: 1rem;
   }
-  
+
   .navbar {
     padding: 0.5rem 1rem;
   }
-  
+
   .content-section {
     padding: 1rem;
   }
-  
+
   /* Improve dropdown display on small screens */
   select.form-control,
   .form-select {
     font-size: 16px; /* Prevent iOS zoom on focus */
   }
-  
+
   /* Stack buttons on small screens */
   .btn-group {
     flex-direction: column;
   }
-  
+
   .btn-group > .btn {
     margin-left: 0;
     margin-top: -1px;
     border-radius: 0;
   }
-  
+
   .btn-group > .btn:first-child {
     border-top-left-radius: var(--border-radius);
     border-top-right-radius: var(--border-radius);
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
   }
-  
+
   .btn-group > .btn:last-child {
     border-bottom-left-radius: var(--border-radius);
     border-bottom-right-radius: var(--border-radius);
@@ -1652,40 +1660,40 @@ select.form-control,
     background-color: #fff;
     color: #000;
   }
-  
-  .site-header, 
-  .btn, 
-  .nav-tabs, 
+
+  .site-header,
+  .btn,
+  .nav-tabs,
   .footer {
     display: none;
   }
-  
+
   .container {
     max-width: 100%;
     padding: 0;
     margin: 0;
   }
-  
+
   .card {
     box-shadow: none;
     border: 1px solid #ddd;
   }
-  
+
   h1, h2, h3, h4, h5, h6 {
     page-break-after: avoid;
     page-break-inside: avoid;
   }
-  
+
   img {
     max-width: 100% !important;
     page-break-inside: avoid;
   }
-  
+
   table {
     border-collapse: collapse !important;
     width: 100% !important;
   }
-  
+
   table td,
   table th {
     background-color: #fff !important;
@@ -1758,7 +1766,7 @@ select.form-control,
 }
 
 .security-item:hover {
-  background-color: var(--neutral-50);
+  background-color: var(--neutral-50); /* --neutral-50 is light again */
   border-color: var(--border-color);
   transform: translateY(-2px);
   box-shadow: var(--shadow-sm);
@@ -1858,3 +1866,175 @@ select.form-control,
 .z-30 { z-index: var(--z-30) !important; }
 .z-40 { z-index: var(--z-40) !important; }
 .z-50 { z-index: var(--z-50) !important; }
+
+
+/* ===================== ENHANCED/SMOOTH STYLES ===================== */
+
+/* Backgrounds are now light again */
+.bg-indigo-50 { background-color: var(--indigo-50) !important; }
+.bg-green-50  { background-color: var(--green-50) !important; }
+.bg-amber-50  { background-color: var(--amber-50) !important; }
+.bg-rose-50   { background-color: var(--rose-50) !important; }
+.bg-gray-50   { background-color: var(--neutral-50) !important; }
+
+.bg-gradient-accent {
+  background: linear-gradient(105deg, #7f9cf5 0%, #5eead4 100%) !important;
+  color: #333333 !important; /* Darkened from #fff - POTENTIAL READABILITY ISSUE */
+}
+
+.card,
+.card-header,
+.card-body {
+  border-radius: 1.25rem !important;
+}
+
+.card, .shadow-sm {
+  transition: box-shadow .28s cubic-bezier(.4,0,.2,1), transform .16s cubic-bezier(.4,0,.2,1);
+}
+.card:hover, .hover-lift:hover, .hover-lift:focus {
+  transform: translateY(-4px) scale(1.025);
+  box-shadow: 0 6px 24px 0 rgba(50,76,168,0.09), 0 1.5px 6px 0 rgba(0,0,0,.09);
+  z-index: 2;
+}
+
+/* Smooth and official pill-style badges */
+/* Soft badge backgrounds are now light again */
+.badge,
+.badge-soft-indigo, .badge-soft-rose, .badge-soft-slate, .badge-soft-green, .badge-soft-amber, .badge-soft-accent {
+  border-radius: 2rem !important;
+  padding: 0.45em 1.1em !important;
+  letter-spacing: 0.025em;
+  font-size: 0.92em;
+  font-weight: 600;
+  border: none;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+}
+
+/* Polished pill alerts */
+/* Alert backgrounds are now light again */
+.alert {
+  border-radius: 1.1rem !important;
+  box-shadow: 0 2px 8px rgba(88, 99, 251, 0.05);
+  font-size: 1rem;
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem;
+}
+
+/* Official, modern avatars & icons */
+.avatar-circle, .icon-circle {
+  border-radius: 50% !important;
+  background: #f1f5f9; /* Default light BG */
+  transition: background 0.23s, box-shadow 0.23s, transform 0.18s;
+  box-shadow: 0 1px 6px 0 rgba(60, 100, 220, 0.06);
+  min-width: 2.8rem; min-height: 2.8rem;
+  font-size: 1.36rem;
+}
+.avatar-circle {
+  font-size: 2.1rem;
+  font-weight: 800;
+  width: 54px;
+  height: 54px;
+  /* color: #333333; already handled */
+}
+.avatar-sm { width: 38px; height: 38px; font-size: 1.2rem; }
+.avatar-lg { width: 94px; height: 94px; font-size: 2.75rem; }
+.icon-circle { width: 40px; height: 40px; font-size: 1.1rem; }
+
+/* Icon circle backgrounds now use light variables */
+.icon-circle.bg-indigo-100, .avatar-circle.bg-indigo-100 { background: var(--indigo-100) !important; color: var(--indigo-700) !important; }
+.icon-circle.bg-green-100,  .avatar-circle.bg-green-100  { background: var(--green-100) !important; color: var(--green-700) !important; }
+.icon-circle.bg-amber-100,  .avatar-circle.bg-amber-100  { background: var(--amber-100) !important; color: var(--amber-700) !important; }
+.icon-circle.bg-rose-100,   .avatar-circle.bg-rose-100   { background: var(--rose-100) !important; color: var(--rose-700) !important; }
+.icon-circle.bg-gray-50       { background: var(--neutral-50) !important; color: #64748b !important; }
+
+
+/* Modern form-control & input focus */
+.form-control {
+  border-radius: 1.25rem !important;
+  background: #f8fafc; /* Explicit light background */
+  border: 1.5px solid var(--border-color);
+  transition: border 0.21s, box-shadow 0.19s;
+}
+.form-control:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(59,130,246,.13);
+}
+
+/* Buttons - subtle depth and shadow */
+.btn, .btn-lg, .btn-sm {
+  border-radius: 2rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em;
+  transition: background 0.17s, box-shadow 0.17s, transform 0.13s;
+  box-shadow: 0 1px 8px rgba(59,130,246,0.07);
+}
+.btn:active { transform: scale(0.98); }
+.btn-indigo, .btn-accent {
+  background: var(--accent-color) !important;
+  color: #333333 !important; /* Darkened text */
+  border: none !important;
+}
+.btn-indigo:hover, .btn-accent:hover {
+  background: var(--indigo-600) !important;
+  color: #333333 !important; /* Darkened text */
+  box-shadow: 0 5px 24px 0 rgba(59,130,246,0.15);
+  transform: translateY(-2px) scale(1.01);
+}
+.btn-outline-indigo, .btn-outline-accent {
+  border-width: 2px !important;
+  background: #fff !important; /* Explicit white background */
+}
+.btn-outline-indigo:hover, .btn-outline-accent:hover {
+  background: var(--indigo-600) !important;
+  color: #333333 !important; /* Darkened text - POTENTIAL READABILITY ISSUE */
+}
+
+/* Quick Actions/Action Cards: pastel hover and lift */
+.hover-lift, .card.hover-lift {
+  transition: box-shadow 0.22s, transform 0.20s;
+}
+.hover-lift:hover, .card.hover-lift:hover, .hover-lift:focus {
+  transform: translateY(-7px) scale(1.025);
+  box-shadow: 0 8px 30px rgba(68,97,239,0.11), 0 2.5px 8px rgba(0,0,0,.11);
+  z-index: 2;
+}
+
+/* Hero Section Gradient Heading */
+.display-4, .hero-title {
+  font-weight: 800 !important;
+  background: linear-gradient(92deg, #6366f1 30%, #2dd4bf 65%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Footer and stats - gentle, calm cards */
+.bg-gray-50 { /* Uses var(--neutral-50) which is light again */
+  background: var(--neutral-50) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 2px 8px 0 rgba(60, 100, 220, 0.05);
+}
+
+/* Custom scrollbar for SaaS look */
+::-webkit-scrollbar {
+  width: 9px;
+  background: #eef2ff; /* Light */
+  border-radius: 12px;
+}
+::-webkit-scrollbar-thumb {
+  background: #e0e7ff; /* Light */
+  border-radius: 12px;
+}
+
+/* Input group for search bar */
+.input-group-text { /* Uses var(--neutral-50) which is light again */
+  border-radius: 1.25rem 0 0 1.25rem !important;
+  background: var(--neutral-50);
+  color: var(--slate-600);
+}
+
+/* Extra smooth fade-in */
+.fade-in {
+  animation: fadeIn 0.8s cubic-bezier(.77,0,.18,1) forwards;
+}
+/* @keyframes fadeIn already defined earlier */

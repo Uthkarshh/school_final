@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     
-    <!-- Bootstrap CSS -->
+    <!-- Bootstrap CSS (Light Theme) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     
     <!-- Font Awesome Icons -->
@@ -19,65 +19,100 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css')}}">
     
     <title>School Fee Management{% if title %} - {{ title }}{% endif %}</title>
+    <style>
+        body {
+            background: #f8fafc !important; /* very light gray */
+            color: #212529;
+            font-family: 'Inter', Arial, sans-serif;
+        }
+        .site-header {
+            background: #fff;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .navbar {
+            background: #fff !important;
+        }
+        .navbar .navbar-brand,
+        .navbar .nav-link {
+            color: #343a40 !important;
+        }
+        .navbar .nav-link.active {
+            color: #0056b3 !important;
+            font-weight: 600;
+        }
+        .dropdown-menu {
+            background: #fff;
+        }
+        .flash-messages .alert {
+            border: none !important;
+        }
+        .content {
+            background: #fff;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+    </style>
 </head>
 
 <body>
     <!-- Header Navigation -->
     <header class="site-header fixed-top">
-        <nav class="navbar navbar-expand-lg shadow-sm">
+        <nav class="navbar navbar-expand-lg navbar-light shadow-sm">
             <div class="container">
-                <a class="navbar-brand" href="/">
-                    <i class="fas fa-school me-2 text-accent"></i>School Fee Management
+                <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
+                    <i class="fas fa-school mr-2 text-primary" aria-hidden="true"></i>
+                    <span>School Fee Management</span>
                 </a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
-                    <i class="fas fa-bars text-slate-600"></i>
+                    <i class="fas fa-bars text-primary" aria-hidden="true"></i>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarToggle">
                     <ul class="navbar-nav mr-auto">
                         {% if current_user.is_authenticated %}
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}" href="{{ url_for('home') }}">
-                                <i class="fas fa-home me-1"></i> Dashboard
+                                <i class="fas fa-home mr-2" aria-hidden="true"></i> Dashboard
                             </a>
                         </li>
                         {% if current_user.user_role == 'Admin' %}
                         <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'admin_users' %}active{% endif %}" href="{{ url_for('admin_users') }}">
-                                <i class="fas fa-users-cog me-1"></i> Admin
+                            <a class="nav-link {% if request.endpoint == 'admin_bp.admin_users' %}active{% endif %}" href="{{ url_for('admin_bp.admin_users') }}">
+                                <i class="fas fa-users-cog mr-2" aria-hidden="true"></i> Admin
                             </a>
                         </li>
                         {% endif %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle {% if 'form' in request.endpoint %}active{% endif %}" href="#" id="formsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-file-alt me-1"></i> Forms
+                                <i class="fas fa-file-alt mr-2" aria-hidden="true"></i> Forms
                             </a>
                             <div class="dropdown-menu shadow-sm border-0" aria-labelledby="formsDropdown">
-                                <a class="dropdown-item" href="{{ url_for('student_form') }}">
-                                    <i class="fas fa-user-graduate text-indigo-500 me-2"></i> Student Form
+                                <a class="dropdown-item" href="{{ url_for('student_bp.student_form') }}">
+                                    <i class="fas fa-user-graduate text-primary mr-2" aria-hidden="true"></i> Student Form
                                 </a>
-                                <a class="dropdown-item" href="{{ url_for('transport_form') }}">
-                                    <i class="fas fa-bus text-amber-600 me-2"></i> Transport Form
+                                <a class="dropdown-item" href="{{ url_for('transport_bp.transport_form') }}">
+                                    <i class="fas fa-bus text-warning mr-2" aria-hidden="true"></i> Transport Form
                                 </a>
-                                <a class="dropdown-item" href="{{ url_for('class_details_form') }}">
-                                    <i class="fas fa-chalkboard text-slate-600 me-2"></i> Class Details
+                                <a class="dropdown-item" href="{{ url_for('student_bp.class_details_form') }}">
+                                    <i class="fas fa-chalkboard text-secondary mr-2" aria-hidden="true"></i> Class Details
                                 </a>
-                                <a class="dropdown-item" href="{{ url_for('fee_form') }}">
-                                    <i class="fas fa-receipt text-green-600 me-2"></i> Fee Form
+                                <a class="dropdown-item" href="{{ url_for('fee_bp.fee_form') }}">
+                                    <i class="fas fa-receipt text-success mr-2" aria-hidden="true"></i> Fee Form
                                 </a>
-                                <a class="dropdown-item" href="{{ url_for('fee_breakdown_form') }}">
-                                    <i class="fas fa-chart-pie text-rose-600 me-2"></i> Fee Breakdown
+                                <a class="dropdown-item" href="{{ url_for('fee_bp.fee_breakdown_form') }}">
+                                    <i class="fas fa-chart-pie text-danger mr-2" aria-hidden="true"></i> Fee Breakdown
                                 </a>
                             </div>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'view_table' %}active{% endif %}" href="{{ url_for('view_table') }}">
-                                <i class="fas fa-table me-1"></i> Reports
+                            <a class="nav-link {% if request.endpoint == 'report_bp.view_table' %}active{% endif %}" href="{{ url_for('report_bp.view_table') }}">
+                                <i class="fas fa-table mr-2" aria-hidden="true"></i> Reports
                             </a>
                         </li>
                         {% else %}
                             <li class="nav-item">
                                 <a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}" href="{{ url_for('home') }}">
-                                    <i class="fas fa-home me-1"></i> Home
+                                    <i class="fas fa-home mr-2" aria-hidden="true"></i> Home
                                 </a>
                             </li>
                         {% endif %}
@@ -85,20 +120,20 @@
 
                     {% if current_user.is_authenticated %}
                     <div class="navbar-nav">
-                        <a class="nav-link {% if request.endpoint == 'account' %}active{% endif %}" href="{{ url_for('account') }}">
-                            <i class="fas fa-user-circle me-1"></i> Account
+                        <a class="nav-link {% if request.endpoint == 'user_bp.account' %}active{% endif %}" href="{{ url_for('user_bp.account') }}">
+                            <i class="fas fa-user-circle mr-2" aria-hidden="true"></i> Account
                         </a>
-                        <a class="nav-link" href="{{ url_for('logout') }}">
-                            <i class="fas fa-sign-out-alt me-1"></i> Logout
+                        <a class="nav-link" href="{{ url_for('auth_bp.logout') }}">
+                            <i class="fas fa-sign-out-alt mr-2" aria-hidden="true"></i> Logout
                         </a>
                     </div>
                     {% else %}
                     <div class="navbar-nav">
-                        <a class="nav-link {% if request.endpoint == 'login' %}active{% endif %}" href="{{ url_for('login') }}">
-                            <i class="fas fa-sign-in-alt me-1"></i> Login
+                        <a class="nav-link {% if request.endpoint == 'auth_bp.login' %}active{% endif %}" href="{{ url_for('auth_bp.login') }}">
+                            <i class="fas fa-sign-in-alt mr-2" aria-hidden="true"></i> Login
                         </a>
-                        <a class="nav-link {% if request.endpoint == 'register' %}active{% endif %}" href="{{ url_for('register') }}">
-                            <i class="fas fa-user-plus me-1"></i> Register
+                        <a class="nav-link {% if request.endpoint == 'auth_bp.register' %}active{% endif %}" href="{{ url_for('auth_bp.register') }}">
+                            <i class="fas fa-user-plus mr-2" aria-hidden="true"></i> Register
                         </a>
                     </div>
                     {% endif %}
@@ -108,44 +143,46 @@
     </header>
 
     <!-- Main Content -->
-    <main role="main" class="container py-4">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    {% set alert_class = category %}
-                    {% if category == 'success' %}
-                        {% set icon_class = 'fas fa-check-circle' %}
-                        {% set bg_class = 'bg-green-100' %}
-                        {% set text_class = 'text-green-600' %}
-                    {% elif category == 'danger' or category == 'error' %}
-                        {% set icon_class = 'fas fa-exclamation-circle' %}
-                        {% set bg_class = 'bg-rose-100' %}
-                        {% set text_class = 'text-rose-600' %}
-                        {% set alert_class = 'danger' %}
-                    {% elif category == 'warning' %}
-                        {% set icon_class = 'fas fa-exclamation-triangle' %}
-                        {% set bg_class = 'bg-amber-100' %}
-                        {% set text_class = 'text-amber-600' %}
-                    {% elif category == 'info' %}
-                        {% set icon_class = 'fas fa-info-circle' %}
-                        {% set bg_class = 'bg-indigo-100' %}
-                        {% set text_class = 'text-indigo-600' %}
-                    {% endif %}
-                    
-                    <div class="alert alert-{{ alert_class }} alert-dismissible fade show {{ bg_class }} shadow-sm border-0 mb-4" role="alert">
-                        <div class="d-flex align-items-center">
-                            <i class="{{ icon_class }} {{ text_class }} me-3"></i>
-                            <div>{{ message }}</div>
+    <main role="main" class="container py-4 mt-5">
+        <div class="flash-messages" aria-live="polite">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% set alert_class = category %}
+                        {% if category == 'success' %}
+                            {% set icon_class = 'fas fa-check-circle' %}
+                            {% set bg_class = 'bg-success' %}
+                            {% set text_class = 'text-success' %}
+                        {% elif category == 'danger' or category == 'error' %}
+                            {% set icon_class = 'fas fa-exclamation-circle' %}
+                            {% set bg_class = 'bg-danger' %}
+                            {% set text_class = 'text-danger' %}
+                            {% set alert_class = 'danger' %}
+                        {% elif category == 'warning' %}
+                            {% set icon_class = 'fas fa-exclamation-triangle' %}
+                            {% set bg_class = 'bg-warning' %}
+                            {% set text_class = 'text-warning' %}
+                        {% elif category == 'info' %}
+                            {% set icon_class = 'fas fa-info-circle' %}
+                            {% set bg_class = 'bg-info' %}
+                            {% set text_class = 'text-info' %}
+                        {% endif %}
+                        
+                        <div class="alert alert-{{ alert_class }} alert-dismissible fade show {{ bg_class }} shadow-sm border-0 mb-4" role="alert">
+                            <div class="d-flex align-items-center">
+                                <i class="{{ icon_class }} {{ text_class }} mr-3" aria-hidden="true"></i>
+                                <span class="text-dark">{{ message }}</span>
+                            </div>
+                            <button type="button" class="close {{ text_class }}" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
                         </div>
-                        <button type="button" class="close {{ text_class }}" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
         
-        <div class="content">
+        <div class="content mt-3">
             {% block content %}{% endblock %}
         </div>
     </main>

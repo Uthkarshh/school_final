@@ -5,40 +5,47 @@
     <div class="card border-0 shadow-sm">
         <div class="card-body p-4">
             {% if fee_breakdown %}
-            <div class="alert bg-indigo-100 text-indigo-700 d-flex align-items-center mb-4 border-0 rounded">
-                <i class="fas fa-info-circle me-3 text-indigo-600 fa-lg"></i>
+            <div class="alert bg-indigo-100 text-indigo-700 d-flex align-items-center mb-4 border-0 rounded" role="alert">
+                <i class="fas fa-info-circle me-3 text-indigo-600 fa-lg" aria-hidden="true"></i>
                 <div>
-                    <h5 class="alert-heading mb-1">Edit Mode</h5>
+                    <h2 class="h5 alert-heading mb-1">Edit Mode</h2>
                     <p class="mb-0">You are editing an existing fee breakdown record for PEN: {{ fee_breakdown.pen_num }}, Year: {{ fee_breakdown.year }}, Type: {{ fee_breakdown.fee_type }}, Term: {{ fee_breakdown.term }}</p>
                 </div>
             </div>
             {% endif %}
             
-            <form method="POST" action="">
+            <form method="POST" action="{{ url_for('fee_bp.fee_breakdown_form') }}">
                 {{ form.hidden_tag() }}
                 <fieldset class="form-group">
                     <div class="d-flex align-items-center mb-3">
-                        <i class="fas fa-file-invoice-dollar text-rose-600 me-2 fa-lg"></i>
-                        <h4 class="mb-0">Fee Breakdown Form</h4>
+                        <i class="fas fa-file-invoice-dollar text-rose-600 me-2 fa-lg" aria-hidden="true"></i>
+                        <h1 class="h4 mb-0">Fee Breakdown Form</h1>
                     </div>
                     <hr class="mb-4">
                     
                     <div class="row g-3">
                         <!-- Student Identification Section -->
                         <div class="col-12 mb-2">
-                            <h5 class="text-slate-700 mb-3">Student Identification</h5>
+                            <h2 class="h5 text-slate-700 mb-3">Student Identification</h2>
                         </div>
                         
                         <!-- PEN Number Field - Make readonly when editing -->
                         <div class="col-md-6">
                             <div class="form-group mb-3">
-                                {{ form.pen_num.label(class="form-label") }}
-                                {% if fee_breakdown %}
-                                    {{ form.pen_num(class="form-control", readonly=true) }}
-                                    <small class="form-text text-muted">Primary key field cannot be modified during edit</small>
+                                {{ form.pen_num.label(class="form-label", for="pen_num") }}
+                                {% if form.pen_num.errors %}
+                                    {{ form.pen_num(class="form-control is-invalid", id="pen_num", aria_describedby="pen_num_error") }}
+                                    <div class="invalid-feedback" id="pen_num_error" role="alert">
+                                        {% for error in form.pen_num.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% elif fee_breakdown %}
+                                    {{ form.pen_num(class="form-control", readonly=true, id="pen_num", aria_describedby="pen_num_help") }}
+                                    <small id="pen_num_help" class="form-text text-muted">Primary key field cannot be modified during edit</small>
                                 {% else %}
-                                    {{ form.pen_num(class="form-control") }}
-                                    <small class="form-text text-muted">Enter student's Personal Education Number</small>
+                                    {{ form.pen_num(class="form-control", id="pen_num", aria_describedby="pen_num_help") }}
+                                    <small id="pen_num_help" class="form-text text-muted">Enter student's Personal Education Number</small>
                                 {% endif %}
                             </div>
                         </div>
@@ -46,32 +53,46 @@
                         <!-- Year Field - Make readonly when editing -->
                         <div class="col-md-6">
                             <div class="form-group mb-3">
-                                {{ form.year.label(class="form-label") }}
-                                {% if fee_breakdown %}
-                                    {{ form.year(class="form-control", readonly=true) }}
-                                    <small class="form-text text-muted">Primary key field cannot be modified during edit</small>
+                                {{ form.year.label(class="form-label", for="year") }}
+                                {% if form.year.errors %}
+                                    {{ form.year(class="form-control is-invalid", id="year", aria_describedby="year_error") }}
+                                    <div class="invalid-feedback" id="year_error" role="alert">
+                                        {% for error in form.year.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% elif fee_breakdown %}
+                                    {{ form.year(class="form-control", readonly=true, id="year", aria_describedby="year_help") }}
+                                    <small id="year_help" class="form-text text-muted">Primary key field cannot be modified during edit</small>
                                 {% else %}
-                                    {{ form.year(class="form-control") }}
-                                    <small class="form-text text-muted">Enter academic year (e.g., 2023-2024)</small>
+                                    {{ form.year(class="form-control", id="year", aria_describedby="year_help") }}
+                                    <small id="year_help" class="form-text text-muted">Enter academic year (e.g., 2023-2024)</small>
                                 {% endif %}
                             </div>
                         </div>
                         
                         <!-- Fee Information Section -->
                         <div class="col-12 mt-2 mb-2">
-                            <h5 class="text-slate-700 mb-3">Fee Information</h5>
+                            <h2 class="h5 text-slate-700 mb-3">Fee Information</h2>
                         </div>
                         
                         <!-- Fee Type Field - Make readonly when editing -->
                         <div class="col-md-4">
                             <div class="form-group mb-3">
-                                {{ form.fee_type.label(class="form-label") }}
-                                {% if fee_breakdown %}
-                                    {{ form.fee_type(class="form-control", readonly=true) }}
-                                    <small class="form-text text-muted">Primary key field cannot be modified during edit</small>
+                                {{ form.fee_type.label(class="form-label", for="fee_type") }}
+                                {% if form.fee_type.errors %}
+                                    {{ form.fee_type(class="form-control is-invalid", id="fee_type", aria_describedby="fee_type_error") }}
+                                    <div class="invalid-feedback" id="fee_type_error" role="alert">
+                                        {% for error in form.fee_type.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% elif fee_breakdown %}
+                                    {{ form.fee_type(class="form-control", readonly=true, id="fee_type", aria_describedby="fee_type_help") }}
+                                    <small id="fee_type_help" class="form-text text-muted">Primary key field cannot be modified during edit</small>
                                 {% else %}
-                                    {{ form.fee_type(class="form-control") }}
-                                    <small class="form-text text-muted">Type of fee (e.g., Tuition, Transport)</small>
+                                    {{ form.fee_type(class="form-control", id="fee_type", aria_describedby="fee_type_help") }}
+                                    <small id="fee_type_help" class="form-text text-muted">Type of fee (e.g., School, Transport, Application)</small>
                                 {% endif %}
                             </div>
                         </div>
@@ -79,13 +100,20 @@
                         <!-- Term Field - Make readonly when editing -->
                         <div class="col-md-4">
                             <div class="form-group mb-3">
-                                {{ form.term.label(class="form-label") }}
-                                {% if fee_breakdown %}
-                                    {{ form.term(class="form-control", readonly=true) }}
-                                    <small class="form-text text-muted">Primary key field cannot be modified during edit</small>
+                                {{ form.term.label(class="form-label", for="term") }}
+                                {% if form.term.errors %}
+                                    {{ form.term(class="form-control is-invalid", id="term", aria_describedby="term_error") }}
+                                    <div class="invalid-feedback" id="term_error" role="alert">
+                                        {% for error in form.term.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% elif fee_breakdown %}
+                                    {{ form.term(class="form-control", readonly=true, id="term", aria_describedby="term_help") }}
+                                    <small id="term_help" class="form-text text-muted">Primary key field cannot be modified during edit</small>
                                 {% else %}
-                                    {{ form.term(class="form-control") }}
-                                    <small class="form-text text-muted">School term (e.g., Term 1, Term 2)</small>
+                                    {{ form.term(class="form-control", id="term", aria_describedby="term_help") }}
+                                    <small id="term_help" class="form-text text-muted">School term (e.g., Term 1, Term 2, Term 3)</small>
                                 {% endif %}
                             </div>
                         </div>
@@ -93,46 +121,80 @@
                         <!-- Payment Type Field - Make readonly when editing -->
                         <div class="col-md-4">
                             <div class="form-group mb-3">
-                                {{ form.payment_type.label(class="form-label") }}
-                                {% if fee_breakdown %}
-                                    {{ form.payment_type(class="form-control", readonly=true) }}
-                                    <small class="form-text text-muted">Primary key field cannot be modified during edit</small>
+                                {{ form.payment_type.label(class="form-label", for="payment_type") }}
+                                {% if form.payment_type.errors %}
+                                    {{ form.payment_type(class="form-control is-invalid", id="payment_type", aria_describedby="payment_type_error") }}
+                                    <div class="invalid-feedback" id="payment_type_error" role="alert">
+                                        {% for error in form.payment_type.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% elif fee_breakdown %}
+                                    {{ form.payment_type(class="form-control", readonly=true, id="payment_type", aria_describedby="payment_type_help") }}
+                                    <small id="payment_type_help" class="form-text text-muted">Primary key field cannot be modified during edit</small>
                                 {% else %}
-                                    {{ form.payment_type(class="form-control") }}
-                                    <small class="form-text text-muted">Method of payment (e.g., Cash, Cheque)</small>
+                                    {{ form.payment_type(class="form-control", id="payment_type", aria_describedby="payment_type_help") }}
+                                    <small id="payment_type_help" class="form-text text-muted">Method of payment (e.g., Cash, Cheque, Bank Transfer)</small>
                                 {% endif %}
                             </div>
                         </div>
                         
                         <!-- Payment Details Section -->
                         <div class="col-12 mt-2 mb-2">
-                            <h5 class="text-slate-700 mb-3">Payment Details</h5>
+                            <h2 class="h5 text-slate-700 mb-3">Payment Details</h2>
                         </div>
                         
                         <!-- Paid Amount Field - Can be modified in both modes -->
                         <div class="col-md-4">
                             <div class="form-group mb-3">
-                                {{ form.paid.label(class="form-label") }}
-                                {{ form.paid(class="form-control") }}
-                                <small class="form-text text-muted">Amount paid by student</small>
+                                {{ form.paid.label(class="form-label", for="paid") }}
+                                {% if form.paid.errors %}
+                                    {{ form.paid(class="form-control is-invalid", id="paid", aria_describedby="paid_error") }}
+                                    <div class="invalid-feedback" id="paid_error" role="alert">
+                                        {% for error in form.paid.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.paid(class="form-control", id="paid", aria_describedby="paid_help") }}
+                                    <small id="paid_help" class="form-text text-muted">Amount paid by student</small>
+                                {% endif %}
                             </div>
                         </div>
                         
                         <!-- Receipt Number Field - Can be modified in both modes -->
                         <div class="col-md-4">
                             <div class="form-group mb-3">
-                                {{ form.receipt_no.label(class="form-label") }}
-                                {{ form.receipt_no(class="form-control") }}
-                                <small class="form-text text-muted">Receipt number for this payment</small>
+                                {{ form.receipt_no.label(class="form-label", for="receipt_no") }}
+                                {% if form.receipt_no.errors %}
+                                    {{ form.receipt_no(class="form-control is-invalid", id="receipt_no", aria_describedby="receipt_no_error") }}
+                                    <div class="invalid-feedback" id="receipt_no_error" role="alert">
+                                        {% for error in form.receipt_no.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.receipt_no(class="form-control", id="receipt_no", aria_describedby="receipt_no_help") }}
+                                    <small id="receipt_no_help" class="form-text text-muted">Receipt number for this payment</small>
+                                {% endif %}
                             </div>
                         </div>
                         
                         <!-- Fee Paid Date Field - Can be modified in both modes -->
                         <div class="col-md-4">
                             <div class="form-group mb-3">
-                                {{ form.fee_paid_date.label(class="form-label") }}
-                                {{ form.fee_paid_date(class="form-control") }}
-                                <small class="form-text text-muted">Date when payment was received</small>
+                                {{ form.fee_paid_date.label(class="form-label", for="fee_paid_date") }}
+                                {% if form.fee_paid_date.errors %}
+                                    {{ form.fee_paid_date(class="form-control is-invalid", id="fee_paid_date", aria_describedby="fee_paid_date_error") }}
+                                    <div class="invalid-feedback" id="fee_paid_date_error" role="alert">
+                                        {% for error in form.fee_paid_date.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form.fee_paid_date(class="form-control", id="fee_paid_date", aria_describedby="fee_paid_date_help") }}
+                                    <small id="fee_paid_date_help" class="form-text text-muted">Date when payment was received (YYYY-MM-DD)</small>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -141,14 +203,14 @@
                 <div class="d-flex mt-4">
                     {% if fee_breakdown %}
                         <button type="submit" class="btn btn-green">
-                            <i class="fas fa-save me-2"></i>Update Record
+                            <i class="fas fa-save me-2" aria-hidden="true"></i>Update Record
                         </button>
-                        <a href="{{ url_for('fee_breakdown_form') }}" class="btn btn-outline-slate ms-2">
-                            <i class="fas fa-times me-2"></i>Cancel Edit
+                        <a href="{{ url_for('fee_bp.fee_breakdown_form') }}" class="btn btn-outline-slate ms-2">
+                            <i class="fas fa-times me-2" aria-hidden="true"></i>Cancel Edit
                         </a>
                     {% else %}
                         <button type="submit" class="btn btn-accent">
-                            <i class="fas fa-plus-circle me-2"></i>Add Fee Payment
+                            <i class="fas fa-plus-circle me-2" aria-hidden="true"></i>Add Fee Payment
                         </button>
                     {% endif %}
                 </div>
@@ -158,26 +220,27 @@
 
     <div class="card border-0 shadow-sm mt-4">
         <div class="card-body p-4">
-            <form method="POST" action="{{ url_for('import_fee_breakdown_csv') }}" enctype="multipart/form-data">
-                {{ form.hidden_tag() }}
+            <form method="POST" action="{{ url_for('fee_bp.import_fee_breakdown_csv') }}" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <fieldset class="form-group">
                     <div class="d-flex align-items-center mb-3">
-                        <i class="fas fa-file-upload text-indigo-600 me-2 fa-lg"></i>
-                        <h4 class="mb-0">Import Fee Breakdown Records</h4>
+                        <i class="fas fa-file-upload text-indigo-600 me-2 fa-lg" aria-hidden="true"></i>
+                        <h2 class="h4 mb-0">Import Fee Breakdown Records</h2>
                     </div>
                     <hr class="mb-4">
                     
                     <div class="row">
                         <div class="col-md-8">
                             <div class="form-group mb-3">
-                                <label class="form-label">CSV File</label>
+                                <label class="form-label" for="fee_breakdown_csv">CSV File</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-white border-end-0">
+                                    <span class="input-group-text bg-white border-end-0" aria-hidden="true">
                                         <i class="fas fa-file-csv text-slate-500"></i>
                                     </span>
-                                    <input type="file" name="fee_breakdown_csv" class="form-control border-start-0 ps-0" accept=".csv" required>
+                                    <input type="file" name="fee_breakdown_csv" id="fee_breakdown_csv" class="form-control border-start-0 ps-0" 
+                                           accept=".csv" required aria-describedby="csv_help">
                                 </div>
-                                <small class="form-text text-muted">
+                                <small id="csv_help" class="form-text text-muted">
                                     The CSV file should contain columns for all required fee breakdown fields
                                 </small>
                             </div>
@@ -186,7 +249,7 @@
                 </fieldset>
                 <div class="mt-3">
                     <button type="submit" class="btn btn-indigo">
-                        <i class="fas fa-file-import me-2"></i>Import CSV
+                        <i class="fas fa-file-import me-2" aria-hidden="true"></i>Import CSV
                     </button>
                 </div>
             </form>
@@ -197,11 +260,11 @@
     <div class="card bg-gray-50 border-0 shadow-sm mt-4">
         <div class="card-body p-3">
             <div class="d-flex">
-                <div class="icon-circle bg-rose-100 text-rose-600 me-3">
+                <div class="icon-circle bg-rose-100 text-rose-600 me-3" aria-hidden="true">
                     <i class="fas fa-lightbulb"></i>
                 </div>
                 <div>
-                    <h5 class="card-title mb-2">Fee Breakdown Management</h5>
+                    <h2 class="h5 card-title mb-2">Fee Breakdown Management</h2>
                     <p class="card-text mb-0 text-slate-600">
                         Fee Breakdown records track individual payments made by students for various fee types across different terms. Each record represents a specific payment transaction with details such as amount, receipt number, and payment date.
                     </p>
@@ -214,8 +277,8 @@
     <div class="card bg-indigo-50 border-0 shadow-sm mt-3">
         <div class="card-body p-3">
             <div class="d-flex align-items-center mb-2">
-                <i class="fas fa-info-circle text-indigo-600 me-2"></i>
-                <h6 class="mb-0">CSV Import Format</h6>
+                <i class="fas fa-info-circle text-indigo-600 me-2" aria-hidden="true"></i>
+                <h3 class="h6 mb-0">CSV Import Format</h3>
             </div>
             <p class="text-slate-600 small mb-2">Your CSV file should have the following columns:</p>
             <code class="bg-white p-2 d-block mb-0 border rounded text-slate-800" style="font-size: 0.8rem">
@@ -228,9 +291,9 @@
     <div class="card bg-amber-50 border-0 shadow-sm mt-3 mb-3">
         <div class="card-body p-3">
             <div class="d-flex align-items-center">
-                <i class="fas fa-exclamation-circle text-amber-600 me-2"></i>
+                <i class="fas fa-exclamation-circle text-amber-600 me-2" aria-hidden="true"></i>
                 <div>
-                    <h6 class="mb-1">Important Note</h6>
+                    <h3 class="h6 mb-1">Important Note</h3>
                     <p class="text-slate-600 small mb-0">
                         This form records individual payments. For setting up fee structures, please use the Fee Form. Each student can have multiple fee breakdown records for different fee types, terms, and payment methods.
                     </p>
@@ -239,4 +302,116 @@
         </div>
     </div>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    
+    // When the form already has validation errors, convert them to CSV and download
+    const errorElements = document.querySelectorAll('.invalid-feedback');
+    if (errorElements.length > 0) {
+        const errors = [];
+        errorElements.forEach(el => {
+            const fieldName = el.id.replace('_error', '');
+            const errorMsg = el.textContent.trim();
+            errors.push([fieldName, errorMsg]);
+        });
+        
+        if (errors.length > 0) {
+            // Create downloadable CSV
+            let csvContent = 'Field,Error\n';
+            errors.forEach(error => {
+                csvContent += `"${error[0]}","${error[1]}"\n`;
+            });
+            
+            // Create download link
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `form_errors_${timestamp}.csv`);
+            link.style.display = 'none';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+});
+</script>
+<script>
+// Function to handle form errors and download as CSV
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if there are any form errors
+    const errorElements = document.querySelectorAll('.invalid-feedback');
+    if (errorElements.length > 0) {
+        // Collect errors
+        let errors = [];
+        
+        // Get form name from the heading
+        const formName = document.querySelector('h1.h4').innerText.trim() || 'Form';
+        
+        errorElements.forEach(function(element) {
+            // Find the associated field
+            const fieldElement = element.previousElementSibling;
+            const fieldName = fieldElement ? fieldElement.id : 'unknown-field';
+            
+            // Get all error messages for this field
+            const fieldErrors = Array.from(element.querySelectorAll('span'))
+                .map(span => span.innerText.trim());
+            
+            // Add to errors array
+            fieldErrors.forEach(function(error) {
+                errors.push({ field: fieldName, error: error });
+            });
+            
+            // Hide the error display
+            element.style.display = 'none';
+            if (fieldElement) {
+                fieldElement.classList.remove('is-invalid');
+            }
+        });
+        
+        // Convert to CSV
+        const headers = ['Field', 'Error'];
+        const csvContent = [
+            headers.join(','),
+            ...errors.map(row => `"${row.field}","${row.error.replace(/"/g, '""')}"`)
+        ].join('\n');
+        
+        // Create and trigger download
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `${formName.replace(/\s+/g, '_')}_Errors_${new Date().toISOString().slice(0,10)}.csv`);
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        
+        // Show a notification
+        const notification = document.createElement('div');
+        notification.className = 'alert alert-warning alert-dismissible fade show';
+        notification.setAttribute('role', 'alert');
+        notification.innerHTML = `
+            <div class="d-flex align-items-center">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <div>
+                    <strong>Form has validation errors.</strong> 
+                    <span>A CSV file with the errors has been downloaded.</span>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        // Insert at top of form
+        const formElement = document.querySelector('form');
+        formElement.parentNode.insertBefore(notification, formElement);
+        
+        // Trigger download
+        link.click();
+        URL.revokeObjectURL(url);
+    }
+});
+</script>
 {% endblock content %}

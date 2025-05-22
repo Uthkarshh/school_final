@@ -7,87 +7,91 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-5">
                     <div class="text-center mb-4">
-                        <i class="fas fa-user-plus fa-3x text-indigo-600 mb-3"></i>
-                        <h4 class="card-title">Join Today</h4>
+                        <i class="fas fa-user-plus fa-3x text-indigo-600 mb-3" aria-hidden="true"></i>
+                        <h1 class="h4 card-title">Join Today</h1>
                         <p class="text-muted">Create a new account</p>
                     </div>
 
-                    <form method="POST" action="">
+                    <form method="POST" action="{{ url_for('auth_bp.register') }}">
                         {{ form.hidden_tag() }}
                         <fieldset class="form-group">
 
                             <!-- Username Field -->
                             <div class="mb-3">
-                                {{ form.username.label(class="form-label") }}
+                                {{ form.username.label(class="form-label", for="username-input") }}
                                 {% if form.username.errors %}
-                                    {{ form.username(class="form-control is-invalid form-control-lg") }}
-                                    <div class="invalid-feedback">
+                                    {{ form.username(class="form-control is-invalid form-control-lg", id="username-input", aria_describedby="username-error") }}
+                                    <div class="invalid-feedback" id="username-error" role="alert">
                                         {% for error in form.username.errors %}
                                             <span>{{ error }}</span>
                                         {% endfor %}
                                     </div>
                                 {% else %}
-                                    {{ form.username(class="form-control form-control-lg") }}
+                                    {{ form.username(class="form-control form-control-lg", id="username-input") }}
                                 {% endif %}
+                                <div id="username-help" class="form-text small mt-1">Choose a unique username for your account</div>
                             </div>
 
                             <!-- Email Field -->
                             <div class="mb-3">
-                                {{ form.email.label(class="form-label") }}
+                                {{ form.email.label(class="form-label", for="email-input") }}
                                 {% if form.email.errors %}
-                                    {{ form.email(class="form-control is-invalid form-control-lg") }}
-                                    <div class="invalid-feedback">
+                                    {{ form.email(class="form-control is-invalid form-control-lg", id="email-input", aria_describedby="email-error") }}
+                                    <div class="invalid-feedback" id="email-error" role="alert">
                                         {% for error in form.email.errors %}
                                             <span>{{ error }}</span>
                                         {% endfor %}
                                     </div>
                                 {% else %}
-                                    {{ form.email(class="form-control form-control-lg") }}
+                                    {{ form.email(class="form-control form-control-lg", id="email-input") }}
                                 {% endif %}
+                                <div id="email-help" class="form-text small mt-1">We'll never share your email with anyone else</div>
                             </div>
 
                             <!-- User Role Field -->
                             <div class="mb-3">
-                                {{ form.user_role.label(class="form-label") }}
+                                {{ form.user_role.label(class="form-label", for="role-input") }}
                                 {% if form.user_role.errors %}
-                                    {{ form.user_role(class="form-control is-invalid form-control-lg") }}
-                                    <div class="invalid-feedback">
+                                    {{ form.user_role(class="form-select is-invalid form-control-lg", id="role-input", aria_describedby="role-error") }}
+                                    <div class="invalid-feedback" id="role-error" role="alert">
                                         {% for error in form.user_role.errors %}
                                             <span>{{ error }}</span>
                                         {% endfor %}
                                     </div>
                                 {% else %}
-                                    {{ form.user_role(class="form-control form-control-lg") }}
+                                    {{ form.user_role(class="form-select form-control-lg", id="role-input") }}
                                 {% endif %}
+                                <div id="role-help" class="form-text small mt-1">Your account will require admin approval before activation</div>
                             </div>
 
                             <!-- Password Field -->
                             <div class="mb-3">
-                                {{ form.password.label(class="form-label") }}
+                                {{ form.password.label(class="form-label", for="password-input") }}
                                 {% if form.password.errors %}
-                                    {{ form.password(class="form-control is-invalid form-control-lg") }}
-                                    <div class="invalid-feedback">
+                                    {{ form.password(class="form-control is-invalid form-control-lg", id="password-input", aria_describedby="password-error") }}
+                                    <div class="invalid-feedback" id="password-error" role="alert">
                                         {% for error in form.password.errors %}
                                             <span>{{ error }}</span>
                                         {% endfor %}
                                     </div>
                                 {% else %}
-                                    {{ form.password(class="form-control form-control-lg") }}
+                                    {{ form.password(class="form-control form-control-lg", id="password-input", aria_describedby="password-help") }}
                                 {% endif %}
+                                <div id="password-help" class="form-text small mt-1">Password must be at least 8 characters long</div>
                             </div>
 
                             <!-- Confirm Password Field -->
                             <div class="mb-3">
-                                {{ form.confirm_password.label(class="form-label") }}
+                                {{ form.confirm_password.label(class="form-label", for="confirm-password-input") }}
                                 {% if form.confirm_password.errors %}
-                                    {{ form.confirm_password(class="form-control is-invalid form-control-lg") }}
-                                    <div class="invalid-feedback">
+                                    {{ form.confirm_password(class="form-control is-invalid form-control-lg", id="confirm-password-input", aria_describedby="confirm-password-error") }}
+                                    <div class="invalid-feedback" id="confirm-password-error" role="alert">
                                         {% for error in form.confirm_password.errors %}
                                             <span>{{ error }}</span>
                                         {% endfor %}
                                     </div>
                                 {% else %}
-                                    {{ form.confirm_password(class="form-control form-control-lg") }}
+                                    {{ form.confirm_password(class="form-control form-control-lg", id="confirm-password-input") }}
                                 {% endif %}
                             </div>
 
@@ -102,7 +106,7 @@
 
             <div class="text-center mt-4">
                 <small class="text-muted">
-                    Already have an account? <a class="ms-2" href="{{ url_for('login') }}">Sign In</a>
+                    Already have an account? <a class="ms-2" href="{{ url_for('auth_bp.login') }}">Sign In</a>
                 </small>
             </div>
         </div>
