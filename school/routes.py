@@ -240,6 +240,7 @@ def process_csv_import(request_files, file_key, process_row_func, redirect_url):
     
     except Exception as e:
         logger.error(f"CSV processing error: {str(e)}", exc_info=True)
+        db.session.rollback()  # Ensure session is clean after any error
         # Generate a CSV with the single error instead of flashing
         error_rows = [f"Processing error: {str(e)}"]
         return generate_error_csv(error_rows, f"csv_import_{file_key}")
@@ -1042,6 +1043,18 @@ def student_form():
                                 f"Updated student record: {form.student_name.data}")
                     flash('Student record updated successfully!', 'success')
                 else:
+                    # Check for existing student with same Aadhar number
+                    existing_by_aadhar = Student.query.filter_by(aadhar_number=form.aadhar_number.data).first()
+                    if existing_by_aadhar:
+                        flash(f'Error: A student with this Aadhar Number already exists (PEN: {existing_by_aadhar.pen_num}, Name: {existing_by_aadhar.student_name}).', 'danger')
+                        return render_template('student_form.html', title='Student Form', form=form, student=student)
+                    
+                    # Check for existing student with same Admission number
+                    existing_by_admission = Student.query.filter_by(admission_number=form.admission_number.data).first()
+                    if existing_by_admission:
+                        flash(f'Error: A student with this Admission Number already exists (PEN: {existing_by_admission.pen_num}, Name: {existing_by_admission.student_name}).', 'danger')
+                        return render_template('student_form.html', title='Student Form', form=form, student=student)
+                    
                     # Create new record
                     student = Student(
                         pen_num=form.pen_num.data,
@@ -1064,11 +1077,21 @@ def student_form():
                     flash('Student record added successfully!', 'success')
                 
             return redirect(url_for('student_bp.student_form'))
-        except IntegrityError:
-            flash('Error: A student with this Admission Number or Aadhar Number already exists.', 'danger')
+        except IntegrityError as e:
+            db.session.rollback()
+            if "student_aadhar_number_key" in str(e):
+                flash('Error: A student with this Aadhar Number already exists.', 'danger')
+            elif "student_admission_number_key" in str(e):
+                flash('Error: A student with this Admission Number already exists.', 'danger')
+            else:
+                flash('Error: A unique constraint was violated. Please check your inputs.', 'danger')
+            
+            return render_template('student_form.html', title='Student Form', form=form, student=student)
         except Exception as e:
+            db.session.rollback()
             log_exception(e, "Error saving student")
             flash('An error occurred while saving the student data. Please try again.', 'danger')
+            return render_template('student_form.html', title='Student Form', form=form, student=student)
         
     return render_template('student_form.html', title='Student Form', form=form, student=student)
 
@@ -1114,7 +1137,7 @@ def import_student_csv():
                 
                 # Start batch transaction
                 try:
-                    with transaction_context():
+                    with db.session.begin_nested():  # Create savepoint for this batch
                         batch_success = 0
                         batch_errors = 0
                         
@@ -1164,7 +1187,23 @@ def import_student_csv():
                                 if not student_name:
                                     raise ValueError("Student name is required")
                                 
-                                # Check for existing record in the current session
+                                # Check for existing student with same Aadhar number (different PEN)
+                                existing_by_aadhar = Student.query.filter_by(aadhar_number=aadhar_number).first()
+                                if existing_by_aadhar and existing_by_aadhar.pen_num != pen_num:
+                                    raise ValueError(
+                                        f"Aadhar number {aadhar_number} already exists for student "
+                                        f"{existing_by_aadhar.student_name} (PEN: {existing_by_aadhar.pen_num})"
+                                    )
+                                
+                                # Check for existing student with same Admission number (different PEN)
+                                existing_by_admission = Student.query.filter_by(admission_number=admission_number).first()
+                                if existing_by_admission and existing_by_admission.pen_num != pen_num:
+                                    raise ValueError(
+                                        f"Admission number {admission_number} already exists for student "
+                                        f"{existing_by_admission.student_name} (PEN: {existing_by_admission.pen_num})"
+                                    )
+
+                                # Check if student exists by PEN
                                 existing_student = db.session.get(Student, pen_num)
                                 
                                 if existing_student:
@@ -1206,8 +1245,14 @@ def import_student_csv():
                                 error_count += 1
                                 error_message = f"Row {row_index}: {str(e)}"
                                 logger.error(error_message)
-                                error_rows.append({"Row": row_index, "Error": str(e), "PEN": row.get("pen_num", ""), 
-                                                  "Student Name": row.get("student_name", "")})
+                                error_rows.append({
+                                    "Row": row_index, 
+                                    "Error": str(e), 
+                                    "PEN": row.get("pen_num", ""), 
+                                    "Student Name": row.get("student_name", ""),
+                                    "Aadhar": row.get("aadhar_number", ""),
+                                    "Admission": row.get("admission_number", "")
+                                })
                                 # Continue processing other rows in the batch
                     
                     # If we made it here, the entire batch was committed
@@ -1215,11 +1260,33 @@ def import_student_csv():
                     logger.info(f"Committed batch {batch_start//batch_size + 1}: {batch_success} successful, {batch_errors} failed")
                 
                 except Exception as e:
+                    db.session.rollback()
                     error_count += batch_success  # Count previously successful records as errors
                     logger.error(f"Failed to commit batch {batch_start//batch_size + 1}: {str(e)}")
-                    error_rows.append({"Row": f"Batch {batch_start//batch_size + 1}", 
-                                      "Error": f"Failed to commit batch: {str(e)}", 
-                                      "PEN": "", "Student Name": ""})
+                    error_rows.append({
+                        "Row": f"Batch {batch_start//batch_size + 1}", 
+                        "Error": f"Failed to commit batch: {str(e)}", 
+                        "PEN": "", 
+                        "Student Name": "",
+                        "Aadhar": "",
+                        "Admission": ""
+                    })
+            
+            # Final commit if any records were processed successfully
+            try:
+                if records_committed > 0:
+                    db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                logger.error(f"Failed final commit: {str(e)}")
+                error_rows.append({
+                    "Row": "FINAL", 
+                    "Error": f"Failed final commit: {str(e)}", 
+                    "PEN": "", 
+                    "Student Name": "",
+                    "Aadhar": "",
+                    "Admission": ""
+                })
             
             # Report results
             try:
@@ -1238,7 +1305,9 @@ def import_student_csv():
                         "Row": "SUMMARY", 
                         "Error": f"{records_committed} records imported successfully, {error_count} failed",
                         "PEN": "", 
-                        "Student Name": ""
+                        "Student Name": "",
+                        "Aadhar": "",
+                        "Admission": ""
                     })
                     return generate_error_csv(error_rows, "student_import")
                 else:
@@ -1247,8 +1316,14 @@ def import_student_csv():
                     
             except Exception as e:
                 logger.error(f"Error in final reporting: {str(e)}")
-                error_rows.append({"Row": "FINAL", "Error": f"Error generating final report: {str(e)}", 
-                                  "PEN": "", "Student Name": ""})
+                error_rows.append({
+                    "Row": "FINAL", 
+                    "Error": f"Error generating final report: {str(e)}", 
+                    "PEN": "", 
+                    "Student Name": "",
+                    "Aadhar": "",
+                    "Admission": ""
+                })
                 return generate_error_csv(error_rows, "student_import")
                 
             return None  # Return None to follow the normal redirect
@@ -1330,6 +1405,12 @@ def class_details_form():
                     
                     flash('Class details updated successfully!', 'success')
                 else:
+                    # Check for duplicate photo_id
+                    existing_by_photo_id = ClassDetails.query.filter_by(photo_id=form.photo_id.data).first()
+                    if existing_by_photo_id:
+                        flash(f'Error: A record with this photo ID already exists for student with PEN {existing_by_photo_id.pen_num} in year {existing_by_photo_id.year}', 'danger')
+                        return render_template('class_details_form.html', title='Class Details', form=form, class_details=class_details)
+                    
                     # Create new record
                     class_details = ClassDetails(
                         pen_num=form.pen_num.data,
@@ -1351,11 +1432,18 @@ def class_details_form():
                     flash('Class details added successfully!', 'success')
                 
             return redirect(url_for('home'))
-        except IntegrityError:
-            flash('Error: A record with this photo ID already exists', 'danger')
+        except IntegrityError as e:
+            db.session.rollback()
+            if "classdetails_photo_id_key" in str(e):
+                flash('Error: A record with this photo ID already exists', 'danger')
+            else:
+                flash('Error: A unique constraint was violated. Please check your inputs.', 'danger')
+            return render_template('class_details_form.html', title='Class Details', form=form, class_details=class_details)
         except Exception as e:
+            db.session.rollback()
             log_exception(e, "Error saving class details")
             flash('An error occurred while saving the class details. Please try again.', 'danger')
+            return render_template('class_details_form.html', title='Class Details', form=form, class_details=class_details)
         
     return render_template('class_details_form.html', title='Class Details', form=form, class_details=class_details)
 
@@ -1383,7 +1471,7 @@ def import_class_details_csv():
                 current_batch = rows[batch_start:batch_end]
                 
                 try:
-                    with transaction_context():
+                    with db.session.begin_nested():  # Create savepoint for this batch
                         for row_index, row in enumerate(current_batch, start=batch_start+1):
                             try:
                                 # Process data with safe type conversion
@@ -1421,6 +1509,14 @@ def import_class_details_csv():
                                 if not student:
                                     raise ValueError(f"Student with PEN {pen_num} does not exist")
 
+                                # Check for existing photo_id (with different pen_num or year)
+                                existing_by_photo_id = ClassDetails.query.filter_by(photo_id=photo_id).first()
+                                if existing_by_photo_id and (existing_by_photo_id.pen_num != pen_num or existing_by_photo_id.year != year):
+                                    raise ValueError(
+                                        f"Photo ID {photo_id} already exists for student with PEN {existing_by_photo_id.pen_num} "
+                                        f"in year {existing_by_photo_id.year}"
+                                    )
+
                                 # Check if record exists
                                 existing_record = ClassDetails.query.filter_by(pen_num=pen_num, year=year).first()
 
@@ -1452,19 +1548,50 @@ def import_class_details_csv():
                                     stats['imported'] += 1
 
                             except Exception as e:
+                                stats['failed'] += 1
                                 error_message = f"Error in row {row_index}: {str(e)}"
                                 logger.error(error_message)
-                                error_rows.append({"Row": row_index, "Error": str(e), "PEN": row.get("pen_num", ""), 
-                                                  "Year": row.get("year", ""), "Class": row.get("current_class", "")})
-                                stats['failed'] += 1
+                                error_rows.append({
+                                    "Row": row_index,
+                                    "Error": str(e),
+                                    "PEN": row.get("pen_num", ""),
+                                    "Year": row.get("year", ""),
+                                    "Class": row.get("current_class", ""),
+                                    "Photo ID": row.get("photo_id", "")
+                                })
                                 # Continue processing rest of batch
                                 
+                    # Batch committed successfully
+                    logger.info(f"Committed batch {batch_start//batch_size + 1}")
+                                
                 except Exception as e:
+                    db.session.rollback()
                     logger.error(f"Error processing batch {batch_start//batch_size + 1}: {str(e)}")
-                    error_rows.append({"Row": f"Batch {batch_start//batch_size + 1}", 
-                                      "Error": f"Failed to commit batch: {str(e)}", 
-                                      "PEN": "", "Year": "", "Class": ""})
+                    error_rows.append({
+                        "Row": f"Batch {batch_start//batch_size + 1}",
+                        "Error": f"Failed to commit batch: {str(e)}",
+                        "PEN": "",
+                        "Year": "",
+                        "Class": "",
+                        "Photo ID": ""
+                    })
                     # Continue with next batch
+            
+            # Final commit if any records were processed successfully
+            try:
+                if stats['imported'] > 0 or stats['updated'] > 0:
+                    db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                logger.error(f"Failed final commit: {str(e)}")
+                error_rows.append({
+                    "Row": "FINAL", 
+                    "Error": f"Failed final commit: {str(e)}", 
+                    "PEN": "", 
+                    "Year": "",
+                    "Class": "",
+                    "Photo ID": ""
+                })
             
             # Log the activity after all batches processed
             log_activity('imported', 'ClassDetails', 'BULK', 
@@ -1476,7 +1603,10 @@ def import_class_details_csv():
                 error_rows.insert(0, {
                     "Row": "SUMMARY", 
                     "Error": f"{stats['imported']} records imported, {stats['updated']} records updated, {stats['failed']} failed",
-                    "PEN": "", "Year": "", "Class": ""
+                    "PEN": "", 
+                    "Year": "", 
+                    "Class": "",
+                    "Photo ID": ""
                 })
                 return generate_error_csv(error_rows, "class_details_import")
             else:
@@ -1526,6 +1656,12 @@ def transport_form():
                 if form.transport_id.data:
                     transport = Transport.query.get(form.transport_id.data)
                     if transport:
+                        # Check for duplicate pick-up point when updating
+                        existing_transport = Transport.query.filter_by(pick_up_point=form.pick_up_point.data).first()
+                        if existing_transport and existing_transport.transport_id != transport.transport_id:
+                            flash(f'Pick-up point "{form.pick_up_point.data}" already exists (Route #{existing_transport.route_number})', 'danger')
+                            return render_template('transport_form.html', title='Transport Form', form=form, transport=transport)
+                        
                         transport.pick_up_point = form.pick_up_point.data
                         transport.route_number = form.route_number.data
                         transport.updated_by = current_user.username
@@ -1539,26 +1675,34 @@ def transport_form():
                     # Check if pick-up point already exists
                     existing_transport = Transport.query.filter_by(pick_up_point=form.pick_up_point.data).first()
                     if existing_transport:
-                        flash(f'Pick-up point "{form.pick_up_point.data}" already exists', 'danger')
-                    else:
-                        # Create new record
-                        transport = Transport(
-                            pick_up_point=form.pick_up_point.data,
-                            route_number=form.route_number.data,
-                            created_by=current_user.username
-                        )
-                        db.session.add(transport)
-                        
-                        log_activity('added', 'Transport', transport.transport_id, 
-                                    f"Added transport route #{form.route_number.data} for {form.pick_up_point.data}")
-                        flash('Transport record added successfully!', 'success')
+                        flash(f'Pick-up point "{form.pick_up_point.data}" already exists (Route #{existing_transport.route_number})', 'danger')
+                        return render_template('transport_form.html', title='Transport Form', form=form, transport=transport)
+                    
+                    # Create new record
+                    transport = Transport(
+                        pick_up_point=form.pick_up_point.data,
+                        route_number=form.route_number.data,
+                        created_by=current_user.username
+                    )
+                    db.session.add(transport)
+                    
+                    log_activity('added', 'Transport', 'NEW', 
+                                f"Added transport route #{form.route_number.data} for {form.pick_up_point.data}")
+                    flash('Transport record added successfully!', 'success')
                         
             return redirect(url_for('transport_bp.transport_form'))
-        except IntegrityError:
-            flash('Error: This pick-up point already exists', 'danger')
+        except IntegrityError as e:
+            db.session.rollback()
+            if "transport_pick_up_point_key" in str(e):
+                flash('Error: This pick-up point already exists', 'danger')
+            else:
+                flash('Error: A unique constraint was violated. Please check your inputs.', 'danger')
+            return render_template('transport_form.html', title='Transport Form', form=form, transport=transport)
         except Exception as e:
+            db.session.rollback()
             log_exception(e, "Error saving transport")
             flash('An error occurred while saving the transport data. Please try again.', 'danger')
+            return render_template('transport_form.html', title='Transport Form', form=form, transport=transport)
         
     # Get all transports with pagination
     pagination = paginate_results(Transport.query.order_by(Transport.route_number, Transport.pick_up_point))
@@ -1587,7 +1731,7 @@ def import_transport_csv():
             error_rows = []
             
             # Track existing pick-up points to avoid duplicates
-            existing_pick_up_points = {t.pick_up_point.lower() for t in Transport.query.all()}
+            existing_pick_up_points = {t.pick_up_point.lower(): t.transport_id for t in Transport.query.all()}
             
             # Process in batches
             batch_size = 100
@@ -1598,7 +1742,7 @@ def import_transport_csv():
                 current_batch = rows[batch_start:batch_end]
                 
                 try:
-                    with transaction_context():
+                    with db.session.begin_nested():  # Create savepoint for this batch
                         for row_index, row in enumerate(current_batch, start=batch_start+1):
                             try:
                                 pick_up_point = str(row.get("pick_up_point", "")).strip()
@@ -1618,29 +1762,56 @@ def import_transport_csv():
                                 if pick_up_point.lower() in existing_pick_up_points:
                                     raise ValueError(f"Pick-up point '{pick_up_point}' already exists")
 
-                                db.session.add(Transport(
+                                new_transport = Transport(
                                     pick_up_point=pick_up_point,
                                     route_number=route_number,
                                     created_by=current_user.username
-                                ))
+                                )
+                                db.session.add(new_transport)
+                                
+                                # Add to tracking set for the rest of the import
+                                existing_pick_up_points[pick_up_point.lower()] = True
                                 stats['imported'] += 1
-                                existing_pick_up_points.add(pick_up_point.lower())
 
                             except Exception as e:
+                                stats['failed'] += 1
                                 error_message = f"Error in row {row_index}: {str(e)}"
                                 logger.error(error_message)
-                                error_rows.append({"Row": row_index, "Error": str(e), 
-                                                  "Pick-up Point": row.get("pick_up_point", ""), 
-                                                  "Route #": row.get("route_number", "")})
-                                stats['failed'] += 1
+                                error_rows.append({
+                                    "Row": row_index,
+                                    "Error": str(e),
+                                    "Pick-up Point": row.get("pick_up_point", ""),
+                                    "Route #": row.get("route_number", "")
+                                })
                                 # Continue processing rest of batch
+                                
+                    # Batch committed successfully
+                    logger.info(f"Committed batch {batch_start//batch_size + 1}")
                 
                 except Exception as e:
+                    db.session.rollback()
                     logger.error(f"Error processing batch {batch_start//batch_size + 1}: {str(e)}")
-                    error_rows.append({"Row": f"Batch {batch_start//batch_size + 1}", 
-                                      "Error": f"Failed to commit batch: {str(e)}", 
-                                      "Pick-up Point": "", "Route #": ""})
+                    error_rows.append({
+                        "Row": f"Batch {batch_start//batch_size + 1}",
+                        "Error": f"Failed to commit batch: {str(e)}",
+                        "Pick-up Point": "",
+                        "Route #": ""
+                    })
                     # Continue with next batch
+            
+            # Final commit if any records were processed successfully
+            try:
+                if stats['imported'] > 0:
+                    db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                logger.error(f"Failed final commit: {str(e)}")
+                error_rows.append({
+                    "Row": "FINAL", 
+                    "Error": f"Failed final commit: {str(e)}", 
+                    "Pick-up Point": "", 
+                    "Route #": ""
+                })
             
             # Log the activity after all batches
             log_activity('imported', 'Transport', 'BULK', 
@@ -1652,7 +1823,8 @@ def import_transport_csv():
                 error_rows.insert(0, {
                     "Row": "SUMMARY", 
                     "Error": f"{stats['imported']} transport records imported, {stats['failed']} failed",
-                    "Pick-up Point": "", "Route #": ""
+                    "Pick-up Point": "", 
+                    "Route #": ""
                 })
                 return generate_error_csv(error_rows, "transport_import")
             else:
@@ -1784,9 +1956,15 @@ def fee_form():
                     flash('Fee record added successfully!', 'success')
                 
             return redirect(url_for('home'))
+        except IntegrityError as e:
+            db.session.rollback()
+            flash('Error: A unique constraint was violated. Please check your inputs.', 'danger')
+            return render_template('fee_form.html', title='Fee Form', form=form, fee_record=fee_record)
         except Exception as e:
+            db.session.rollback()
             log_exception(e, "Error saving fee record")
             flash('An error occurred while saving the fee data. Please try again.', 'danger')
+            return render_template('fee_form.html', title='Fee Form', form=form, fee_record=fee_record)
         
     return render_template('fee_form.html', title='Fee Form', form=form, fee_record=fee_record)
 
@@ -1817,7 +1995,7 @@ def import_fee_csv():
                 current_batch = rows[batch_start:batch_end]
                 
                 try:
-                    with transaction_context():
+                    with db.session.begin_nested():  # Create savepoint for this batch
                         for row_index, row in enumerate(current_batch, start=batch_start+1):
                             try:
                                 # Process data with safe type conversion
@@ -1916,19 +2094,47 @@ def import_fee_csv():
                                     stats['imported'] += 1
 
                             except Exception as e:
+                                stats['failed'] += 1
                                 error_message = f"Error in row {row_index}: {str(e)}"
                                 logger.error(error_message)
-                                error_rows.append({"Row": row_index, "Error": str(e), "PEN": row.get("pen_num", ""), 
-                                                  "Year": row.get("year", ""), "Student": student.student_name if student else ""})
-                                stats['failed'] += 1
+                                error_rows.append({
+                                    "Row": row_index,
+                                    "Error": str(e),
+                                    "PEN": row.get("pen_num", ""),
+                                    "Year": row.get("year", ""),
+                                    "Student": student.student_name if student else ""
+                                })
                                 # Continue processing rest of batch
+                                
+                    # Batch committed successfully
+                    logger.info(f"Committed batch {batch_start//batch_size + 1}")
                     
                 except Exception as e:
+                    db.session.rollback()
                     logger.error(f"Error processing batch {batch_start//batch_size + 1}: {str(e)}")
-                    error_rows.append({"Row": f"Batch {batch_start//batch_size + 1}", 
-                                      "Error": f"Failed to commit batch: {str(e)}", 
-                                      "PEN": "", "Year": "", "Student": ""})
+                    error_rows.append({
+                        "Row": f"Batch {batch_start//batch_size + 1}",
+                        "Error": f"Failed to commit batch: {str(e)}",
+                        "PEN": "",
+                        "Year": "",
+                        "Student": ""
+                    })
                     # Continue with next batch
+            
+            # Final commit if any records were processed successfully
+            try:
+                if stats['imported'] > 0 or stats['updated'] > 0:
+                    db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                logger.error(f"Failed final commit: {str(e)}")
+                error_rows.append({
+                    "Row": "FINAL", 
+                    "Error": f"Failed final commit: {str(e)}", 
+                    "PEN": "", 
+                    "Year": "",
+                    "Student": ""
+                })
             
             # Log the activity after all batches
             log_activity('imported', 'Fee', 'BULK', 
@@ -1940,7 +2146,9 @@ def import_fee_csv():
                 error_rows.insert(0, {
                     "Row": "SUMMARY", 
                     "Error": f"{stats['imported']} records imported, {stats['updated']} records updated, {stats['failed']} failed",
-                    "PEN": "", "Year": "", "Student": ""
+                    "PEN": "", 
+                    "Year": "", 
+                    "Student": ""
                 })
                 return generate_error_csv(error_rows, "fee_import")
             else:
@@ -2063,6 +2271,12 @@ def fee_breakdown_form():
                     
                     flash('Fee breakdown updated successfully!', 'success')
                 else:
+                    # Check if receipt number already exists
+                    existing_receipt = FeeBreakdown.query.filter_by(receipt_no=form.receipt_no.data).first()
+                    if existing_receipt:
+                        flash(f'Receipt number {form.receipt_no.data} already exists for another payment', 'danger')
+                        return render_template('fee_breakdown_form.html', title='Fee Breakdown', form=form, fee_breakdown=fee_breakdown)
+                    
                     # Create new record
                     db.session.add(FeeBreakdown(
                         pen_num=pen_num,
@@ -2085,9 +2299,18 @@ def fee_breakdown_form():
                     flash('Fee breakdown added successfully!', 'success')
                 
             return redirect(url_for('home'))
+        except IntegrityError as e:
+            db.session.rollback()
+            if "feebreakdown_receipt_no_key" in str(e):
+                flash('Error: This receipt number already exists', 'danger')
+            else:
+                flash('Error: A unique constraint was violated. Please check your inputs.', 'danger')
+            return render_template('fee_breakdown_form.html', title='Fee Breakdown', form=form, fee_breakdown=fee_breakdown)
         except Exception as e:
+            db.session.rollback()
             log_exception(e, "Error saving fee breakdown")
             flash('An error occurred while saving the fee breakdown data. Please try again.', 'danger')
+            return render_template('fee_breakdown_form.html', title='Fee Breakdown', form=form, fee_breakdown=fee_breakdown)
         
     return render_template('fee_breakdown_form.html', title='Fee Breakdown', form=form, fee_breakdown=fee_breakdown)
 
@@ -2114,6 +2337,9 @@ def import_fee_breakdown_csv():
                     if 'fee_paid_date' in field.lower():
                         date_column_map['fee_paid_date'] = field
             
+            # Track existing receipt numbers
+            existing_receipts = {fb.receipt_no for fb in FeeBreakdown.query.all()}
+            
             # Process in batches
             batch_size = 100
             rows = list(csv_reader)
@@ -2123,7 +2349,7 @@ def import_fee_breakdown_csv():
                 current_batch = rows[batch_start:batch_end]
                 
                 try:
-                    with transaction_context():
+                    with db.session.begin_nested():  # Create savepoint for this batch
                         for row_index, row in enumerate(current_batch, start=batch_start+1):
                             try:
                                 # Process data with safe type conversion
@@ -2164,6 +2390,8 @@ def import_fee_breakdown_csv():
                                     raise ValueError("Payment type is required")
                                 if paid < 0:
                                     raise ValueError("Paid amount cannot be negative")
+                                if not receipt_no:
+                                    raise ValueError("Receipt number is required")
 
                                 # Check if student and fee record exist
                                 student = Student.query.get(pen_num)
@@ -2177,6 +2405,15 @@ def import_fee_breakdown_csv():
                                 # Check if transport fee but transport not used
                                 if fee_type == 'Transport' and not fee_record.transport_used:
                                     raise ValueError(f"Student with PEN {pen_num} has not opted in for Transport for Year {year}")
+
+                                # Check for duplicate receipt numbers
+                                existing_receipt = FeeBreakdown.query.filter_by(receipt_no=receipt_no).first()
+                                existing_fee_breakdown = FeeBreakdown.query.filter_by(
+                                    pen_num=pen_num, year=year, fee_type=fee_type, term=term, payment_type=payment_type
+                                ).first()
+                                
+                                if existing_receipt and not existing_fee_breakdown:
+                                    raise ValueError(f"Receipt number {receipt_no} already exists for another payment")
 
                                 # Calculate correct due amount based on fee record
                                 terms_for_type = 1 if fee_type == 'Application' else 3
@@ -2192,11 +2429,6 @@ def import_fee_breakdown_csv():
                                 term_fee = total_fee_for_type / terms_for_type if terms_for_type > 0 else 0
                                 calculated_due = max(0, term_fee - paid)  # Ensure due is not negative
 
-                                # Check if record exists
-                                existing_fee_breakdown = FeeBreakdown.query.filter_by(
-                                    pen_num=pen_num, year=year, fee_type=fee_type, term=term, payment_type=payment_type
-                                ).first()
-
                                 if existing_fee_breakdown:
                                     # Update existing record
                                     existing_fee_breakdown.paid = paid
@@ -2206,6 +2438,9 @@ def import_fee_breakdown_csv():
                                     existing_fee_breakdown.updated_by = current_user.username
                                     stats['updated'] += 1
                                 else:
+                                    # Add to tracking set to prevent duplicates in same batch
+                                    existing_receipts.add(receipt_no)
+                                    
                                     # Insert new record
                                     db.session.add(FeeBreakdown(
                                         pen_num=pen_num,
@@ -2222,19 +2457,50 @@ def import_fee_breakdown_csv():
                                     stats['imported'] += 1
 
                             except Exception as e:
+                                stats['failed'] += 1
                                 error_message = f"Error in row {row_index}: {str(e)}"
                                 logger.error(error_message)
-                                error_rows.append({"Row": row_index, "Error": str(e), "PEN": row.get("pen_num", ""), 
-                                                  "Year": row.get("year", ""), "Fee Type": row.get("fee_type", "")})
-                                stats['failed'] += 1
+                                error_rows.append({
+                                    "Row": row_index,
+                                    "Error": str(e),
+                                    "PEN": row.get("pen_num", ""),
+                                    "Year": row.get("year", ""),
+                                    "Fee Type": row.get("fee_type", ""),
+                                    "Receipt": row.get("receipt_no", "")
+                                })
                                 # Continue processing rest of batch
+                                
+                    # Batch committed successfully
+                    logger.info(f"Committed batch {batch_start//batch_size + 1}")
                     
                 except Exception as e:
+                    db.session.rollback()
                     logger.error(f"Error processing batch {batch_start//batch_size + 1}: {str(e)}")
-                    error_rows.append({"Row": f"Batch {batch_start//batch_size + 1}", 
-                                      "Error": f"Failed to commit batch: {str(e)}", 
-                                      "PEN": "", "Year": "", "Fee Type": ""})
+                    error_rows.append({
+                        "Row": f"Batch {batch_start//batch_size + 1}",
+                        "Error": f"Failed to commit batch: {str(e)}",
+                        "PEN": "",
+                        "Year": "",
+                        "Fee Type": "",
+                        "Receipt": ""
+                    })
                     # Continue with next batch
+            
+            # Final commit if any records were processed successfully
+            try:
+                if stats['imported'] > 0 or stats['updated'] > 0:
+                    db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                logger.error(f"Failed final commit: {str(e)}")
+                error_rows.append({
+                    "Row": "FINAL", 
+                    "Error": f"Failed final commit: {str(e)}", 
+                    "PEN": "", 
+                    "Year": "",
+                    "Fee Type": "",
+                    "Receipt": ""
+                })
             
             # Log the activity after all batches
             log_activity('imported', 'FeeBreakdown', 'BULK', 
@@ -2246,7 +2512,10 @@ def import_fee_breakdown_csv():
                 error_rows.insert(0, {
                     "Row": "SUMMARY", 
                     "Error": f"{stats['imported']} records imported, {stats['updated']} records updated, {stats['failed']} failed",
-                    "PEN": "", "Year": "", "Fee Type": ""
+                    "PEN": "",
+                    "Year": "",
+                    "Fee Type": "",
+                    "Receipt": ""
                 })
                 return generate_error_csv(error_rows, "fee_breakdown_import")
             else:
@@ -2377,6 +2646,7 @@ def view_table():
                             (f"date range {start_date} to {end_date}" if start_date and end_date else "no date filter") + 
                             (f", PEN: {pen_num}" if pen_num else ""))
             except SQLAlchemyError as e:
+                db.session.rollback()
                 log_exception(e, "Database error retrieving table data")
                 flash(f"Error retrieving data: {str(e)}", "danger")
         else:
@@ -2487,6 +2757,7 @@ def export_csv(table_name):
         # Generate CSV response
         return prepare_csv_response(data, config["fields"], table_name)
     except Exception as e:
+        db.session.rollback()
         log_exception(e, "Error exporting CSV")
         flash(f"Error exporting data: {str(e)}", "danger")
         return redirect(url_for('report_bp.view_table'))

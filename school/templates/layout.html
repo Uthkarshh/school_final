@@ -4,16 +4,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     
-    <!-- Bootstrap CSS (Light Theme) -->
+    <!-- Google Fonts - Inter (with display=swap for performance) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'" crossorigin="anonymous">
+    
+    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    
-    <!-- Google Fonts - Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Custom CSS -->
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css')}}">
@@ -21,9 +21,9 @@
     <title>School Fee Management{% if title %} - {{ title }}{% endif %}</title>
     <style>
         body {
-            background: #f8fafc !important; /* very light gray */
+            background: #f8fafc !important;
             color: #212529;
-            font-family: 'Inter', Arial, sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
         .site-header {
             background: #fff;
@@ -48,7 +48,7 @@
         }
         .content {
             background: #fff;
-            border-radius: 0.5rem;
+            border-radius: 0.75rem;
             padding: 2rem;
             box-shadow: 0 2px 8px rgba(0,0,0,0.03);
         }
@@ -57,14 +57,14 @@
 
 <body>
     <!-- Header Navigation -->
-    <header class="site-header fixed-top">
-        <nav class="navbar navbar-expand-lg navbar-light shadow-sm">
+    <header class="site-header fixed-top shadow-sm">
+        <nav class="navbar navbar-expand-lg navbar-light">
             <div class="container">
                 <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
                     <i class="fas fa-school mr-2 text-primary" aria-hidden="true"></i>
                     <span>School Fee Management</span>
                 </a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
+                <button class="navbar-toggler border-0" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
                     <i class="fas fa-bars text-primary" aria-hidden="true"></i>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarToggle">
@@ -86,21 +86,21 @@
                             <a class="nav-link dropdown-toggle {% if 'form' in request.endpoint %}active{% endif %}" href="#" id="formsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-file-alt mr-2" aria-hidden="true"></i> Forms
                             </a>
-                            <div class="dropdown-menu shadow-sm border-0" aria-labelledby="formsDropdown">
-                                <a class="dropdown-item" href="{{ url_for('student_bp.student_form') }}">
-                                    <i class="fas fa-user-graduate text-primary mr-2" aria-hidden="true"></i> Student Form
+                            <div class="dropdown-menu shadow-sm border-0 rounded-lg" aria-labelledby="formsDropdown">
+                                <a class="dropdown-item py-2" href="{{ url_for('student_bp.student_form') }}">
+                                    <i class="fas fa-user-graduate text-indigo-600 mr-2" aria-hidden="true"></i> Student Form
                                 </a>
-                                <a class="dropdown-item" href="{{ url_for('transport_bp.transport_form') }}">
-                                    <i class="fas fa-bus text-warning mr-2" aria-hidden="true"></i> Transport Form
+                                <a class="dropdown-item py-2" href="{{ url_for('transport_bp.transport_form') }}">
+                                    <i class="fas fa-bus text-amber-600 mr-2" aria-hidden="true"></i> Transport Form
                                 </a>
-                                <a class="dropdown-item" href="{{ url_for('student_bp.class_details_form') }}">
-                                    <i class="fas fa-chalkboard text-secondary mr-2" aria-hidden="true"></i> Class Details
+                                <a class="dropdown-item py-2" href="{{ url_for('student_bp.class_details_form') }}">
+                                    <i class="fas fa-chalkboard text-slate-600 mr-2" aria-hidden="true"></i> Class Details
                                 </a>
-                                <a class="dropdown-item" href="{{ url_for('fee_bp.fee_form') }}">
-                                    <i class="fas fa-receipt text-success mr-2" aria-hidden="true"></i> Fee Form
+                                <a class="dropdown-item py-2" href="{{ url_for('fee_bp.fee_form') }}">
+                                    <i class="fas fa-receipt text-green-600 mr-2" aria-hidden="true"></i> Fee Form
                                 </a>
-                                <a class="dropdown-item" href="{{ url_for('fee_bp.fee_breakdown_form') }}">
-                                    <i class="fas fa-chart-pie text-danger mr-2" aria-hidden="true"></i> Fee Breakdown
+                                <a class="dropdown-item py-2" href="{{ url_for('fee_bp.fee_breakdown_form') }}">
+                                    <i class="fas fa-chart-pie text-rose-600 mr-2" aria-hidden="true"></i> Fee Breakdown
                                 </a>
                             </div>
                         </li>
@@ -168,10 +168,10 @@
                             {% set text_class = 'text-info' %}
                         {% endif %}
                         
-                        <div class="alert alert-{{ alert_class }} alert-dismissible fade show {{ bg_class }} shadow-sm border-0 mb-4" role="alert">
+                        <div class="alert alert-{{ alert_class }} alert-dismissible fade show {{ bg_class }} shadow-sm border-0 mb-4 rounded-lg" role="alert">
                             <div class="d-flex align-items-center">
                                 <i class="{{ icon_class }} {{ text_class }} mr-3" aria-hidden="true"></i>
-                                <span class="text-dark">{{ message }}</span>
+                                <span>{{ message }}</span>
                             </div>
                             <button type="button" class="close {{ text_class }}" data-dismiss="alert" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
@@ -182,7 +182,7 @@
             {% endwith %}
         </div>
         
-        <div class="content mt-3">
+        <div class="content mt-3 fade-in">
             {% block content %}{% endblock %}
         </div>
     </main>
