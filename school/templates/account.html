@@ -38,28 +38,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="bg-light py-3 mt-3">
-                    <div class="row text-center">
-                        <div class="col-4">
-                            <a href="#" class="btn btn-link text-secondary p-0" aria-label="Account settings">
-                                <i class="fas fa-cog d-block mb-1" aria-hidden="true"></i>
-                                <span class="small">Settings</span>
-                            </a>
-                        </div>
-                        <div class="col-4">
-                            <a href="#" class="btn btn-link text-secondary p-0" aria-label="Account alerts">
-                                <i class="fas fa-bell d-block mb-1" aria-hidden="true"></i>
-                                <span class="small">Alerts</span>
-                            </a>
-                        </div>
-                        <div class="col-4">
-                            <a href="#" class="btn btn-link text-secondary p-0" aria-label="Account activity">
-                                <i class="fas fa-history d-block mb-1" aria-hidden="true"></i>
-                                <span class="small">Activity</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -162,91 +140,210 @@
                         <div class="col-md-7">
                             <h3 class="h6 fw-bold text-dark mb-1">Password</h3>
                             <p class="text-secondary small mb-0">
-                                <i class="fas fa-clock me-1" aria-hidden="true"></i> Last changed: <span class="text-dark">Never</span>
+                                <i class="fas fa-clock me-1" aria-hidden="true"></i> 
+                                Last changed: <span class="text-dark">{{ current_user.updated_at.strftime('%b %d, %Y') if current_user.updated_at else 'Never' }}</span>
                             </p>
                         </div>
                         <div class="col-md-5 text-md-end mt-3 mt-md-0">
-                            <button class="btn btn-outline-primary px-4" data-toggle="modal" data-target="#passwordModal" aria-label="Change password">
+                            <a href="{{ url_for('user_bp.change_password') }}" class="btn btn-outline-primary px-4" aria-label="Change password">
                                 <i class="fas fa-key me-2" aria-hidden="true"></i>Change Password
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>
-                
-                <div class="security-item p-3 border rounded">
-                    <div class="row align-items-center">
-                        <div class="col-md-7">
-                            <h3 class="h6 fw-bold text-dark mb-1">Two-Factor Authentication</h3>
-                            <p class="text-secondary small mb-0">
-                                <i class="fas fa-info-circle me-1" aria-hidden="true"></i> Enhance your account security
-                            </p>
-                        </div>
-                        <div class="col-md-5 text-md-end mt-3 mt-md-0">
-                            <button class="btn btn-outline-secondary px-4" disabled aria-label="Two-factor authentication">
-                                <i class="fas fa-lock me-2" aria-hidden="true"></i>Coming Soon
-                            </button>
-                        </div>
-                    </div>
+
+                <!-- Account Security Tips -->
+                <div class="mt-4 p-3 bg-light border-left border-primary rounded">
+                    <h4 class="h6 fw-bold text-dark mb-2">
+                        <i class="fas fa-lightbulb text-warning me-2" aria-hidden="true"></i>Security Tips
+                    </h4>
+                    <ul class="text-secondary small mb-0 ps-3">
+                        <li>Use a strong, unique password for your account</li>
+                        <li>Never share your login credentials with others</li>
+                        <li>Log out from shared or public computers</li>
+                        <li>Keep your contact information up to date</li>
+                        <li>Report any suspicious activity immediately</li>
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Password Change Modal -->
-<div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-steel text-white">
-                <h2 class="modal-title h5" id="passwordModalLabel">Change Password</h2>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body p-4">
-                <form id="passwordChangeForm" method="POST" action="{{ url_for('user_bp.change_password') }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <div class="form-group mb-3">
-                        <label for="current-password" class="text-secondary fw-bold">Current Password</label>
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text bg-white border-end-0 text-secondary" aria-hidden="true">
-                                    <i class="fas fa-lock"></i>
-                                </span>
-                            </div>
-                            <input type="password" id="current-password" name="current_password" class="form-control border-start-0" placeholder="Enter current password" required>
-                        </div>
-                    </div>
-                    <div class="form-group mb-3">
-                        <label for="new-password" class="text-secondary fw-bold">New Password</label>
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text bg-white border-end-0 text-secondary" aria-hidden="true">
-                                    <i class="fas fa-key"></i>
-                                </span>
-                            </div>
-                            <input type="password" id="new-password" name="new_password" class="form-control border-start-0" placeholder="Enter new password" required aria-describedby="password-requirements">
-                        </div>
-                        <small id="password-requirements" class="form-text text-muted">Password must be at least 8 characters long</small>
-                    </div>
-                    <div class="form-group mb-0">
-                        <label for="confirm-password" class="text-secondary fw-bold">Confirm New Password</label>
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text bg-white border-end-0 text-secondary" aria-hidden="true">
-                                    <i class="fas fa-check-double"></i>
-                                </span>
-                            </div>
-                            <input type="password" id="confirm-password" name="confirm_password" class="form-control border-start-0" placeholder="Confirm new password" required>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
-                <button type="submit" form="passwordChangeForm" class="btn btn-primary px-4">Update Password</button>
-            </div>
-        </div>
-    </div>
-</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // File upload preview
+    const pictureInput = document.getElementById('picture-input');
+    if (pictureInput) {
+        pictureInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const fileName = file.name;
+                const fileSize = (file.size / 1024 / 1024).toFixed(2); // Convert to MB
+                
+                // Create or update file info display
+                let fileInfo = document.getElementById('file-info');
+                if (!fileInfo) {
+                    fileInfo = document.createElement('div');
+                    fileInfo.id = 'file-info';
+                    fileInfo.className = 'mt-2 p-2 bg-light rounded';
+                    pictureInput.parentNode.parentNode.appendChild(fileInfo);
+                }
+                
+                fileInfo.innerHTML = `
+                    <small class="text-success">
+                        <i class="fas fa-check-circle me-1"></i>
+                        Selected: <strong>${fileName}</strong> (${fileSize} MB)
+                    </small>
+                `;
+                
+                // Validate file size (5MB limit)
+                if (file.size > 5 * 1024 * 1024) {
+                    fileInfo.innerHTML = `
+                        <small class="text-danger">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            File too large: <strong>${fileName}</strong> (${fileSize} MB). Maximum size is 5MB.
+                        </small>
+                    `;
+                    pictureInput.value = ''; // Clear the input
+                }
+            }
+        });
+    }
+    
+    // Form validation feedback
+    const form = document.querySelector('form[action*="account"]');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const usernameInput = document.getElementById('username-input');
+            const emailInput = document.getElementById('email-input');
+            
+            // Remove any existing custom validation messages
+            [usernameInput, emailInput].forEach(input => {
+                if (input) {
+                    input.setCustomValidity('');
+                }
+            });
+            
+            // Add loading state to submit button
+            const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                const originalText = submitBtn.textContent;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
+                
+                // Re-enable button after 3 seconds (in case of validation errors)
+                setTimeout(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }, 3000);
+            }
+        });
+    }
+    
+    // Auto-resize text areas if any
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+    });
+    
+    // Add confirmation for password change link
+    const changePasswordLink = document.querySelector('a[href*="change_password"]');
+    if (changePasswordLink) {
+        changePasswordLink.addEventListener('click', function(e) {
+            // You could add a confirmation dialog here if needed
+            // For now, just add a visual feedback
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Loading...';
+        });
+    }
+});
+
+// Add smooth transitions for form elements
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = document.querySelectorAll('.form-control');
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.parentNode.classList.add('focused');
+        });
+        
+        input.addEventListener('blur', function() {
+            this.parentNode.classList.remove('focused');
+        });
+    });
+});
+</script>
+
+<style>
+.account-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    font-size: 2rem;
+    font-weight: bold;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.icon-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.security-item {
+    transition: all 0.3s ease;
+}
+
+.security-item:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+}
+
+.input-group.focused {
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    border-radius: 0.375rem;
+}
+
+.border-left {
+    border-left: 4px solid;
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+}
+
+.content-section {
+    background: #ffffff;
+    padding: 2rem;
+    border: 1px solid #e3e6f0;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+@media (max-width: 768px) {
+    .content-section {
+        padding: 1rem;
+    }
+    
+    .account-img {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+    
+    .icon-circle {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+}
+</style>
 {% endblock content %}

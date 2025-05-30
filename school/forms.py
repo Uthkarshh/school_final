@@ -294,8 +294,77 @@ class UpdateAccountForm(BaseForm):
             if user:
                 logger.warning(f"Account update attempt with existing email: {email.data}")
                 raise ValidationError('That email is already registered. Please choose a different one')
+
+
+class ChangePasswordForm(BaseForm):
+    """Form for changing user password."""
+    
+    current_password = PasswordField(
+        'Current Password', 
+        validators=[DataRequired(message="Current password is required")],
+        description="Enter your current password"
+    )
+    
+    new_password = PasswordField(
+        'New Password', 
+        validators=[
+            DataRequired(message="New password is required"), 
+            Length(min=MIN_PASSWORD_LENGTH, message=f'Password must be at least {MIN_PASSWORD_LENGTH} characters long'),
+            PasswordComplexityValidator()
+        ],
+        description=f"Create a new secure password (min {MIN_PASSWORD_LENGTH} characters with uppercase, lowercase, numbers, symbols)"
+    )
+    
+    confirm_password = PasswordField(
+        'Confirm New Password', 
+        validators=[
+            DataRequired(message="Please confirm your new password"), 
+            EqualTo('new_password', message='Passwords must match')
+        ],
+        description="Re-enter your new password to confirm"
+    )
+    
+    submit = SubmitField('Change Password')
+    
+    def validate_current_password(self, current_password: PasswordField) -> None:
+        """Validate current password is correct.
+        
+        Args:
+            current_password: The current_password field to validate
             
+        Raises:
+            ValidationError: If the current password is incorrect
+        """
+        from school import bcrypt
+        if not bcrypt.check_password_hash(current_user.password, current_password.data):
+            logger.warning(f"Failed password change attempt for user: {current_user.username}")
+            raise ValidationError('Current password is incorrect.')
+    
+    def validate_new_password(self, new_password: PasswordField) -> None:
+        """Validate new password requirements.
+        
+        Args:
+            new_password: The new_password field to validate
             
+        Raises:
+            ValidationError: If the new password doesn't meet requirements
+        """
+        from school import bcrypt
+        password = new_password.data
+        
+        # Check if new password is different from current
+        if bcrypt.check_password_hash(current_user.password, password):
+            raise ValidationError('New password must be different from your current password.')
+        
+        # Check if password is same as username
+        if password.lower() == current_user.username.lower():
+            raise ValidationError('Password cannot be the same as your username.')
+        
+        # Check if password contains email
+        if current_user.email.split('@')[0].lower() in password.lower():
+            raise ValidationError('Password cannot contain your email address.')
+
+
 class StudentForm(BaseForm):
     """Form for student information."""
     

@@ -29,7 +29,8 @@ from werkzeug.utils import secure_filename
 from school import db, bcrypt, login_manager, limiter
 from school.forms import (ClassDetailsForm, FeeBreakdownForm, FeeForm,
                         LoginForm, RegistrationForm, StudentForm,
-                        TableSelectForm, TransportForm, UpdateAccountForm)
+                        TableSelectForm, TransportForm, UpdateAccountForm,
+                        ChangePasswordForm)
 from school.models import (ActivityLog, ClassDetails, Fee, FeeBreakdown,
                          Student, Transport, User, parse_date_from_string)
 from school.utils.logging import log_exception
@@ -791,6 +792,54 @@ def account():
         form.email.data = current_user.email
         
     return render_template('account.html', title='Account', form=form)
+
+
+@user_bp.route("/change_password", methods=["GET", "POST"])
+@login_required
+def change_password():
+    """Change user password route.
+    
+    Returns:
+        Rendered change password form or redirect to account page after successful change
+    """
+    form = ChangePasswordForm()
+    
+    if form.validate_on_submit():
+        try:
+            # Verify current password one more time (defense in depth)
+            if not bcrypt.check_password_hash(current_user.password, form.current_password.data):
+                flash('Current password is incorrect.', 'danger')
+                return render_template('change_password.html', title='Change Password', form=form)
+            
+            # Check if new password is different from current
+            if bcrypt.check_password_hash(current_user.password, form.new_password.data):
+                flash('New password must be different from your current password.', 'warning')
+                return render_template('change_password.html', title='Change Password', form=form)
+            
+            # Hash the new password
+            new_hashed_password = bcrypt.generate_password_hash(form.new_password.data).decode('utf-8')
+            
+            with transaction_context():
+                old_username = current_user.username
+                current_user.password = new_hashed_password
+                
+                # Reset failed login attempts on password change
+                current_user.failed_login_attempts = 0
+                current_user.account_locked_until = None
+            
+            # Log the password change activity
+            log_activity('updated', 'User', current_user.id, 
+                        f"Password changed for user: {current_user.username}")
+            
+            flash('Your password has been changed successfully!', 'success')
+            return redirect(url_for('user_bp.account'))
+            
+        except Exception as e:
+            log_exception(e, "Error changing password")
+            flash('An error occurred while changing your password. Please try again.', 'danger')
+            return render_template('change_password.html', title='Change Password', form=form)
+    
+    return render_template('change_password.html', title='Change Password', form=form)
 
 
 # --- Admin User Management ---
