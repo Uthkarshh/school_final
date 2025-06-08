@@ -184,6 +184,160 @@
         </div>
     {% endif %}
 
+    <!-- NEW FEE SUMMARY SECTION -->
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center mb-3">
+                <i class="fas fa-chart-bar text-success me-2 fa-lg" aria-hidden="true"></i>
+                <h2 class="h4 mb-0">Fee Summary Report</h2>
+            </div>
+            <hr class="mb-4">
+
+            <form method="POST" id="feeSummaryForm" action="{{ url_for('report_bp.fee_summary_report') }}">
+                {{ form.csrf_token }}
+                <fieldset class="form-group">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="form-group mb-3">
+                                <label for="summary_pen_num" class="form-label">PEN Number:</label>
+                                <input type="text" class="form-control" id="summary_pen_num" name="summary_pen_num"
+                                       value="{{ request.form.get('summary_pen_num', '') }}" 
+                                       aria-describedby="summary_pen_help">
+                                <small id="summary_pen_help" class="form-text text-muted">Leave blank for all students</small>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group mb-3">
+                                <label for="summary_class" class="form-label">Class:</label>
+                                <select class="form-control" id="summary_class" name="summary_class" aria-describedby="summary_class_help">
+                                    <option value="">All Classes</option>
+                                    {% set valid_classes = ["Nursery", "LKG", "UKG", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"] %}
+                                    {% for class_name in valid_classes %}
+                                        <option value="{{ class_name }}" {% if request.form.get('summary_class') == class_name %}selected{% endif %}>
+                                            {% if class_name in ["Nursery", "LKG", "UKG"] %}
+                                                {{ class_name }}
+                                            {% else %}
+                                                Class {{ class_name }}
+                                            {% endif %}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <small id="summary_class_help" class="form-text text-muted">Filter by student class</small>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group mb-3">
+                                <label for="summary_year" class="form-label">Academic Year:</label>
+                                <select class="form-control" id="summary_year" name="summary_year" aria-describedby="summary_year_help">
+                                    <option value="">All Years</option>
+                                    {% for year in range(2020, 2030) %}
+                                        <option value="{{ year }}" {% if request.form.get('summary_year') == year|string %}selected{% endif %}>{{ year }}</option>
+                                    {% endfor %}
+                                </select>
+                                <small id="summary_year_help" class="form-text text-muted">Filter by academic year</small>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group mb-3">
+                                <label for="summary_start_date" class="form-label">Start Date:</label>
+                                <input type="date" class="form-control" id="summary_start_date" name="summary_start_date"
+                                       value="{{ request.form.get('summary_start_date', '') }}" 
+                                       aria-describedby="summary_start_help">
+                                <small id="summary_start_help" class="form-text text-muted">Filter from this date</small>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="form-group mb-3">
+                                <label for="summary_end_date" class="form-label">End Date:</label>
+                                <input type="date" class="form-control" id="summary_end_date" name="summary_end_date"
+                                       value="{{ request.form.get('summary_end_date', '') }}" 
+                                       aria-describedby="summary_end_help">
+                                <small id="summary_end_help" class="form-text text-muted">Filter until this date</small>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <div class="d-flex mt-4">
+                    <button type="submit" name="action" value="view" class="btn btn-success me-2">
+                        <i class="fas fa-eye me-2" aria-hidden="true"></i>View Fee Summary
+                    </button>
+                    <button type="submit" name="action" value="download" class="btn btn-primary">
+                        <i class="fas fa-download me-2" aria-hidden="true"></i>Download CSV
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Fee Summary Results Display -->
+    {% if fee_summary_data %}
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-header bg-white py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="h5 mb-0">Fee Summary Report</h2>
+                <span class="badge bg-success">{{ fee_summary_data|length }} records</span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped mb-0" aria-label="Fee Summary data">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th scope="col">PEN Number</th>
+                            <th scope="col">Student Name</th>
+                            <th scope="col">Class</th>
+                            <th scope="col">Academic Year</th>
+                            <th scope="col">Total School Fee</th>
+                            <th scope="col">Total Transport Fee</th>
+                            <th scope="col">Total Application Fee</th>
+                            <th scope="col">School Fee Paid</th>
+                            <th scope="col">Transport Fee Paid</th>
+                            <th scope="col">Application Fee Paid</th>
+                            <th scope="col">Total Outstanding</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in fee_summary_data %}
+                            <tr>
+                                <td>{{ row.pen_num }}</td>
+                                <td>{{ row.student_name }}</td>
+                                <td>{{ row.current_class }}-{{ row.section }}</td>
+                                <td>{{ row.year }}</td>
+                                <td>₹{{ "{:,.0f}".format(row.total_school_fee) }}</td>
+                                <td>₹{{ "{:,.0f}".format(row.total_transport_fee) }}</td>
+                                <td>₹{{ "{:,.0f}".format(row.total_application_fee) }}</td>
+                                <td>₹{{ "{:,.0f}".format(row.school_fee_paid) }}</td>
+                                <td>₹{{ "{:,.0f}".format(row.transport_fee_paid) }}</td>
+                                <td>₹{{ "{:,.0f}".format(row.application_fee_paid) }}</td>
+                                <td class="{% if row.total_outstanding > 0 %}text-danger fw-bold{% else %}text-success{% endif %}">
+                                    ₹{{ "{:,.0f}".format(row.total_outstanding) }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-secondary">
+                        <tr class="fw-bold">
+                            <td colspan="4">TOTALS:</td>
+                            <td>₹{{ "{:,.0f}".format(fee_summary_data|sum(attribute='total_school_fee')) }}</td>
+                            <td>₹{{ "{:,.0f}".format(fee_summary_data|sum(attribute='total_transport_fee')) }}</td>
+                            <td>₹{{ "{:,.0f}".format(fee_summary_data|sum(attribute='total_application_fee')) }}</td>
+                            <td>₹{{ "{:,.0f}".format(fee_summary_data|sum(attribute='school_fee_paid')) }}</td>
+                            <td>₹{{ "{:,.0f}".format(fee_summary_data|sum(attribute='transport_fee_paid')) }}</td>
+                            <td>₹{{ "{:,.0f}".format(fee_summary_data|sum(attribute='application_fee_paid')) }}</td>
+                            <td class="text-danger">₹{{ "{:,.0f}".format(fee_summary_data|sum(attribute='total_outstanding')) }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Help Card -->
     <div class="card bg-gray-50 border-0 shadow-sm mt-4">
         <div class="card-body p-3">
@@ -194,7 +348,7 @@
                 <div>
                     <h2 class="h5 card-title mb-2">Data Viewing and Exporting</h2>
                     <p class="card-text mb-0 text-slate-600">
-                        This page allows you to view and export data from various tables within the school database. You can filter the data by table, PEN number, and date range.
+                        This page allows you to view and export data from various tables within the school database. You can filter the data by table, PEN number, and date range. Use the Fee Summary Report section to get consolidated fee information across students.
                     </p>
                 </div>
             </div>
@@ -214,6 +368,9 @@
                         <li>The export button allows you to download the currently viewed data as a CSV file.</li>
                         <li>Select a specific record to edit by using the edit record functionality at the bottom of the page.</li>
                         <li>Use pagination controls to navigate through large data sets.</li>
+                        <li><strong>New:</strong> Use the Fee Summary Report to get consolidated fee information with totals and outstanding amounts.</li>
+                        <li><strong>Fee Report:</strong> All filters are optional - leave blank to include all values for that filter.</li>
+                        <li><strong>Class System:</strong> The system now supports Nursery, LKG, UKG, and Classes I-X for flexible grade management.</li>
                     </ul>
                 </div>
             </div>

@@ -15,6 +15,9 @@ from school import db, login_manager
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# Valid class choices
+VALID_CLASSES = ["Nursery", "LKG", "UKG", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"]
+
 
 @login_manager.user_loader
 def load_user(user_id: str) -> Optional["User"]:
@@ -138,7 +141,7 @@ class User(db.Model, UserMixin):
         Raises:
             ValueError: If role is invalid
         """
-        valid_roles = ["admin", "teacher", "staff", "accountant"]
+        valid_roles = ["admin", "teacher", "hr", "accountant"]
         if not role or role.lower() not in valid_roles:
             raise ValueError(f"User role must be one of: {', '.join(valid_roles)}")
         return role
@@ -262,7 +265,7 @@ class Student(db.Model):
 
     pen_num = db.Column(db.BigInteger, primary_key=True, nullable=False)
     admission_number = db.Column(db.BigInteger, unique=True, nullable=False)
-    aadhar_number = db.Column(db.BigInteger, unique=True, nullable=False)
+    aadhar_number = db.Column(db.String(12), unique=True, nullable=False)  # Changed to String(12)
     student_name = db.Column(db.String(60), nullable=False)
     father_name = db.Column(db.String(60), nullable=False)
     mother_name = db.Column(db.String(60), nullable=False)
@@ -288,6 +291,7 @@ class Student(db.Model):
         Index("ix_student_admission_number", "admission_number"),
         Index("ix_student_student_name", "student_name"),
         Index("ix_student_father_name", "father_name"),
+        Index("ix_student_aadhar_number", "aadhar_number"),
     )
 
     def __repr__(self) -> str:
@@ -346,7 +350,7 @@ class Student(db.Model):
             value = parse_date_from_string(value, key)
         super().__setattr__(key, value)
 
-    @validates("pen_num", "admission_number", "aadhar_number")
+    @validates("pen_num", "admission_number")
     def validate_numbers(self, key: str, value: Any) -> int:
         """Validate numeric fields.
 
@@ -367,14 +371,38 @@ class Student(db.Model):
             val = int(value)
             if val <= 0:
                 raise ValueError(f"{key} must be a positive number")
-            
-            # Specific validation for Aadhar number (12 digits)
-            if key == "aadhar_number" and len(str(val)) != 12:
-                raise ValueError("Aadhar number must be 12 digits")
-                
             return val
         except (ValueError, TypeError):
             raise ValueError(f"{key} must be a valid number")
+
+    @validates("aadhar_number")
+    def validate_aadhar_number(self, key: str, value: Any) -> str:
+        """Validate Aadhar number format (12 digits).
+
+        Args:
+            key: Field name
+            value: Value to validate
+
+        Returns:
+            Validated Aadhar number
+
+        Raises:
+            ValueError: If value is invalid
+        """
+        if not value:
+            raise ValueError("Aadhar number cannot be empty")
+            
+        # Convert to string and validate
+        aadhar_str = str(value).strip()
+        
+        # Remove any spaces or hyphens that might be in the input
+        aadhar_str = re.sub(r'[\s\-]', '', aadhar_str)
+        
+        # Check if it contains only digits and is exactly 12 characters
+        if not re.match(r'^\d{12}$', aadhar_str):
+            raise ValueError("Aadhar number must be exactly 12 digits")
+            
+        return aadhar_str
 
     @validates("student_name", "father_name", "mother_name", "village")
     def validate_text_fields(self, key: str, value: str) -> str:
@@ -446,6 +474,7 @@ class Student(db.Model):
             raise ValueError("Contact number must be 10-15 digits with optional + prefix")
             
         return cleaned
+
 
 
 @event.listens_for(Student, "before_insert")
@@ -553,7 +582,7 @@ class ClassDetails(db.Model):
 
     pen_num = db.Column(db.BigInteger, db.ForeignKey("student.pen_num", ondelete="CASCADE"), primary_key=True)
     year = db.Column(db.Integer, primary_key=True, nullable=False)
-    current_class = db.Column(db.Integer, nullable=False)
+    current_class = db.Column(db.String(10), nullable=False)  # Changed from Integer to String
     section = db.Column(db.String(2), nullable=False)
     roll_number = db.Column(db.Integer, nullable=False)
     photo_id = db.Column(db.Integer, unique=True, nullable=False)
@@ -617,7 +646,32 @@ class ClassDetails(db.Model):
         except (ValueError, TypeError):
             raise ValueError("Year must be a valid integer")
 
-    @validates("current_class", "roll_number", "photo_id")
+    @validates("current_class")
+    def validate_current_class(self, key: str, value: Any) -> str:
+        """Validate current class.
+
+        Args:
+            key: Field name
+            value: Value to validate
+
+        Returns:
+            Validated class value
+
+        Raises:
+            ValueError: If value is invalid
+        """
+        if not value:
+            raise ValueError("Class cannot be empty")
+            
+        # Convert to string and validate
+        class_str = str(value).strip()
+        
+        if class_str not in VALID_CLASSES:
+            raise ValueError(f"Class must be one of: {', '.join(VALID_CLASSES)}")
+            
+        return class_str
+
+    @validates("roll_number", "photo_id")
     def validate_numeric_fields(self, key: str, value: Any) -> int:
         """Validate numeric fields.
 
@@ -635,10 +689,6 @@ class ClassDetails(db.Model):
             val = int(value)
             if val <= 0:
                 raise ValueError(f"{key} must be positive")
-                
-            # Class-specific validation
-            if key == "current_class" and (val < 1 or val > 12):
-                raise ValueError("Class must be between 1 and 12")
                 
             return val
         except (ValueError, TypeError):

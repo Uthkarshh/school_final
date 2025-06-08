@@ -17,23 +17,23 @@ from io import StringIO, TextIOWrapper
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 from flask import (Blueprint, Response, abort, current_app, flash, jsonify,
-                  make_response, redirect, render_template, request,
+                  redirect, render_template, request,
                   send_from_directory, session, url_for)
 from flask_login import current_user, login_required, login_user, logout_user
 from PIL import Image
-from sqlalchemy import distinct, func
+from sqlalchemy import distinct, func, case
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
 
-from school import db, bcrypt, login_manager, limiter
+from school import db, bcrypt, login_manager
 from school.forms import (ClassDetailsForm, FeeBreakdownForm, FeeForm,
                         LoginForm, RegistrationForm, StudentForm,
                         TableSelectForm, TransportForm, UpdateAccountForm,
                         ChangePasswordForm)
 from school.models import (ActivityLog, ClassDetails, Fee, FeeBreakdown,
                          Student, Transport, User, parse_date_from_string)
-from school.utils.logging import log_exception
+import re
 
 # Configure logger for this module
 logger = logging.getLogger(__name__)
@@ -44,6 +44,9 @@ ACCOUNT_LOCKOUT_MINUTES = int(os.environ.get('ACCOUNT_LOCKOUT_MINUTES', '15'))
 MAX_UPLOAD_SIZE = int(os.environ.get('MAX_UPLOAD_SIZE', str(5 * 1024 * 1024)))  # 5MB default
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 ITEMS_PER_PAGE = int(os.environ.get('ITEMS_PER_PAGE', '20'))
+
+# Valid class choices - must match the ones in models.py and forms.py
+VALID_CLASSES = ["Nursery", "LKG", "UKG", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"]
 
 # Create blueprints for different functional areas
 auth_bp = Blueprint('auth_bp', __name__)
@@ -56,6 +59,16 @@ report_bp = Blueprint('report_bp', __name__)
 
 
 # --- Utility Functions ---
+def log_exception(e: Exception, context: str = "") -> None:
+    """Log an exception with context information.
+    
+    Args:
+        e: The exception to log
+        context: Additional context information
+    """
+    logger.error(f"{context}: {str(e)}", exc_info=True)
+
+
 @contextmanager
 def transaction_context():
     """Context manager for database transactions.
@@ -245,8 +258,6 @@ def process_csv_import(request_files, file_key, process_row_func, redirect_url):
         # Generate a CSV with the single error instead of flashing
         error_rows = [f"Processing error: {str(e)}"]
         return generate_error_csv(error_rows, f"csv_import_{file_key}")
-    
-    return redirect(url_for(redirect_url))
 
 
 def apply_date_filter(query, model, start_date, end_date):
@@ -451,6 +462,31 @@ def paginate_results(query, page=None, per_page=None, error_out=False):
     pagination = query.paginate(page=page, per_page=per_page, error_out=error_out)
     
     return pagination
+
+
+def validate_edit_parameters(edit_pen_num, edit_year=None):
+    """Validate edit parameters for consistency.
+    
+    Args:
+        edit_pen_num: PEN number parameter
+        edit_year: Optional year parameter
+        
+    Returns:
+        Tuple of (validated_pen_num, validated_year) or (None, None) if invalid
+    """
+    try:
+        pen_num = int(edit_pen_num) if edit_pen_num else None
+        year = int(edit_year) if edit_year else None
+        
+        if pen_num and pen_num <= 0:
+            return None, None
+            
+        if year and year <= 0:
+            return None, None
+            
+        return pen_num, year
+    except (ValueError, TypeError):
+        return None, None
 
 
 # Template filters should be registered in the init_app or create_app function
@@ -687,7 +723,7 @@ def login():
                     return render_template('login.html', title='Login', form=form)
                 
                 # Check for account lockout
-                if user.account_locked_until and user.account_locked_until > datetime.now():
+                if user.is_locked:
                     remaining_time = user.account_locked_until - datetime.now()
                     flash(f'Your account is temporarily locked. Please try again in {remaining_time.seconds // 60} minutes.', 'danger')
                     return render_template('login.html', title='Login', form=form)
@@ -1044,15 +1080,19 @@ def student_form():
     student = None
     
     if edit_pen_num:
-        # Try to fetch the student record
-        try:
-            student = Student.query.get(int(edit_pen_num))
+        # Validate edit parameters
+        pen_num, _ = validate_edit_parameters(edit_pen_num)
+        if pen_num:
+            student = Student.query.get(pen_num)
             if not student:
                 flash('Student not found with the specified PEN Number', 'danger')
-        except ValueError:
+        else:
             flash('Invalid PEN Number specified for editing', 'danger')
     
     form = StudentForm()
+    
+    # Store the student reference in the form for validation
+    form.student = student
     
     # Populate form with existing data if editing
     if student and request.method == 'GET':
@@ -1092,18 +1132,6 @@ def student_form():
                                 f"Updated student record: {form.student_name.data}")
                     flash('Student record updated successfully!', 'success')
                 else:
-                    # Check for existing student with same Aadhar number
-                    existing_by_aadhar = Student.query.filter_by(aadhar_number=form.aadhar_number.data).first()
-                    if existing_by_aadhar:
-                        flash(f'Error: A student with this Aadhar Number already exists (PEN: {existing_by_aadhar.pen_num}, Name: {existing_by_aadhar.student_name}).', 'danger')
-                        return render_template('student_form.html', title='Student Form', form=form, student=student)
-                    
-                    # Check for existing student with same Admission number
-                    existing_by_admission = Student.query.filter_by(admission_number=form.admission_number.data).first()
-                    if existing_by_admission:
-                        flash(f'Error: A student with this Admission Number already exists (PEN: {existing_by_admission.pen_num}, Name: {existing_by_admission.student_name}).', 'danger')
-                        return render_template('student_form.html', title='Student Form', form=form, student=student)
-                    
                     # Create new record
                     student = Student(
                         pen_num=form.pen_num.data,
@@ -1198,12 +1226,15 @@ def import_student_csv():
                                 try:
                                     pen_num = int(str(row.get("pen_num", "0")).strip() or 0)
                                     admission_number = int(str(row.get("admission_number", "0")).strip() or 0)
-                                    aadhar_number = int(str(row.get("aadhar_number", "0")).strip() or 0)
+                                    
+                                    # Handle Aadhar as string and clean it
+                                    aadhar_number = str(row.get("aadhar_number", "")).strip()
+                                    # Remove any spaces, hyphens, or other non-digit characters
+                                    aadhar_number = re.sub(r'[\s\-]', '', aadhar_number)
                                     
                                     # Validate Aadhar number
-                                    aadhar_str = str(aadhar_number)
-                                    if len(aadhar_str) != 12:
-                                        raise ValueError("Aadhar number must be 12 digits")
+                                    if len(aadhar_number) != 12 or not aadhar_number.isdigit():
+                                        raise ValueError("Aadhar number must be exactly 12 digits")
                                         
                                 except ValueError as ve:
                                     raise ValueError(f"Invalid number format: {str(ve)}")
@@ -1382,6 +1413,7 @@ def import_student_csv():
     return render_template('import_student_csv.html', title='Import Student CSV')
 
 
+
 @student_bp.route("/class_details_form", methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -1397,16 +1429,17 @@ def class_details_form():
     class_details = None
     
     if edit_pen_num and edit_year:
-        # Try to fetch the record
-        try:
+        # Validate edit parameters
+        pen_num, year = validate_edit_parameters(edit_pen_num, edit_year)
+        if pen_num and year:
             class_details = ClassDetails.query.filter_by(
-                pen_num=int(edit_pen_num), 
-                year=int(edit_year)
+                pen_num=pen_num, 
+                year=year
             ).first()
             
             if not class_details:
                 flash('Class details record not found', 'danger')
-        except ValueError:
+        else:
             flash('Invalid parameters specified for editing', 'danger')
     
     form = ClassDetailsForm()
@@ -1454,12 +1487,6 @@ def class_details_form():
                     
                     flash('Class details updated successfully!', 'success')
                 else:
-                    # Check for duplicate photo_id
-                    existing_by_photo_id = ClassDetails.query.filter_by(photo_id=form.photo_id.data).first()
-                    if existing_by_photo_id:
-                        flash(f'Error: A record with this photo ID already exists for student with PEN {existing_by_photo_id.pen_num} in year {existing_by_photo_id.year}', 'danger')
-                        return render_template('class_details_form.html', title='Class Details', form=form, class_details=class_details)
-                    
                     # Create new record
                     class_details = ClassDetails(
                         pen_num=form.pen_num.data,
@@ -1527,7 +1554,8 @@ def import_class_details_csv():
                                 try:
                                     pen_num = int(str(row.get("pen_num", "0")).strip() or 0)
                                     year = int(str(row.get("year", "0")).strip() or 0)
-                                    current_class = int(str(row.get("current_class", "0")).strip() or 0)
+                                    # Changed: current_class is now a string
+                                    current_class = str(row.get("current_class", "")).strip()
                                     roll_number = int(str(row.get("roll_number", "0")).strip() or 0)
                                     photo_id = int(str(row.get("photo_id", "0")).strip() or 0)
                                 except ValueError as ve:
@@ -1546,8 +1574,9 @@ def import_class_details_csv():
                                     raise ValueError("Invalid PEN Number")
                                 if not year or year <= 0:
                                     raise ValueError("Invalid year")
-                                if not current_class or current_class < 1 or current_class > 12:
-                                    raise ValueError("Invalid class (must be 1-12)")
+                                # Updated validation for string classes
+                                if not current_class or current_class not in VALID_CLASSES:
+                                    raise ValueError(f"Invalid class. Must be one of: {', '.join(VALID_CLASSES)}")
                                 if not section:
                                     raise ValueError("Section is required")
                                 if not photo_id or photo_id <= 0:
@@ -1683,11 +1712,13 @@ def transport_form():
     transport = None
     
     if edit_transport_id:
-        try:
-            transport = Transport.query.get(int(edit_transport_id))
+        # Validate edit parameters
+        transport_id, _ = validate_edit_parameters(edit_transport_id)
+        if transport_id:
+            transport = Transport.query.get(transport_id)
             if not transport:
                 flash('Transport record not found', 'danger')
-        except ValueError:
+        else:
             flash('Invalid Transport ID', 'danger')
     
     form = TransportForm()
@@ -1705,12 +1736,6 @@ def transport_form():
                 if form.transport_id.data:
                     transport = Transport.query.get(form.transport_id.data)
                     if transport:
-                        # Check for duplicate pick-up point when updating
-                        existing_transport = Transport.query.filter_by(pick_up_point=form.pick_up_point.data).first()
-                        if existing_transport and existing_transport.transport_id != transport.transport_id:
-                            flash(f'Pick-up point "{form.pick_up_point.data}" already exists (Route #{existing_transport.route_number})', 'danger')
-                            return render_template('transport_form.html', title='Transport Form', form=form, transport=transport)
-                        
                         transport.pick_up_point = form.pick_up_point.data
                         transport.route_number = form.route_number.data
                         transport.updated_by = current_user.username
@@ -1721,12 +1746,6 @@ def transport_form():
                     else:
                         flash('Transport record not found', 'danger')
                 else:
-                    # Check if pick-up point already exists
-                    existing_transport = Transport.query.filter_by(pick_up_point=form.pick_up_point.data).first()
-                    if existing_transport:
-                        flash(f'Pick-up point "{form.pick_up_point.data}" already exists (Route #{existing_transport.route_number})', 'danger')
-                        return render_template('transport_form.html', title='Transport Form', form=form, transport=transport)
-                    
                     # Create new record
                     transport = Transport(
                         pick_up_point=form.pick_up_point.data,
@@ -1902,16 +1921,17 @@ def fee_form():
     fee_record = None
     
     if edit_pen_num and edit_year:
-        # Try to fetch the record
-        try:
+        # Validate edit parameters
+        pen_num, year = validate_edit_parameters(edit_pen_num, edit_year)
+        if pen_num and year:
             fee_record = Fee.query.filter_by(
-                pen_num=int(edit_pen_num), 
-                year=int(edit_year)
+                pen_num=pen_num, 
+                year=year
             ).first()
             
             if not fee_record:
                 flash('Fee record not found', 'danger')
-        except ValueError:
+        else:
             flash('Invalid parameters specified for editing', 'danger')
     
     form = FeeForm()
@@ -2151,7 +2171,7 @@ def import_fee_csv():
                                     "Error": str(e),
                                     "PEN": row.get("pen_num", ""),
                                     "Year": row.get("year", ""),
-                                    "Student": student.student_name if student else ""
+                                    "Student": student.student_name if 'student' in locals() and student else ""
                                 })
                                 # Continue processing rest of batch
                                 
@@ -2228,11 +2248,12 @@ def fee_breakdown_form():
     fee_breakdown = None
     
     if edit_pen_num and edit_year and edit_fee_type and edit_term and edit_payment_type:
-        # Try to fetch the record
-        try:
+        # Validate edit parameters
+        pen_num, year = validate_edit_parameters(edit_pen_num, edit_year)
+        if pen_num and year:
             fee_breakdown = FeeBreakdown.query.filter_by(
-                pen_num=int(edit_pen_num),
-                year=int(edit_year),
+                pen_num=pen_num,
+                year=year,
                 fee_type=edit_fee_type,
                 term=edit_term,
                 payment_type=edit_payment_type
@@ -2240,7 +2261,7 @@ def fee_breakdown_form():
             
             if not fee_breakdown:
                 flash('Fee breakdown record not found', 'danger')
-        except ValueError:
+        else:
             flash('Invalid parameters specified for editing', 'danger')
     
     form = FeeBreakdownForm()
@@ -2320,12 +2341,6 @@ def fee_breakdown_form():
                     
                     flash('Fee breakdown updated successfully!', 'success')
                 else:
-                    # Check if receipt number already exists
-                    existing_receipt = FeeBreakdown.query.filter_by(receipt_no=form.receipt_no.data).first()
-                    if existing_receipt:
-                        flash(f'Receipt number {form.receipt_no.data} already exists for another payment', 'danger')
-                        return render_template('fee_breakdown_form.html', title='Fee Breakdown', form=form, fee_breakdown=fee_breakdown)
-                    
                     # Create new record
                     db.session.add(FeeBreakdown(
                         pen_num=pen_num,
@@ -2658,7 +2673,10 @@ def view_table():
             session.pop('pen_num', None)
             pen_num = None
     elif pen_num_str:
-        pen_num = int(pen_num_str)
+        try:
+            pen_num = int(pen_num_str)
+        except ValueError:
+            pen_num = None
         
     # Get model class based on table name
     if table_name:
@@ -2811,6 +2829,246 @@ def export_csv(table_name):
         flash(f"Error exporting data: {str(e)}", "danger")
         return redirect(url_for('report_bp.view_table'))
 
+@report_bp.route("/fee_summary_report", methods=["POST"])
+@login_required
+def fee_summary_report():
+    """Generate fee summary report with filters.
+    
+    Returns:
+        Rendered view table page with fee summary data or CSV download
+    """
+    try:
+        # Get form data
+        summary_pen_num = request.form.get('summary_pen_num', '').strip()
+        summary_class = request.form.get('summary_class', '').strip()
+        summary_year = request.form.get('summary_year', '').strip()
+        summary_start_date = request.form.get('summary_start_date', '').strip()
+        summary_end_date = request.form.get('summary_end_date', '').strip()
+        action = request.form.get('action', 'view')
+        
+        # Convert filters to appropriate types
+        pen_num_filter = None
+        class_filter = None
+        year_filter = None
+        start_date_filter = None
+        end_date_filter = None
+        
+        if summary_pen_num:
+            try:
+                pen_num_filter = int(summary_pen_num)
+            except ValueError:
+                flash("Invalid PEN Number format", "warning")
+                
+        # Updated: Handle string class filter
+        if summary_class:
+            class_filter = summary_class.strip()
+            if class_filter not in VALID_CLASSES:
+                flash(f"Invalid Class. Must be one of: {', '.join(VALID_CLASSES)}", "warning")
+                class_filter = None
+                
+        if summary_year:
+            try:
+                year_filter = int(summary_year)
+            except ValueError:
+                flash("Invalid Year format", "warning")
+                
+        if summary_start_date:
+            try:
+                start_date_filter = datetime.strptime(summary_start_date, '%Y-%m-%d').date()
+            except ValueError:
+                flash("Invalid start date format", "warning")
+                
+        if summary_end_date:
+            try:
+                end_date_filter = datetime.strptime(summary_end_date, '%Y-%m-%d').date()
+            except ValueError:
+                flash("Invalid end date format", "warning")
+        
+        # Build the main query with joins
+        query = db.session.query(
+            Student.pen_num,
+            Student.student_name,
+            ClassDetails.current_class,
+            ClassDetails.section,
+            Fee.year,
+            func.coalesce(Fee.school_fee - Fee.school_fee_concession, 0).label('total_school_fee'),
+            func.coalesce(Fee.transport_fee - Fee.transport_fee_concession, 0).label('total_transport_fee'),
+            func.coalesce(Fee.application_fee, 0).label('total_application_fee'),
+            func.coalesce(func.sum(
+                case(
+                    (FeeBreakdown.fee_type == 'School', FeeBreakdown.paid),
+                    else_=0
+                )
+            ), 0).label('school_fee_paid'),
+            func.coalesce(func.sum(
+                case(
+                    (FeeBreakdown.fee_type == 'Transport', FeeBreakdown.paid),
+                    else_=0
+                )
+            ), 0).label('transport_fee_paid'),
+            func.coalesce(func.sum(
+                case(
+                    (FeeBreakdown.fee_type == 'Application', FeeBreakdown.paid),
+                    else_=0
+                )
+            ), 0).label('application_fee_paid')
+        ).select_from(
+            Student
+        ).join(
+            Fee, Student.pen_num == Fee.pen_num
+        ).join(
+            ClassDetails, (ClassDetails.pen_num == Student.pen_num) & (ClassDetails.year == Fee.year)
+        ).outerjoin(
+            FeeBreakdown, (FeeBreakdown.pen_num == Fee.pen_num) & (FeeBreakdown.year == Fee.year)
+        )
+        
+        # Apply filters
+        if pen_num_filter:
+            query = query.filter(Student.pen_num == pen_num_filter)
+            
+        # Updated: Use string comparison for class filter
+        if class_filter:
+            query = query.filter(ClassDetails.current_class == class_filter)
+            
+        if year_filter:
+            query = query.filter(Fee.year == year_filter)
+            
+        if start_date_filter:
+            query = query.filter(Fee.created_at >= start_date_filter)
+            
+        if end_date_filter:
+            # Include the entire end day
+            end_date_inclusive = end_date_filter + timedelta(days=1)
+            query = query.filter(Fee.created_at < end_date_inclusive)
+        
+        # Group by to aggregate payments
+        query = query.group_by(
+            Student.pen_num,
+            Student.student_name,
+            ClassDetails.current_class,
+            ClassDetails.section,
+            Fee.year,
+            Fee.school_fee,
+            Fee.school_fee_concession,
+            Fee.transport_fee,
+            Fee.transport_fee_concession,
+            Fee.application_fee
+        ).order_by(Student.pen_num, Fee.year)
+        
+        # Execute query and calculate outstanding amounts
+        raw_results = query.all()
+        fee_summary_data = []
+        
+        for row in raw_results:
+            total_fees = row.total_school_fee + row.total_transport_fee + row.total_application_fee
+            total_paid = row.school_fee_paid + row.transport_fee_paid + row.application_fee_paid
+            total_outstanding = max(0, total_fees - total_paid)
+            
+            fee_summary_data.append({
+                'pen_num': row.pen_num,
+                'student_name': row.student_name,
+                'current_class': row.current_class,
+                'section': row.section,
+                'year': row.year,
+                'total_school_fee': float(row.total_school_fee or 0),
+                'total_transport_fee': float(row.total_transport_fee or 0),
+                'total_application_fee': float(row.total_application_fee or 0),
+                'school_fee_paid': float(row.school_fee_paid or 0),
+                'transport_fee_paid': float(row.transport_fee_paid or 0),
+                'application_fee_paid': float(row.application_fee_paid or 0),
+                'total_outstanding': float(total_outstanding)
+            })
+        
+        # Log the activity
+        filter_desc = []
+        if pen_num_filter:
+            filter_desc.append(f"PEN: {pen_num_filter}")
+        if class_filter:
+            filter_desc.append(f"Class: {class_filter}")
+        if year_filter:
+            filter_desc.append(f"Year: {year_filter}")
+        if start_date_filter:
+            filter_desc.append(f"From: {start_date_filter}")
+        if end_date_filter:
+            filter_desc.append(f"To: {end_date_filter}")
+        
+        filter_string = ", ".join(filter_desc) if filter_desc else "No filters"
+        
+        log_activity('generated', 'FeeSummary', 'REPORT', 
+                    f"Generated fee summary report with filters: {filter_string}")
+        
+        # Handle download action
+        if action == 'download':
+            return generate_fee_summary_csv(fee_summary_data)
+        
+        # For view action, render the template with data
+        form = TableSelectForm()
+        return render_template("view_table.html", 
+                              data=None,  # Keep existing table data separate
+                              pagination=None,
+                              table_name=None, 
+                              form=form,
+                              fee_summary_data=fee_summary_data,
+                              start_date=None, 
+                              end_date=None)
+        
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        log_exception(e, "Database error generating fee summary")
+        flash("Error generating fee summary report. Please try again.", "danger")
+        return redirect(url_for('report_bp.view_table'))
+    except Exception as e:
+        log_exception(e, "Error generating fee summary")
+        flash("An error occurred while generating the report. Please try again.", "danger")
+        return redirect(url_for('report_bp.view_table'))
+
+
+def generate_fee_summary_csv(fee_summary_data):
+    """Generate a CSV file for fee summary data.
+    
+    Args:
+        fee_summary_data: List of fee summary records
+        
+    Returns:
+        Flask Response object with CSV data
+    """
+    output = StringIO()
+    fieldnames = [
+        'pen_num', 'student_name', 'class', 'year', 
+        'total_school_fee', 'total_transport_fee', 'total_application_fee',
+        'school_fee_paid', 'transport_fee_paid', 'application_fee_paid',
+        'total_outstanding'
+    ]
+    
+    writer = csv.DictWriter(output, fieldnames=fieldnames)
+    writer.writeheader()
+    
+    for row in fee_summary_data:
+        csv_row = {
+            'pen_num': row['pen_num'],
+            'student_name': row['student_name'],
+            'class': f"{row['current_class']}-{row['section']}",
+            'year': row['year'],
+            'total_school_fee': row['total_school_fee'],
+            'total_transport_fee': row['total_transport_fee'],
+            'total_application_fee': row['total_application_fee'],
+            'school_fee_paid': row['school_fee_paid'],
+            'transport_fee_paid': row['transport_fee_paid'],
+            'application_fee_paid': row['application_fee_paid'],
+            'total_outstanding': row['total_outstanding']
+        }
+        writer.writerow(csv_row)
+    
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f'fee_summary_report_{timestamp}.csv'
+    
+    response = Response(output.getvalue(), mimetype='text/csv')
+    response.headers['Content-Disposition'] = f'attachment; filename={filename}'
+    response.headers['X-Filename'] = filename
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['Content-Security-Policy'] = "default-src 'self'"
+    return response
+
 
 # --- Error handlers (will be registered in __init__.py) ---
 def page_not_found(e):
@@ -2863,3 +3121,13 @@ def too_many_requests(e):
     """
     logger.warning(f"Rate limit exceeded: {request.path} - IP: {request.remote_addr}")
     return render_template('429.html'), 429
+
+
+def register_template_filters(app):
+    """Register template filters with the Flask app.
+    
+    Args:
+        app: Flask application instance
+    """
+    app.jinja_env.filters['format_datetime'] = format_datetime
+    app.jinja_env.filters['mask_aadhar'] = mask_aadhar

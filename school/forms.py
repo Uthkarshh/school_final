@@ -32,6 +32,10 @@ MAX_UPLOAD_SIZE = int(os.environ.get('MAX_UPLOAD_SIZE', 5 * 1024 * 1024))  # 5MB
 RECAPTCHA_ENABLED = os.environ.get('RECAPTCHA_ENABLED', 'False').lower() == 'true'
 MIN_PASSWORD_LENGTH = int(os.environ.get('MIN_PASSWORD_LENGTH', 8))
 
+# Valid class choices - must match the ones in models.py
+VALID_CLASSES = ["Nursery", "LKG", "UKG", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"]
+CLASS_CHOICES = [(cls, cls) for cls in VALID_CLASSES]
+
 
 def sanitize_string(value: str) -> str:
     """Sanitize a string input by removing dangerous characters.
@@ -386,10 +390,12 @@ class StudentForm(BaseForm):
         description="School admission number"
     )
     
-    aadhar_number = IntegerField(
+    aadhar_number = StringField(  # Changed from IntegerField to StringField
         'Aadhar Number', 
         validators=[
-            DataRequired(message="Aadhar Number is required")
+            DataRequired(message="Aadhar Number is required"),
+            Length(min=12, max=12, message="Aadhar Number must be exactly 12 digits"),
+            Regexp(r'^\d{12}$', message="Aadhar Number must contain only digits")
         ],
         description="12-digit government ID number"
     )
@@ -503,24 +509,35 @@ class StudentForm(BaseForm):
             if self.date_of_birth.data and field.data < self.date_of_birth.data:
                 raise ValidationError('Date of joining cannot be before date of birth')
     
-    def validate_aadhar_number(self, field: IntegerField) -> None:
-        """Validate Aadhar number format (12 digits).
+    def validate_aadhar_number(self, field: StringField) -> None:
+        """Validate Aadhar number format and uniqueness.
         
         Args:
             field: The aadhar_number field to validate
             
         Raises:
-            ValidationError: If the Aadhar number is not 12 digits
+            ValidationError: If the Aadhar number is invalid or already exists
         """
         if field.data:
-            aadhar_str = str(field.data)
-            if len(aadhar_str) != 12:
-                raise ValidationError('Aadhar number must be 12 digits')
+            # Clean the input (remove spaces, hyphens, etc.)
+            aadhar_str = re.sub(r'[\s\-]', '', field.data.strip())
+            field.data = aadhar_str  # Update the field data with cleaned value
+            
+            # Validate format
+            if len(aadhar_str) != 12 or not aadhar_str.isdigit():
+                raise ValidationError('Aadhar number must be exactly 12 digits')
                 
             # Check if Aadhar already exists for another student
-            existing_student = Student.query.filter_by(aadhar_number=field.data).first()
-            if existing_student and (not self.pen_num.data or existing_student.pen_num != self.pen_num.data):
-                raise ValidationError(f'Aadhar number already registered for student {existing_student.student_name}')
+            existing_student = Student.query.filter_by(aadhar_number=aadhar_str).first()
+            if existing_student:
+                # If we're updating and it's the same student, allow it
+                if hasattr(self, 'student') and self.student and self.student.pen_num == existing_student.pen_num:
+                    return
+                # If we're adding/updating and PEN matches, allow it
+                if self.pen_num.data and existing_student.pen_num == self.pen_num.data:
+                    return
+                # Otherwise, it's a duplicate
+                raise ValidationError(f'Aadhar number already registered for student {existing_student.student_name} (PEN: {existing_student.pen_num})')
     
     def validate_pen_num(self, field: IntegerField) -> None:
         """Validate PEN number uniqueness for new students.
@@ -531,7 +548,7 @@ class StudentForm(BaseForm):
         Raises:
             ValidationError: If the PEN number already exists for a different student
         """
-        if self.is_submitted():
+        if self.is_submitted() and field.data:
             existing_student = Student.query.get(field.data)
             # If we're adding a new student and the PEN exists
             if existing_student:
@@ -547,10 +564,10 @@ class StudentForm(BaseForm):
         Raises:
             ValidationError: If the admission number already exists for a different student
         """
-        if self.is_submitted():
+        if self.is_submitted() and field.data:
             existing_student = Student.query.filter_by(admission_number=field.data).first()
             if existing_student and (not self.pen_num.data or existing_student.pen_num != self.pen_num.data):
-                raise ValidationError(f'Admission number {field.data} already exists for student {existing_student.student_name}')
+                raise ValidationError(f'Admission number {field.data} already exists for student {existing_student.student_name} (PEN: {existing_student.pen_num})')
     
     def validate_contact_number(self, field: StringField) -> None:
         """Validate contact number format.
@@ -634,13 +651,11 @@ class ClassDetailsForm(BaseForm):
         description="Academic year (e.g., 2023)"
     )
     
-    current_class = IntegerField(
+    current_class = SelectField(  # Changed from IntegerField to SelectField
         'Current Class', 
-        validators=[
-            DataRequired(message="Current Class is required"),
-            NumberRange(min=1, max=12, message="Class must be between 1 and 12")
-        ],
-        description="Student's current grade/class (1-12)"
+        choices=CLASS_CHOICES,
+        validators=[DataRequired(message="Current Class is required")],
+        description="Student's current grade/class"
     )
     
     section = StringField(
@@ -716,6 +731,18 @@ class ClassDetailsForm(BaseForm):
         student = Student.query.get(field.data)
         if not student:
             raise ValidationError(f'Student with PEN number {field.data} does not exist')
+        
+    def validate_current_class(self, field: SelectField) -> None:
+        """Validate current class is in the valid list.
+        
+        Args:
+            field: The current_class field to validate
+            
+        Raises:
+            ValidationError: If the class is not in the valid list
+        """
+        if field.data and field.data not in VALID_CLASSES:
+            raise ValidationError(f'Class must be one of: {", ".join(VALID_CLASSES)}')
         
     def validate_photo_id(self, field: IntegerField) -> None:
         """Validate photo ID uniqueness.
@@ -1067,7 +1094,7 @@ class TableSelectForm(BaseForm):
     
     class_filter = SelectField(
         'Class', 
-        choices=[('', 'All Classes')] + [(str(i), str(i)) for i in range(1, 13)],
+        choices=[('', 'All Classes')] + CLASS_CHOICES,  # Updated to use string-based classes
         validators=[Optional()],
         description="Filter by student's class"
     )
