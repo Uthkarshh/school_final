@@ -34,11 +34,10 @@ if __name__ == '__main__':
     create_tables()
     
     # Run the application
-    # Note: Using debug=True directly as specified in the update
     app.run(
         debug=True,
-        host="0.0.0.0",
-        # Still including these production-ready settings
+        host="127.0.0.1",  # Changed from 0.0.0.0 for local development
+        port=5000,
         threaded=True,
         use_reloader=True
     )
