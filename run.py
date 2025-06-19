@@ -35,8 +35,8 @@ if __name__ == '__main__':
     
     # Run the application
     app.run(
-        debug=True,
-        host="127.0.0.1",  # Changed from 0.0.0.0 for local development
+        debug=False,
+        host="0.0.0.0",  # Changed from 0.0.0.0 for local development
         port=5000,
         threaded=True,
         use_reloader=True

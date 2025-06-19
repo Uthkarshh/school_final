@@ -130,19 +130,19 @@
   --z-auto: auto;
 }
 
-/* Define dark mode color scheme */
+/* Define dark mode color scheme 
 @media (prefers-color-scheme: dark) {
   :root {
     --bg-color: #0f172a;
-    --text-color: #e2e8f0; /* Fixed for better readability */
-    --heading-color: #f8fafc; /* Fixed for better readability */
+    --text-color: #e2e8f0; 
+    --heading-color: #f8fafc;
     --steel-color: #94a3b8;
     --nav-link-color: #a5b4fc;
     --nav-link-hover: #c7d2fe;
     --border-color: #334155;
     --shadow-color: rgba(0, 0, 0, 0.2);
   }
-}
+} */
 
 /* ======================== BASE STYLES ======================== */
 html {
