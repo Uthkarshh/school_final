@@ -995,6 +995,32 @@ def bulk_reject_users():
     return redirect(url_for('admin_bp.admin_users'))
 
 
+# Add this to the admin routes section in routes.py
+
+@admin_bp.route("/manual_backup")
+@login_required
+@admin_required
+def manual_backup():
+    """Trigger manual backup to Google Sheets."""
+    try:
+        from school.backup_service import BackupService
+        
+        backup_service = BackupService(current_app)
+        result = backup_service.manual_backup()
+        
+        if result['success']:
+            flash('Manual backup completed successfully!', 'success')
+            log_activity('backup', 'Database', 'MANUAL', 'Manual backup triggered by admin')
+        else:
+            flash(f'Backup failed: {result["message"]}', 'danger')
+            
+    except Exception as e:
+        log_exception(e, "Manual backup error")
+        flash('An error occurred during backup. Please try again.', 'danger')
+    
+    return redirect(url_for('admin_bp.admin_users'))
+
+
 # --- Student Management ---
 @student_bp.route("/student_form", methods=['GET', 'POST'])
 @login_required

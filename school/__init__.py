@@ -13,6 +13,9 @@ from flask_login import LoginManager
 from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
+import atexit
 
 import logging
 
@@ -36,6 +39,7 @@ bcrypt = Bcrypt()
 login_manager = LoginManager()
 csrf = CSRFProtect()
 limiter = None
+scheduler = None
 
 def init_database():
     """Initialize SQLite database connection."""
@@ -143,6 +147,46 @@ def _configure_rate_limiting(app):
         logger.warning("Flask-Limiter not installed. Rate limiting disabled.")
         return None
 
+def _configure_backup_scheduler(app):
+    """Configure the backup scheduler."""
+    global scheduler
+    
+    # Check if backup is enabled
+    backup_enabled = os.getenv("BACKUP_ENABLED", "true").lower() == "true"
+    if not backup_enabled:
+        logger.info("Backup scheduler disabled via environment variable")
+        return None
+    
+    try:
+        from school.backup_service import BackupService
+        
+        scheduler = BackgroundScheduler()
+        backup_service = BackupService(app)
+        
+        # Schedule backup at midnight every day
+        scheduler.add_job(
+            func=backup_service.run_nightly_backup,
+            trigger=CronTrigger(hour=0, minute=0),  # Run at 12:00 AM
+            id='nightly_backup',
+            name='Nightly Database Backup to Google Sheets',
+            replace_existing=True
+        )
+        
+        scheduler.start()
+        logger.info("Backup scheduler started successfully")
+        
+        # Shut down the scheduler when exiting the app
+        atexit.register(lambda: scheduler.shutdown())
+        
+        return scheduler
+        
+    except ImportError as e:
+        logger.error(f"Failed to import BackupService: {e}")
+        return None
+    except Exception as e:
+        logger.error(f"Failed to configure backup scheduler: {e}")
+        return None
+
 def _register_error_handlers(app):
     """Register error handlers for the application."""
     @app.errorhandler(400)
@@ -228,6 +272,11 @@ def create_app(testing=False):
     # Register routes, blueprints, and error handlers
     _register_routes_and_blueprints(app)
     _register_error_handlers(app)
+    
+    # Configure backup scheduler (only if not testing)
+    if not testing:
+        global scheduler
+        scheduler = _configure_backup_scheduler(app)
 
     return app, db, bcrypt, login_manager, csrf, limiter
 
