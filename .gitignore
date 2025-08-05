@@ -29,6 +29,8 @@ share/python-wheels/
 MANIFEST
 .env
 micro-atrium-439221-n9-2851a0a3083d.json
+*.json
+
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
